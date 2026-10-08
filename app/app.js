@@ -881,12 +881,13 @@ function recipeMethodIntro(m,steps){
 }
 function recipeMethodTitle(text,n,total){
   const t=String(text||'').toLowerCase();
-  if(/serve|plate|spoon over|fill, fold/.test(t)||n===total-1)return'Finish & serve';
+  if(/serve|plate|spoon over|fill, fold/.test(t))return'Finish & serve';
   if(/slice|dice|chop|grate|shape|mix the beef|cut the/.test(t))return'Prepare';
   if(/rice|pasta|spaghetti|noodles|couscous|boil the potatoes/.test(t))return'Start the sides';
   if(/simmer|reduce/.test(t))return'Simmer & develop';
   if(/bake|roast|oven|air-fry/.test(t))return'Bake & finish';
   if(/brown|cook|fry|heat/.test(t))return'Cook';
+  if(n===total-1)return'Finish & serve';
   return'Step '+(n+1);
 }
 function recipeMethodGuidance(raw,m){
