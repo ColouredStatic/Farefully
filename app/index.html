@@ -116,6 +116,13 @@
 .tastebtn[data-value="-1"] span{color:#8b651a}
 .tastebtn[data-value="-2"]{background:#f8e4e1;border-color:#cf8f86;box-shadow:inset 0 0 0 1px rgba(143,58,48,.05)}
 .tastebtn[data-value="-2"] span{color:#8f3a30}
+.ingredienthint{margin:-2px 0 10px}
+.moreingredients{margin:10px 0 14px;border:1px solid var(--line);border-radius:16px;background:#fbfcf9;overflow:hidden}
+.moreingredients summary{cursor:pointer;padding:13px 14px;font-weight:900;color:#315347;list-style:none}
+.moreingredients summary::-webkit-details-marker{display:none}
+.moreingredients summary::after{content:'＋';float:right;color:var(--green)}
+.moreingredients[open] summary::after{content:'−'}
+.moreingredients .tastegrid{padding:0 12px 12px;margin:0}
 .preferencehint{font-size:12px;color:var(--muted);line-height:1.45;margin:7px 0 12px}
 .choicegrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:9px 0 14px}
 .choicebtn{border:1px solid var(--line);background:#fff;border-radius:15px;padding:12px 10px;font-weight:800;color:#425b53}
@@ -191,7 +198,6 @@
 
 /* Farefully Public Beta trust layer */
 .betabadge{display:inline-flex;margin-top:5px;padding:3px 7px;border-radius:999px;background:#eef7e9;color:#245742;font-size:9px;font-weight:900;letter-spacing:.08em}.trustfooter{margin:18px 16px 105px;padding:15px 16px;border:1px solid #e7dfd3;border-radius:18px;background:#fffdf9;color:var(--muted);font-size:12px;line-height:1.5;text-align:center}.trustfooter b{color:var(--ink)}.trustlinks{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-top:9px}.trustlink{border:0;background:transparent;color:var(--green);font-weight:800;padding:5px 7px;text-decoration:underline;text-underline-offset:2px}.trustcopy h3{margin:18px 0 6px;font-size:16px}.trustcopy p{margin:0;color:var(--muted);line-height:1.55}.trustcopy a{color:var(--green);font-weight:800}.trustnote{background:#f4f8f5;border:1px solid #dfece5;border-radius:14px;padding:12px;margin:12px 0}.trustwarn{background:#fff7e8;border:1px solid #f1dfb5;border-radius:14px;padding:12px;margin:12px 0;color:#6b572d}
-.tastehint{margin:-2px 0 10px;line-height:1.45}.ingredient-more{margin-top:10px;border:1px solid var(--line);border-radius:14px;background:#fff}.ingredient-more summary{cursor:pointer;padding:12px 14px;font-weight:900;color:var(--green);list-style:none}.ingredient-more summary::-webkit-details-marker{display:none}.ingredient-more[open] summary{border-bottom:1px solid var(--line)}.ingredient-more-grid{padding:12px}.ingredient-primary{margin-top:8px}.tastebtn b{line-height:1.2}
 </style></head><body><noscript>Farefully needs JavaScript enabled to work.</noscript><div class="app"><header class="top"><div class="brandrow"><div><div class="brand">Farefully 🌿</div><div class="tag">Good food brighter days</div><div class="betabadge">PUBLIC BETA</div></div><button class="profilebtn" id="profileBtn">Set up</button></div></header><main><section class="screen active" id="home">
 <div class="setupbanner" id="setupBanner">
 <div>
@@ -319,9 +325,7 @@
 <button class="tastebtn" data-group="style" data-key="roast" data-value="0" id="ff_evt_31"><b>🍗 Roast dinners</b><span>Fine</span></button>
 <button class="tastebtn" data-group="style" data-key="quick" data-value="0" id="ff_evt_32"><b>⚡ Quick meals</b><span>Fine</span></button>
 </div>
-<h3>Common ingredients</h3>
-<div class="small tastehint">Tap to cycle Fine → Love it → Not keen → Never suggest. Related versions are grouped together, so “Tomatoes” also covers passata and chopped tomatoes.</div>
-<div class="tastegrid ingredient-primary">
+<h3>Common ingredients</h3><p class="hint ingredienthint">Tap through Fine → Love it → Not keen → Never suggest. “Never suggest” is a strict exclusion.</p><div class="tastegrid ingredientgrid">
 <button class="tastebtn" data-group="ingredient" data-key="cheese" data-value="0" id="ff_ing_cheese"><b>🧀 Cheese</b><span>Fine</span></button>
 <button class="tastebtn" data-group="ingredient" data-key="onions" data-value="0" id="ff_ing_onions"><b>🧅 Onions</b><span>Fine</span></button>
 <button class="tastebtn" data-group="ingredient" data-key="broccoli" data-value="0" id="ff_ing_broccoli"><b>🥦 Broccoli</b><span>Fine</span></button>
@@ -331,28 +335,26 @@
 <button class="tastebtn" data-group="ingredient" data-key="sweetcorn" data-value="0" id="ff_ing_sweetcorn"><b>🌽 Sweetcorn</b><span>Fine</span></button>
 <button class="tastebtn" data-group="ingredient" data-key="peas" data-value="0" id="ff_ing_peas"><b>🟢 Peas</b><span>Fine</span></button>
 <button class="tastebtn" data-group="ingredient" data-key="carrots" data-value="0" id="ff_ing_carrots"><b>🥕 Carrots</b><span>Fine</span></button>
-<button class="tastebtn" data-group="ingredient" data-key="potatoes" data-value="0" id="ff_ing_potatoes"><b>🥔 Potatoes</b><span>Fine</span></button>
+<button class="tastebtn" data-group="ingredient" data-key="spinach" data-value="0" id="ff_ing_spinach"><b>🌿 Spinach</b><span>Fine</span></button>
 </div>
-<details class="ingredient-more">
-<summary>＋ More common ingredients</summary>
-<div class="tastegrid ingredient-more-grid">
-<button class="tastebtn" data-group="ingredient" data-key="spinach" data-value="0" id="ff_ing_spinach"><b>🥬 Spinach</b><span>Fine</span></button>
+<details class="moreingredients"><summary>More common ingredients</summary><div class="tastegrid ingredientgrid">
 <button class="tastebtn" data-group="ingredient" data-key="courgettes" data-value="0" id="ff_ing_courgettes"><b>🥒 Courgettes</b><span>Fine</span></button>
-<button class="tastebtn" data-group="ingredient" data-key="cucumber" data-value="0" id="ff_ing_cucumber"><b>🥒 Cucumber</b><span>Fine</span></button>
-<button class="tastebtn" data-group="ingredient" data-key="cauliflower" data-value="0" id="ff_ing_cauliflower"><b>🥦 Cauliflower</b><span>Fine</span></button>
-<button class="tastebtn" data-group="ingredient" data-key="pasta" data-value="0" id="ff_ing_pasta"><b>🍝 Pasta</b><span>Fine</span></button>
-<button class="tastebtn" data-group="ingredient" data-key="rice" data-value="0" id="ff_ing_rice"><b>🍚 Rice</b><span>Fine</span></button>
-<button class="tastebtn" data-group="ingredient" data-key="bread" data-value="0" id="ff_ing_bread"><b>🍞 Bread & buns</b><span>Fine</span></button>
-<button class="tastebtn" data-group="ingredient" data-key="wraps" data-value="0" id="ff_ing_wraps"><b>🌯 Wraps & tortillas</b><span>Fine</span></button>
-<button class="tastebtn" data-group="ingredient" data-key="eggs" data-value="0" id="ff_ing_eggs"><b>🥚 Eggs</b><span>Fine</span></button>
-<button class="tastebtn" data-group="ingredient" data-key="chickpeas" data-value="0" id="ff_ing_chickpeas"><b>🫘 Chickpeas & falafel</b><span>Fine</span></button>
-<button class="tastebtn" data-group="ingredient" data-key="lentils" data-value="0" id="ff_ing_lentils"><b>🫘 Lentils</b><span>Fine</span></button>
+<button class="tastebtn" data-group="ingredient" data-key="cauliflower" data-value="0" id="ff_ing_cauliflower"><b>☁️ Cauliflower</b><span>Fine</span></button>
+<button class="tastebtn" data-group="ingredient" data-key="aubergine" data-value="0" id="ff_ing_aubergine"><b>🍆 Aubergine</b><span>Fine</span></button>
 <button class="tastebtn" data-group="ingredient" data-key="garlic" data-value="0" id="ff_ing_garlic"><b>🧄 Garlic</b><span>Fine</span></button>
-<button class="tastebtn" data-group="ingredient" data-key="coconut" data-value="0" id="ff_ing_coconut"><b>🥥 Coconut milk</b><span>Fine</span></button>
-<button class="tastebtn" data-group="ingredient" data-key="chilli" data-value="0" id="ff_ing_chilli"><b>🌶️ Chilli</b><span>Fine</span></button>
-<button class="tastebtn" data-group="ingredient" data-key="pesto" data-value="0" id="ff_ing_pesto"><b>🌿 Pesto</b><span>Fine</span></button>
-</div>
-</details>
+<button class="tastebtn" data-group="ingredient" data-key="potatoes" data-value="0" id="ff_ing_potatoes"><b>🥔 Potatoes</b><span>Fine</span></button>
+<button class="tastebtn" data-group="ingredient" data-key="sweetpotatoes" data-value="0" id="ff_ing_sweetpotatoes"><b>🍠 Sweet potatoes</b><span>Fine</span></button>
+<button class="tastebtn" data-group="ingredient" data-key="bread" data-value="0" id="ff_ing_bread"><b>🍞 Bread & flatbreads</b><span>Fine</span></button>
+<button class="tastebtn" data-group="ingredient" data-key="cream" data-value="0" id="ff_ing_cream"><b>🥛 Cream</b><span>Fine</span></button>
+<button class="tastebtn" data-group="ingredient" data-key="yoghurt" data-value="0" id="ff_ing_yoghurt"><b>🥣 Yoghurt</b><span>Fine</span></button>
+<button class="tastebtn" data-group="ingredient" data-key="coconutmilk" data-value="0" id="ff_ing_coconutmilk"><b>🥥 Coconut milk</b><span>Fine</span></button>
+<button class="tastebtn" data-group="ingredient" data-key="tuna" data-value="0" id="ff_ing_tuna"><b>🐟 Tuna</b><span>Fine</span></button>
+<button class="tastebtn" data-group="ingredient" data-key="chickpeas" data-value="0" id="ff_ing_chickpeas"><b>🫘 Chickpeas</b><span>Fine</span></button>
+<button class="tastebtn" data-group="ingredient" data-key="lentils" data-value="0" id="ff_ing_lentils"><b>🫘 Lentils</b><span>Fine</span></button>
+<button class="tastebtn" data-group="ingredient" data-key="beans" data-value="0" id="ff_ing_beans"><b>🫘 Beans</b><span>Fine</span></button>
+<button class="tastebtn" data-group="ingredient" data-key="cucumber" data-value="0" id="ff_ing_cucumber"><b>🥒 Cucumber</b><span>Fine</span></button>
+<button class="tastebtn" data-group="ingredient" data-key="lettuce" data-value="0" id="ff_ing_lettuce"><b>🥬 Lettuce</b><span>Fine</span></button>
+</div></details>
 <div class="setupnav"><button class="secondarywide" id="ff_evt_33">← Back</button><button class="primary" id="ff_evt_34">Next →</button></div>
 </div>
 <div class="setupstep" id="setupStep4">
