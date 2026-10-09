@@ -19,6 +19,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Generate branded sharing card
+        run: |
+          python3 -m pip install --quiet --disable-pip-version-check Pillow
+          python3 tools/generate_social_card.py
       - name: Configure Pages
         uses: actions/configure-pages@v5
         with:
