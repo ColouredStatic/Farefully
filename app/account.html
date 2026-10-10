@@ -28,7 +28,12 @@ async function refreshGiftAccess(){
    availability.textContent=open?'Farefully Plus gift redemptions are available. Enter your code below.':'Gift codes are reserved now and will become redeemable when Farefully Plus launches. Your 12-month period will not start before launch.';
    if(access.error){membership.textContent='Membership status is temporarily unavailable.';return}
    const m=access.data||{};
-   if(m.gift_lifetime)membership.textContent='Your membership: Lifetime Farefully Plus';
+   if(m.gift_lifetime){
+     membership.textContent='★ Lifetime Farefully Plus is active on this account. Sign in with the same email on any device. No code needs to be entered again.';
+     button.dataset.launchLocked='true';
+     button.disabled=true;
+     availability.textContent='Your lifetime Plus access is already active. No further gift code is needed.';
+   }
    else if(m.gift_expires_at&&new Date(m.gift_expires_at)>new Date()) membership.textContent='Your gifted Plus access lasts until '+new Date(m.gift_expires_at).toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'})+'.';
    else if(m.active)membership.textContent='Your Farefully Plus membership is active.';
    else membership.textContent='Your current account does not have Plus access.';
