@@ -1131,10 +1131,16 @@ async function cloudStart(){
    cloudStatus(Object.keys(CLOUD_OUTBOX).length?'Restoring pending changes…':'Cloud connected');
    cloudHideGate();
    CLOUD_CLIENT.auth.onAuthStateChange(event=>{
-     if(event==='SIGNED_OUT'){CLOUD_READY=false;cloudShowGate('Your session ended. Please sign in again.',false)}
+     if(event==='SIGNED_OUT'){
+       CLOUD_READY=false;
+       cloudShowGate('Your session ended. Please sign in again.',false);
+       const login=document.getElementById('cloudGateLogin');
+       if(login)login.style.display='inline-flex';
+     }
    });
    if(Object.keys(CLOUD_OUTBOX).length)cloudFlush();
    document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')cloudFlush()});
+   window.addEventListener('online',()=>{if(Object.keys(CLOUD_OUTBOX).length)cloudFlush()});
    return true;
  }catch(err){
    console.error('Farefully cloud connection failed',err);
@@ -1143,6 +1149,9 @@ async function cloudStart(){
    return false;
  }
 }
+
+const cloudRetryButton=document.getElementById('cloudRetry');
+if(cloudRetryButton)cloudRetryButton.addEventListener('click',()=>window.location.reload());
 
 async function bootstrapFarefully(){
   const connected=await cloudStart();
