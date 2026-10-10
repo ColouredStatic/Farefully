@@ -990,7 +990,8 @@ function showToast(m){const t=document.getElementById('toast');if(!t)return;t.te
  */
 const CLOUD_URL='https://llhbudvpvqnogbgpvcug.supabase.co';
 const CLOUD_PUBLIC_KEY='sb_publishable_8r-gf7lbTGpPyNARUzOVAw_4gSD4I9M';
-let CLOUD_CLIENT=null,CLOUD_USER_ID=null,CLOUD_READY=false,CLOUD_SAVING=false,CLOUD_TIMER=null,CLOUD_OUTBOX={};
+let CLOUD_CLIENT=null,CLOUD_USER_ID=null,CLOUD_READY=false,CLOUD_SAVING=false,CLOUD_TIMER=null,CLOUD_OUTBOX={},CLOUD_CONFLICT_ID=null;
+const CLOUD_REVISIONS=new Map();
 let CLOUD_OUTBOX_KEY='';
 const CLOUD_SYNCED=new Map();
 function cloudStatus(message,problem){
@@ -1021,56 +1022,165 @@ function cloudQueueProfile(id){
  let savedState;
  try{savedState=id===active?state:JSON.parse(store.get(sk(id))||'null')}catch(_){savedState=null}
  if(!savedState||typeof savedState!=='object'||Array.isArray(savedState))return;
- const payload={owner_id:CLOUD_USER_ID,source_profile_id:id,name:String(p.name||'Household').slice(0,150),profile_data:{profile:p,state:savedState}};
+ const snapshot=JSON.parse(JSON.stringify(savedState));
+ const payload={owner_id:CLOUD_USER_ID,source_profile_id:id,name:String(p.name||'Household').slice(0,150),
+  profile_data:{profile:JSON.parse(JSON.stringify(p)),state:snapshot}};
  const serial=JSON.stringify(payload);
  if(CLOUD_SYNCED.get(id)===serial && !CLOUD_OUTBOX[id])return;
- CLOUD_OUTBOX[id]={operation:'save',payload:payload};
+ const current=CLOUD_OUTBOX[id];
+ CLOUD_OUTBOX[id]={operation:'save',payload,
+   baseRevision:current?current.baseRevision:(CLOUD_REVISIONS.get(id)??0)};
  cloudSaveOutbox();
+ if(CLOUD_CONFLICT_ID===id){
+   cloudStatus('A newer cloud copy exists. Choose which changes to keep.',true);
+   return;
+ }
  cloudStatus('Saving changes…');
  clearTimeout(CLOUD_TIMER);
  CLOUD_TIMER=setTimeout(cloudFlush,700);
 }
 function cloudQueueDelete(id){
  if(!CLOUD_READY||!id)return;
- CLOUD_OUTBOX[id]={operation:'delete'};
- CLOUD_SYNCED.delete(id);
+ const current=CLOUD_OUTBOX[id];
+ CLOUD_OUTBOX[id]={operation:'delete',
+   baseRevision:current?current.baseRevision:(CLOUD_REVISIONS.get(id)??0)};
  cloudSaveOutbox();
+ if(CLOUD_CONFLICT_ID===id)return;
  cloudStatus('Saving changes…');
  clearTimeout(CLOUD_TIMER);
  CLOUD_TIMER=setTimeout(cloudFlush,350);
 }
+function cloudConflictVisible(visible){
+ const el=document.getElementById('cloudConflictActions');
+ if(el)el.style.display=visible?'flex':'none';
+}
+function cloudMarkConflict(id){
+ CLOUD_CONFLICT_ID=id;
+ cloudStatus('Sync paused: another device has newer changes. Your edits remain on this device.',true);
+ cloudConflictVisible(true);
+}
 async function cloudFlush(){
- if(!CLOUD_READY||CLOUD_SAVING||!CLOUD_CLIENT)return;
+ if(!CLOUD_READY||CLOUD_SAVING||!CLOUD_CLIENT||CLOUD_CONFLICT_ID)return;
  CLOUD_SAVING=true;
  clearTimeout(CLOUD_TIMER);
  let failed=false;
  try{
-   while(CLOUD_READY && Object.keys(CLOUD_OUTBOX).length){
+   while(CLOUD_READY&&!CLOUD_CONFLICT_ID&&Object.keys(CLOUD_OUTBOX).length){
      const id=Object.keys(CLOUD_OUTBOX)[0];
      const change=CLOUD_OUTBOX[id];
-     let result;
+     if(!Number.isSafeInteger(change.baseRevision)||change.baseRevision<0){
+       cloudMarkConflict(id);failed=true;break;
+     }
+     let response;
      if(change.operation==='delete'){
-       result=await CLOUD_CLIENT.from('households').delete().eq('owner_id',CLOUD_USER_ID).eq('source_profile_id',id);
-     }else if(change.operation==='save' && change.payload && change.payload.owner_id===CLOUD_USER_ID){
-       result=await CLOUD_CLIENT.from('households').upsert(change.payload,{onConflict:'owner_id,source_profile_id'});
+       response=await CLOUD_CLIENT.rpc('delete_household_versioned',{
+         p_source_profile_id:id,p_expected_revision:change.baseRevision
+       });
+     }else if(change.operation==='save'&&change.payload&&change.payload.owner_id===CLOUD_USER_ID){
+       response=await CLOUD_CLIENT.rpc('save_household_versioned',{
+         p_source_profile_id:id,
+         p_name:change.payload.name,
+         p_profile_data:change.payload.profile_data,
+         p_expected_revision:change.baseRevision
+       });
      }else{
        cloudStatus('A pending change needs attention. Please contact support.',true);
        failed=true;break;
      }
-     if(result.error)throw result.error;
-     if(CLOUD_OUTBOX[id]===change){
-       if(change.operation==='save')CLOUD_SYNCED.set(id,JSON.stringify(change.payload));
-       delete CLOUD_OUTBOX[id];
-       cloudSaveOutbox();
+     if(response.error)throw response.error;
+     const data=response.data||{};
+     if(data.status==='conflict'){
+       cloudMarkConflict(id);failed=true;break;
      }
+     if(!['saved','deleted'].includes(data.status))throw new Error('Cloud rejected a pending household change.');
+     const revision=data.status==='saved'?data.revision:0;
+     if(data.status==='saved'){
+       if(!Number.isSafeInteger(revision)||revision<1)throw new Error('Unexpected cloud revision.');
+       CLOUD_REVISIONS.set(id,revision);
+     }else{
+       CLOUD_REVISIONS.delete(id);
+       CLOUD_SYNCED.delete(id);
+     }
+     if(CLOUD_OUTBOX[id]===change){
+       if(data.status==='saved')CLOUD_SYNCED.set(id,JSON.stringify(change.payload));
+       delete CLOUD_OUTBOX[id];
+     }else if(CLOUD_OUTBOX[id]){
+       // The user made another change while this save was in flight.
+       // It now builds on the revision that the previous write committed.
+       CLOUD_OUTBOX[id].baseRevision=revision;
+     }
+     cloudSaveOutbox();
    }
  }catch(err){
    failed=true;
    console.warn('Farefully cloud save was deferred',err);
-   cloudStatus('Not synced yet. Your changes are saved on this device. Retry when online.',true);
+   cloudStatus('Not synced yet. Edits are safe on this device. Retry when online.',true);
  }finally{
    CLOUD_SAVING=false;
-   if(!failed){cloudStatus('All changes saved securely');}
+   if(!failed)cloudStatus('All changes saved securely');
+ }
+}
+async function cloudResolveConflict(keepLocal){
+ const id=CLOUD_CONFLICT_ID,change=id&&CLOUD_OUTBOX[id];
+ if(!id||!change||!CLOUD_CLIENT)return;
+ cloudConflictVisible(false);
+ cloudStatus('Resolving cloud changes…');
+ try{
+   const {data:rows,error}=await CLOUD_CLIENT.from('households')
+      .select('source_profile_id,name,profile_data,revision')
+      .eq('owner_id',CLOUD_USER_ID).eq('source_profile_id',id).limit(1);
+   if(error)throw error;
+   const latest=rows?.[0]||null;
+   if(keepLocal){
+     const revision=latest?.revision??0;
+     if(!Number.isSafeInteger(revision))throw new Error('Invalid cloud revision.');
+     CLOUD_REVISIONS.set(id,revision);
+     change.baseRevision=revision;
+     cloudSaveOutbox();
+     CLOUD_CONFLICT_ID=null;
+     await cloudFlush();
+     return;
+   }
+   if(!window.confirm('Load the newer cloud version? This will replace the unsaved edits shown on this device. A browser-only backup of these edits will be retained.')) {
+     cloudConflictVisible(true);
+     cloudStatus('Sync paused until you choose which version to keep.',true);
+     return;
+   }
+   const backupKey='farefully_conflict_backup_'+CLOUD_USER_ID+'_'+id+'_'+Date.now();
+   localStorage.setItem(backupKey,JSON.stringify(change));
+   delete CLOUD_OUTBOX[id];
+   cloudSaveOutbox();
+   CLOUD_CONFLICT_ID=null;
+   if(latest&&latest.profile_data?.profile&&latest.profile_data?.state){
+     const p=latest.profile_data.profile,remoteState=latest.profile_data.state;
+     CLOUD_REVISIONS.set(id,latest.revision);
+     const payload={owner_id:CLOUD_USER_ID,source_profile_id:id,name:latest.name,
+       profile_data:{profile:p,state:remoteState}};
+     CLOUD_SYNCED.set(id,JSON.stringify(payload));
+     const idx=profiles.findIndex(x=>x.id===id);
+     if(idx>=0)profiles[idx]=p;else profiles.push(p);
+     store.set(PK,JSON.stringify(profiles));
+     store.set(sk(id),JSON.stringify(remoteState));
+     if(id===active){state=JSON.parse(JSON.stringify(remoteState));normalizeState()}
+   }else{
+     CLOUD_REVISIONS.delete(id);
+     CLOUD_SYNCED.delete(id);
+     profiles=profiles.filter(x=>x.id!==id);
+     store.set(PK,JSON.stringify(profiles));
+     store.del(sk(id));
+     if(active===id){
+       active=profiles[0]?.id||null;
+       if(active){store.set(AK,active);load()}
+       else{store.del(AK);state=def();document.getElementById('welcome')?.classList.add('show')}
+     }
+   }
+   cloudConflictVisible(false);
+   render();
+   cloudStatus('Loaded the latest cloud copy. A backup of your unsent edits remains in this browser.');
+   if(Object.keys(CLOUD_OUTBOX).length)cloudFlush();
+ }catch(err){
+   console.warn('Could not resolve cloud conflict',err);
+   cloudMarkConflict(id);
  }
 }
 async function cloudRefreshPlusBadge(){
@@ -1110,7 +1220,7 @@ async function cloudStart(){
      CLOUD_OUTBOX=(pending&&typeof pending==='object'&&!Array.isArray(pending))?pending:{};
    }catch(_){CLOUD_OUTBOX={}}
    const {data:rows,error}=await CLOUD_CLIENT.from('households')
-     .select('source_profile_id,name,profile_data')
+     .select('source_profile_id,name,profile_data,revision')
      .eq('owner_id',CLOUD_USER_ID)
      .order('created_at',{ascending:true}).limit(200);
    if(error)throw error;
@@ -1122,6 +1232,7 @@ async function cloudStart(){
      const payload={owner_id:CLOUD_USER_ID,source_profile_id:p.id,name:row.name,profile_data:{profile:p,state:ps}};
      remote.set(p.id,payload);
      CLOUD_SYNCED.set(p.id,JSON.stringify(payload));
+     CLOUD_REVISIONS.set(p.id,row.revision);
    }
    // Pending changes are account-specific. Never throw away an unsent edit.
    for(const [id,change] of Object.entries(CLOUD_OUTBOX)){
@@ -1168,6 +1279,10 @@ async function cloudStart(){
 
 const cloudRetryButton=document.getElementById('cloudRetry');
 if(cloudRetryButton)cloudRetryButton.addEventListener('click',()=>window.location.reload());
+const cloudKeepLocal=document.getElementById('cloudKeepLocal');
+if(cloudKeepLocal)cloudKeepLocal.addEventListener('click',()=>cloudResolveConflict(true));
+const cloudUseLatest=document.getElementById('cloudUseLatest');
+if(cloudUseLatest)cloudUseLatest.addEventListener('click',()=>cloudResolveConflict(false));
 
 async function bootstrapFarefully(){
   const connected=await cloudStart();
