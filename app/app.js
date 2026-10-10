@@ -1073,6 +1073,21 @@ async function cloudFlush(){
    if(!failed){cloudStatus('All changes saved securely');}
  }
 }
+async function cloudRefreshPlusBadge(){
+  const badge=document.getElementById('farefullyPlusBadge');
+  if(!badge||!CLOUD_CLIENT)return;
+  try{
+    const {data,error}=await CLOUD_CLIENT.rpc('get_farefully_plus_status');
+    if(error)throw error;
+    badge.hidden=!data?.active;
+    if(data?.active){
+      badge.textContent=data.gift_lifetime?'★ Plus · Lifetime':'★ Farefully Plus';
+    }
+  }catch(err){
+    badge.hidden=true;
+    console.warn('Farefully membership status pending',err);
+  }
+}
 async function cloudStart(){
  cloudShowGate('Connecting to your Farefully account…',false);
  if(!window.supabase?.createClient){
@@ -1130,6 +1145,7 @@ async function cloudStart(){
    CLOUD_READY=true;
    cloudStatus(Object.keys(CLOUD_OUTBOX).length?'Restoring pending changes…':'Cloud connected');
    cloudHideGate();
+   cloudRefreshPlusBadge();
    CLOUD_CLIENT.auth.onAuthStateChange(event=>{
      if(event==='SIGNED_OUT'){
        CLOUD_READY=false;
