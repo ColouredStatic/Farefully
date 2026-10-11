@@ -386,8 +386,22 @@ const METHODS={"curry":["Cook the rice according to the packet instructions and 
 const BATCH_COOK_IDS=new Set(["curry","cottage","pasta","bolognese","meatballs","beefpastabake","chilli","enchiladas","stroganoff","mincehash","pestopasta","tomatochickenpasta","traychicken","chickenbacon","chickenricebake","chickenpie","sausagecass","sausagepasta","sausagetray","sausagehotpot","porkmeatballs","hampasta","fishpie","tunapasta","chickpeacurry","lentilbolo","vegpastabake","maccheese","tomatocheesepasta","beanpotatobake","broccolipasta","chickenhotpot","chickenalfredo","chickenmushroom","chickentomatobake","chickensweetcornpasta","chickenbroccoli","chickenmushroomrice","chickenpea_pasta","chickencouscous2","chickenvegsoup","chickenpotatocurry","chickenham_bake","beefcottagepots","beefbeanrice","beefwrapbake","beefmushroompasta","beeftomatorice","beefcheesypasta","beefpotatoonepan","beefmeatballrice","sausagebeanpasta","sausagecheesybake","sausagecurry","porkpasta","baconpeapasta","tunapasta2","tunatomatopasta","fishpasta","lentilcurry","beanrice","chickpearice","lentilpasta","vegtraybake","mushroompasta","mushroomrice","broccolirice","beanpasta","spinachpasta","tomatorice","cheesepotatopie","lentilpie","chickpeapasta","chickenpie2","beefpotpie","sausagepie","hamcheesepie","tofuncurry","blackbeanrice","mixedbeanchilli","lentilshepherd","puytray","cannellinipasta","butterbeancurry","eggchickpeacurry","chickenkorma2","chickentikkabowls","chickenleekmashpie","chickenmeatballrice","chickenpolenta","chickenquinoatray","beefstewmash","beeflasagne2","meatloafmash","chillijackets2","beefpolenta","beeftacobowl","beefsweetpotatohash","porkpepperrice","gammonpineapplerice","tunafishcakeshome","prawntomatorice","pollockpotatotray","sweetpotatochickpeacurry2","lentildhal2","butterbeanpotstew","cauliflowercheeseroast","mushroomstroganoff2","tofusweetpotatocurry","rootveglentilroast"]);
 const FREEZER_IDS=new Set(["curry","cottage","pasta","bolognese","meatballs","beefpastabake","chilli","enchiladas","chickenricebake","chickenpie","sausagecass","sausagehotpot","porkmeatballs","hampasta","fishpie","tunapasta","chickpeacurry","lentilbolo","vegpastabake","beanpotatobake","chickenhotpot","chickentomatobake","chickenbroccoli","chickenvegsoup","chickenpotatocurry","chickenham_bake","beefcottagepots","beefwrapbake","beefpotatoonepan","sausagebeanpasta","sausagecheesybake","sausagecurry","lentilcurry","lentilpasta","cheesepotatopie","lentilpie","chickenpie2","beefpotpie","sausagepie","hamcheesepie","tofuncurry","mixedbeanchilli","lentilshepherd","cannellinipasta","butterbeancurry","chickenkorma2","chickentikkabowls","chickenleekmashpie","chickenmeatballrice","chickenpolenta","beefstewmash","beeflasagne2","meatloafmash","chillijackets2","beefpolenta","beefsweetpotatohash","tunafishcakeshome","sweetpotatochickpeacurry2","lentildhal2","butterbeanpotstew","tofusweetpotatocurry"]);
 function prepFlags(m){return{batch:!!m&&(m.batch===true||BATCH_COOK_IDS.has(m.id)),freeze:!!m&&(m.freeze===true||FREEZER_IDS.has(m.id))}}
-function prepBadges(m){const f=prepFlags(m),b=[];if(f.batch)b.push('<span class="prepbadge batch" title="Easy to scale for extra portions">🍲 Batch cook</span>');if(f.freeze)b.push('<span class="prepbadge freeze" title="Suitable for freezing after cooking">❄️ Freezer friendly</span>');if(homemadeChipsWedges(m))b.push('<span class="prepbadge potato" title="Uses fresh potatoes for homemade chips or wedges">🥔 Homemade chips / wedges</span>');return b.length?'<div class="prepbadges">'+b.join('')+'</div>':''}
-function prepDetail(m){const f=prepFlags(m),pot=homemadeChipsWedges(m);if(!f.batch&&!f.freeze&&!pot)return'';const bits=[];if(f.batch)bits.push('<b>🍲 Batch cook:</b> This meal is a good candidate for making extra portions in one cooking session.');if(f.freeze)bits.push('<b>❄️ Freezer friendly:</b> Cooked portions can generally be frozen. Cool promptly, label them, and follow the storage and reheating guidance for the ingredients and appliance you use.');if(pot)bits.push('<b>🥔 Homemade chips / wedges:</b> The potato side is made from fresh potatoes, then baked or air-fried rather than relying on frozen chips.');return '<div class="prepbadges">'+(f.batch?'<span class="prepbadge batch">🍲 Batch cook</span>':'')+(f.freeze?'<span class="prepbadge freeze">❄️ Freezer friendly</span>':'')+(pot?'<span class="prepbadge potato">🥔 Homemade chips / wedges</span>':'')+'</div><div class="small">'+bits.join('<br>')+'</div>'}
+function prepBadges(m){
+ const flags=prepFlags(m),badges=[],side=homemadePotatoSide(m);
+ if(flags.batch)badges.push('<span class="prepbadge batch" title="Easy to scale for extra portions">🍲 Batch cook</span>');
+ if(flags.freeze)badges.push('<span class="prepbadge freeze" title="Suitable for freezing after cooking">❄️ Freezer friendly</span>');
+ if(side)badges.push('<span class="prepbadge potato" title="Uses fresh potatoes for homemade '+side+'">🥔 Homemade '+side+'</span>');
+ return badges.length?'<div class="prepbadges">'+badges.join('')+'</div>':'';
+}
+function prepDetail(m){
+ const flags=prepFlags(m),side=homemadePotatoSide(m);
+ if(!flags.batch&&!flags.freeze&&!side)return '';
+ const bits=[];
+ if(flags.batch)bits.push('<b>🍲 Batch cook:</b> This meal is a good candidate for making extra portions in one cooking session.');
+ if(flags.freeze)bits.push('<b>❄️ Freezer friendly:</b> Cooked portions can generally be frozen. Cool promptly, label them, and follow the storage and reheating guidance for the ingredients and appliance you use.');
+ if(side)bits.push('<b>🥔 Homemade '+side+':</b> The '+side+' are made from fresh potatoes, then baked or air-fried rather than relying on frozen '+side+'.');
+ return '<div class="prepbadges">'+(flags.batch?'<span class="prepbadge batch">🍲 Batch cook</span>':'')+(flags.freeze?'<span class="prepbadge freeze">❄️ Freezer friendly</span>':'')+(side?'<span class="prepbadge potato">🥔 Homemade '+side+'</span>':'')+'</div><div class="small">'+bits.join('<br>')+'</div>';
+}
 const SUBS={"milk":{"dairy":"oatmilk","vegan":"oatmilk"},"cheese":{"dairy":"dairyfreecheese","vegan":"dairyfreecheese"},"creamcheese":{"dairy":"plantcreamcheese","vegan":"plantcreamcheese"},"yoghurts":{"dairy":"dairyfreeyoghurt","vegan":"dairyfreeyoghurt"},"pesto":{"dairy":"veganpesto","vegan":"veganpesto"},"mayo":{"egg":"veganmayo","vegan":"veganmayo"},"pasta":{"gluten":"gfpasta"},"spaghetti":{"gluten":"gfspaghetti"},"noodles":{"gluten":"gfnoodles"},"bread":{"gluten":"gfbread"},"wraps":{"gluten":"gfwraps"},"buns":{"gluten":"gfbuns"},"naan":{"gluten":"gfnaan"},"flour":{"gluten":"gfflour"},"breadcrumbs":{"gluten":"gfcrumbs"},"cereal":{"gluten":"gfcereal"},"oats":{"gluten":"gfoats"},"couscous":{"gluten":"gfcouscous"},"biscuits":{"gluten":"gfbiscuits"},"crackers":{"gluten":"gfcrackers"},"soy":{"gluten":"tamari"},"teriyaki":{"gluten":"tamari"}};
 const breakfast=[
 {n:'Cereal & banana',i:{cereal:350,milk:900,bananas:5}},
@@ -547,7 +561,7 @@ function mealStyles(m){
   if(!m)return[];
   const n=(m.n+' '+m.d).toLowerCase(),k=Object.keys(m.i||{}),a=[];
   if(/\bwedges?\b/.test(n))a.push('wedges');
-  else if(/\bchips?\b/.test(n))a.push('chips');
+  if(/\bchips?\b/.test(n))a.push('chips');
   if(/\b(mash|mashed potatoes)\b/.test(n))a.push('mash');
   if(/\bburgers?\b/.test(n))a.push('burger');
   if(k.some(x=>['pasta','spaghetti','orzo','penne','fusilli','macaroni','lasagne','gfpasta','gfspaghetti'].includes(x)))a.push('pasta');
@@ -563,11 +577,14 @@ function mealStyles(m){
 }
 // Pure presentation helper: labels homemade chips/wedges in recipe cards.
 // The planner no longer rewards or forces these dishes into meal plans.
-function homemadeChipsWedges(m){
- if(!m)return false;
- const label=String(m.n||'')+' '+String(m.d||'');
- return !!m.i?.potatoes && /\b(chips?|wedges?)\b/i.test(label);
+function homemadePotatoSide(m){
+ if(!m?.i?.potatoes)return '';
+ const styles=mealStyles(m);
+ if(styles.includes('wedges'))return 'wedges';
+ if(styles.includes('chips'))return 'chips';
+ return '';
 }
+function homemadeChipsWedges(m){return !!homemadePotatoSide(m)}
 // Avoid predictable weekly repeats. Chips and wedges remain distinct sides.
 function excessiveRepeat(m,day,plan=state.plan,lookup=null){
  const styles=mealStyles(m),week=Math.floor(day/7),weeks=Math.max(1,Math.ceil((state.days||14)/7));
