@@ -8,6 +8,7 @@ on:
       - 'app/index.html'
       - 'tests/planner-startup-smoke.mjs'
       - 'tests/household-fit-smoke.mjs'
+      - 'tests/basket-quantity-variety-smoke.mjs'
       - '.github/workflows/planner-smoke.yml'
   pull_request:
     paths:
@@ -15,6 +16,7 @@ on:
       - 'app/index.html'
       - 'tests/planner-startup-smoke.mjs'
       - 'tests/household-fit-smoke.mjs'
+      - 'tests/basket-quantity-variety-smoke.mjs'
       - '.github/workflows/planner-smoke.yml'
   workflow_dispatch:
 
@@ -35,3 +37,5 @@ jobs:
         run: node tests/planner-startup-smoke.mjs
       - name: Test household fit labels and explanations
         run: node tests/household-fit-smoke.mjs
+      - name: Test shopping quantities and meal variety
+        run: node tests/basket-quantity-variety-smoke.mjs
