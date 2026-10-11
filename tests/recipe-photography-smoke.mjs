@@ -103,7 +103,7 @@ assert.equal(curated.enchiladas.provider,'Pexels');
 assert.equal(curated.fishtacos.provider,'Pexels');
 for(const id of ['lentilbolo','broccolipasta']){
   assert.equal(curated[id],undefined,'Do not publish misleading substitute photos for '+id);
-  assert.match(run('image(allDinners().find(m=>m.id==='+JSON.stringify(id)+'))'),/^data:image\\/svg\\+xml/,
+  assert.ok(run('image(allDinners().find(m=>m.id==='+JSON.stringify(id)+'))').startsWith('data:image/svg+xml'),
     'Deferred meal must keep illustrated fallback');
 }
 console.log('Recipe photography checks passed: 43 mapped photos, including eight new licensed images; two weak matches remain illustrated.');
