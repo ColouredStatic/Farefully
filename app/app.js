@@ -712,6 +712,15 @@ function calc(){
   let progress=document.getElementById('basketCollectionProgress');
   if(!progress){progress=document.createElement('div');progress.id='basketCollectionProgress';progress.className='small';document.getElementById('basketGroups').before(progress)}
   progress.textContent=collected+' of '+basketKeys.length+' shopping items collected';
+  let collectionHint=document.getElementById('basketCollectionHint');
+  if(!collectionHint){
+    collectionHint=document.createElement('p');
+    collectionHint.id='basketCollectionHint';
+    collectionHint.className='small';
+    collectionHint.style.cssText='margin:6px 0 14px;line-height:1.45;color:#476459';
+    progress.after(collectionHint);
+  }
+  collectionHint.textContent='Shopping as you go? Tick an item when you put it in your trolley. Tick it again to undo. Your progress saves across devices.';
   document.getElementById('basketGroups').innerHTML=Object.entries(groups).map(([c,items])=>`<div class="aisle card"><div class="aisletop"><h3>${esc(c)}</h3><b>${money(items.reduce((sum,x)=>sum+x[1].line,0))}</b></div>${items.map(([k,v])=>`<div class="shoprow ${state.checked[k]?'done':''}" data-ff-action="toggle-basket" data-key="${esc(k)}"><div class="check">${state.checked[k]?'✓':''}</div><div><b>${esc(P[k].n)}</b><div class="small">${v.live&&v.liveQuote?v.liveQuote.items.map(x=>`${x.packs} × ${esc(x.row.packSize||liveProductName(x.row))}`).join(' + '):`${v.packs} × ${P[k].pack}${P[k].u} · recipe need ${fmtQty(k,state.need[k]||0)}`}${v.have?' · pantry '+fmtQty(k,v.have):''}${v.live?'<span class="liveprice">LIVE PRODUCT</span>':'<span class="fallbackprice">MODEL</span>'}${coeliacMode()&&coeliacLabelCheck(k)?'<span class="fallbackprice">CHECK COELIAC LABEL</span>':''}${wheatFreeMode()&&wheatLabelCheck(k)?'<span class="fallbackprice">CHECK WHEAT LABEL</span>':''}</div>${v.live&&v.liveQuote?`<div class="productdetail">${v.liveQuote.items.map(x=>esc(liveProductName(x.row))).join(' + ')}</div>`:''}</div><b>${money(v.line)}</b></div>`).join('')}</div>`).join('')||'<div class="card" style="padding:16px"><div class="small">No shopping lines yet.</div></div>';
 
   const dietaryNote=document.getElementById('basketDietaryNote');
