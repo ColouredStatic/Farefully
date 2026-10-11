@@ -2,9 +2,16 @@
 
 Status: internal preparation only. No live billing is authorised.
 
-## Product offer
-Free: core dietary safety filters, seven-day planning, saved household, recipes, shopping basket and cloud sync.
-Plus proposal: fourteen-day planning, extra recipe and basket controls, advanced repeat variety and optional verified retailer savings. Proposed prices are GBP 3.99 monthly and GBP 34.99 yearly. Requires owner sign-off and feature enforcement before advertising these as paid benefits.
+## Product offer, owner-approved direction
+**Product principle confirmed 11 October:** Free must genuinely work for the majority of households and should never rely on artificial friction. Plus must be visibly more useful and save real time, rather than paywalling safety.
+
+**Free at launch:** seven-day meal planning, basic swaps and recipes, complete dietary safety and Coeliac packaging warnings, useful consolidated basket, pantry, saved household and cloud sync. No card needed.
+
+**Plus, £3.99 monthly / £34.99 annually:** Free plus fourteen-day plans, deeper meal variety and repeat controls, batch/freezer and leftover planning, advanced personal recipe/pantry controls, and evidence-backed budget options when verified sources exist.
+
+**Important scope distinction:** This is an approved product specification, not an implemented paywall. App beta currently defaults to fourteen-day plans for everyone and stays that way until the migration is communicated and secure feature gating passes. All current plans, data and lifetime Plus gift rights are protected.
+
+**Engineering definition:** Existing app constructs plans in browser JavaScript and writes household JSON; server-side membership RPC is currently only an access badge. A paid-tier feature cannot be safely protected by browser restrictions alone. Implement actual server-side enforcement before activating live Stripe; no public subscriptions until then. Full specification: [Approved Free/Plus product boundary](approved-free-plus-spec.md).
 
 ## Technical prerequisites
 1. Enforce tier access in the authenticated backend, not just interface controls.
@@ -26,7 +33,7 @@ Activation: saved household and first meal plan. Retention: second weekly meal p
 
 | Window | Build / launch work | Acceptance criterion |
 |---|---|---|
-| Week 1 | Agree precise plan split; audit each planner feature and beta migration; avoid falsely paywalling basic dietary needs | Approved matrix with free-safe limits and lifetime gifts preserved |
+| Week 1 | Implement approved plan split; audit each planner feature and beta migration; avoid falsely paywalling basic dietary needs | Approved matrix with free-safe limits and lifetime gifts preserved |
 | Week 2 | Authoritative Supabase entitlement checks for 7/14-day planning and premium capabilities; no JavaScript-only restrictions | Logged-out, Free, Plus, lifetime and second-user automated tests |
 | Week 3 | Build separate production Stripe Checkout/Portal/webhook handlers behind a launch switch defaulting OFF | Server verifies live-only price, key, signature, deduplication, account ownership |
 | Week 4 | Terms/cancellation disclosures, refund rights, support inbox, account data export/removal, allergen and basket regressions | Owner reviews legal copy and safety tests; no serious regressions |
