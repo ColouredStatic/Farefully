@@ -1167,6 +1167,58 @@ function refreshShoppingAssistant(){
    link.textContent='Open '+shoppingOnlineRetailer+' groceries ↗';
  }
 }
+// Plus pack-and-waste review: server-side entitlement and saved-household data.
+// This is an advisory review, not a replacement for the free shopping list.
+let plusPackReviewPending=false;
+async function shoppingReviewPacks(){
+  const output=document.getElementById('plusBasketResult');
+  const button=document.getElementById('plusBasketReviewButton');
+  if(!output||plusPackReviewPending)return;
+  if(!CLOUD_READY||!CLOUD_CLIENT||!active){output.textContent='Sign in and open a saved household to review pack estimates.';return}
+  const hints=Object.keys(state.basket||{}).filter(id=>P[id]&&Number.isFinite(+P[id].pack)&&+P[id].pack>0)
+    .slice(0,160).map(id=>({id,pack:P[id].pack,unit:P[id].u}));
+  if(!hints.length){output.textContent='Build a meal plan and shopping list first.';return}
+  plusPackReviewPending=true;
+  if(button)button.disabled=true;
+  output.textContent='Checking saved basket and Farefully Plus access…';
+  try{
+    // The review runs against the user's persisted cloud profile, not untrusted browser totals.
+    if(CLOUD_SAVING){output.textContent='Your list is still saving. Wait for cloud sync and try again.';return}
+    if(Object.keys(CLOUD_OUTBOX||{}).length)await cloudFlush();
+    if(CLOUD_CONFLICT_ID||Object.keys(CLOUD_OUTBOX||{}).length){
+      output.textContent='Save your household to the cloud before reviewing. Your local list has not been changed.';return;
+    }
+    const {data,error}=await CLOUD_CLIENT.rpc('farefully_plus_pack_review',{
+      p_source_profile_id:active,p_pack_hints:hints
+    });
+    if(error)throw error;
+    if(!data?.eligible){
+      output.innerHTML='The advanced pack-and-waste review is a <b>Farefully Plus</b> feature. Your usual shopping list stays free. <a href="plus-preview.html">Compare Free and Plus</a>.';
+      return;
+    }
+    if(data.error){output.textContent=data.error;return}
+    const reviewed=Array.isArray(data.items)?data.items:[];
+    const excess=reviewed.filter(x=>Number(x.excess_quantity)>0)
+      .sort((a,b)=>Number(b.excess_pct_of_pack)-Number(a.excess_pct_of_pack))
+      .slice(0,8);
+    if(!excess.length){
+      output.textContent='No spare quantities were identified using the estimated pack sizes in this saved basket. Check actual store packs before buying.';return;
+    }
+    output.innerHTML='<p class="small"><b>'+excess.length+' pack-size watchpoints shown</b> · '+Number(data.lines_reviewed||0)+' grocery lines reviewed. These are modelled pack remainders, not confirmed waste or savings.</p>'
+      +'<ul class="plusbasket-list">'+excess.map(x=>{
+        const id=String(x.id||'');
+        const name=P[id]?.n||id;
+        return '<li><b>'+esc(name)+'</b><span>Need to buy '+esc(fmtQty(id,Number(x.need_to_buy)))+' · '+Number(x.pack_count)+' estimated pack(s) · <strong>'+esc(fmtQty(id,Number(x.excess_quantity)))+' potentially left over</strong></span></li>';
+      }).join('')+'</ul>'
+      +'<p class="small">Compare smaller packs or plan another meal to use spare ingredients. Never assume a shorter shelf life, safe substitution or actual supermarket price. Check product labels and packaging.</p>';
+  }catch(err){
+    console.warn('Farefully Plus pack review unavailable',err);
+    output.textContent='Could not review packs right now. Your shopping list is unchanged. Please try again.';
+  }finally{
+    plusPackReviewPending=false;if(button)button.disabled=false;
+  }
+}
+
 function shoppingAddExtra(){
  const field=document.getElementById('shopExtraName'),quantity=document.getElementById('shopExtraQty');
  const name=field?.value.trim().replace(/\s+/g,' ').slice(0,80)||'';
@@ -1821,6 +1873,7 @@ document.addEventListener('error',event=>{
 {const el=document.getElementById('shopShareStore');if(el)el.addEventListener('click',shoppingShareList)}
 {const el=document.getElementById('shopShareOnline');if(el)el.addEventListener('click',shoppingShareList)}
 {const el=document.getElementById('shopResetChecks');if(el)el.addEventListener('click',shoppingResetChecks)}
+{const el=document.getElementById('plusBasketReviewButton');if(el)el.addEventListener('click',shoppingReviewPacks)}
 document.addEventListener('keydown',e=>{
   const row=e.target?.closest?.('.shoprow[role="checkbox"]');
   if(row&&e.target===row&&(e.key==='Enter'||e.key===' ')){

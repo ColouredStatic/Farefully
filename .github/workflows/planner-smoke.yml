@@ -6,6 +6,9 @@ on:
     paths:
       - 'app/app.js'
       - 'app/index.html'
+      - 'index.html'
+      - 'assets/styles.css'
+      - 'tests/plus-basket-smoke.mjs'
       - 'tests/planner-startup-smoke.mjs'
       - 'tests/household-fit-smoke.mjs'
       - 'tests/basket-quantity-variety-smoke.mjs'
@@ -15,6 +18,9 @@ on:
     paths:
       - 'app/app.js'
       - 'app/index.html'
+      - 'index.html'
+      - 'assets/styles.css'
+      - 'tests/plus-basket-smoke.mjs'
       - 'tests/planner-startup-smoke.mjs'
       - 'tests/household-fit-smoke.mjs'
       - 'tests/basket-quantity-variety-smoke.mjs'
@@ -35,6 +41,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Validate application JavaScript syntax
+        run: node --check app/app.js
+      - name: Validate Plus basket and homepage plans
+        run: node tests/plus-basket-smoke.mjs
       - name: Test logged-in planner, basket and reset flow
         run: node tests/planner-startup-smoke.mjs
       - name: Test household fit labels and explanations
