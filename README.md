@@ -1,4 +1,4 @@
-# Farefully public beta
+# Farefully early access
 
 Farefully is a family meal planner and shopping-list application.
 
@@ -37,7 +37,7 @@ Before shipping any planner change, run `node tests/planner-startup-smoke.mjs` a
 3. Register and verify an account, save a new household, sign in on a second device and check the restored plan, preferences, basket and custom recipes.
 4. Disconnect the network after making a change; confirm a pending-write warning appears and the change uploads after reconnecting.
 5. Confirm one account cannot read or modify another account's household.
-6. Verify concurrent editing on mobile and desktop: a stale session must show conflict choices rather than overwrite a newer cloud revision. Finish account deletion/export before leaving public beta.
+6. Verify concurrent editing on mobile and desktop: a stale session must show conflict choices rather than overwrite a newer cloud revision. Finish account deletion/export before full paid launch.
 7. Do not enable paid checkout or gift redemption until the subscription backend and end-to-end tests pass.
 
 Support: support@farefully.co.uk  
