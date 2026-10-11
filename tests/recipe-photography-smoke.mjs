@@ -25,7 +25,7 @@ vm.runInContext(stripped,context,{timeout:15000});
 const run=code=>vm.runInContext(code,context,{timeout:15000});
 const curated=JSON.parse(run('JSON.stringify(RECIPE_PHOTOS)'));
 const photos=Object.entries(curated);
-assert.equal(photos.length,35,'Three curated batches should total 35 assigned photos');
+assert.equal(photos.length,43,'Four quality-checked batches should total 43 mapped photos');
 const ids=JSON.parse(run('JSON.stringify(D.map(m=>m.id))'));
 assert.equal(new Set(ids).size,ids.length,'Dishes need distinct IDs');
 for(const [id,photo] of photos){
@@ -89,4 +89,22 @@ for(const id of ['beefshepherdwraps','beefburgerbowl']){
 }
 assert.match(app,/photo\.generated\?'AI-generated Farefully recipe illustration/,'Generated photo disclosure must render without stock attribution');
 
-console.log('Recipe photography checks passed: 35 curated photos, including 2 Farefully-hosted AI illustrations; credentials, credits, source links and fallback unchanged.');
+const batch4Ids=['toad','chickenpie','traychicken','salmonpotatoes','chickennoodles','enchiladas','fishtacos','gammonegg'];
+assert.equal(new Set(batch4Ids).size,8,'Batch 4 recipe entries must be distinct');
+assert.deepEqual(JSON.parse(run('JSON.stringify('+JSON.stringify(batch4Ids)+'.filter(id=>!RECIPE_PHOTOS[id]))')),[],
+  'All eight approved quality-first photographs must be mapped');
+for(const id of batch4Ids) {
+  assert.ok(curated[id].note.length>=70,'Every Batch 4 photograph needs a detailed recipe-match note');
+  assert.equal(curated[id].generated,undefined,'Stock photography must not be labelled AI-generated');
+}
+assert.equal(curated.toad.license,'CC BY 2.0');
+assert.equal(curated.gammonegg.license,'CC BY-SA 4.0');
+assert.equal(curated.enchiladas.provider,'Pexels');
+assert.equal(curated.fishtacos.provider,'Pexels');
+for(const id of ['lentilbolo','broccolipasta']){
+  assert.equal(curated[id],undefined,'Do not publish misleading substitute photos for '+id);
+  assert.ok(run('image(allDinners().find(m=>m.id==='+JSON.stringify(id)+'))').startsWith('data:image/svg+xml'),
+    'Deferred meal must keep illustrated fallback');
+}
+console.log('Recipe photography checks passed: 43 mapped photos, including eight new licensed images; two weak matches remain illustrated.');
+
