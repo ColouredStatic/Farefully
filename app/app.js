@@ -938,6 +938,7 @@ function refreshShoppingAssistant(){
  const remainingEstimated=Math.max(0,(+state.total||0)-collectedEstimated);
  const label=document.getElementById('shopProgressLabel');
  if(label)label.textContent=count?`${checked} of ${count} items collected`:'Your list is ready when your meal plan is';
+ const reset=document.getElementById('shopResetChecks');if(reset)reset.disabled=checked===0;
  const percentLabel=document.getElementById('shopProgressPct');if(percentLabel)percentLabel.textContent=percent+'%';
  const bar=document.getElementById('shopProgressBar');if(bar)bar.setAttribute('aria-valuenow',String(percent));
  const fill=document.getElementById('shopProgressFill');if(fill)fill.style.width=percent+'%';
@@ -1022,6 +1023,21 @@ async function shoppingCopyList(){
    }
    showToast('Remaining shopping list copied. Paste it into your notes or online order.');
  }catch(err){showToast('Could not copy automatically. Check browser clipboard permissions.')}
+}
+async function shoppingShareList(){
+ const text=shoppingListText();
+ if(typeof navigator.share!=='function'){await shoppingCopyList();return}
+ try{await navigator.share({title:'Farefully shopping list',text})}
+ catch(err){if(err?.name!=='AbortError')showToast('Unable to share this list. You can copy it instead.')}
+}
+function shoppingResetChecks(){
+ const purchased=Object.keys(state.basket||{}).filter(k=>state.checked[k]);
+ const extras=validShoppingExtras().filter(x=>state.checked['extra:'+x.id]);
+ if(!purchased.length&&!extras.length)return;
+ if(!window.confirm('Mark all shopping items as still needed? This will reset your shopping progress on every device.'))return;
+ for(const k of purchased)delete state.checked[k];
+ for(const x of extras)delete state.checked['extra:'+x.id];
+ render();showToast('Shopping checklist reset');
 }
 function shoppingSetMode(mode){
  shoppingMode=mode==='online'?'online':'store';
@@ -1506,6 +1522,9 @@ document.addEventListener('click',function(event){
 {const el=document.getElementById('shopSearch');if(el)el.addEventListener('input',()=>{shoppingQuery=el.value;applyShoppingFilters()})}
 {const el=document.getElementById('shopOnlineRetailer');if(el)el.addEventListener('change',()=>{if(SHOP_ONLINE_STORES[el.value]){shoppingOnlineRetailer=el.value;refreshShoppingAssistant()}})}
 {const el=document.getElementById('shopCopyOnline');if(el)el.addEventListener('click',shoppingCopyList)}
+{const el=document.getElementById('shopShareStore');if(el)el.addEventListener('click',shoppingShareList)}
+{const el=document.getElementById('shopShareOnline');if(el)el.addEventListener('click',shoppingShareList)}
+{const el=document.getElementById('shopResetChecks');if(el)el.addEventListener('click',shoppingResetChecks)}
 document.addEventListener('keydown',e=>{
   const row=e.target?.closest?.('.shoprow[role="checkbox"]');
   if(row&&e.target===row&&(e.key==='Enter'||e.key===' ')){
