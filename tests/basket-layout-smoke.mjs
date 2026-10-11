@@ -29,5 +29,5 @@ assert.match(html,/\.top \.profilebtn\{[^}]*white-space:normal/,
 assert.match(js,/basketBudget\.classList\.toggle\('over',rem<0\)/);
 assert.match(js,/basketCoverage\.textContent=hasCurrentMatches/);
 assert.match(js,/Remaining prices are modelled; not a checkout quote/);
-assert.match(html,/app\.js\?v=1182/);
+assert.match(html,/app\.js\?v=\d+/, 'App JavaScript must be versioned');
 console.log('Basket layout checks passed: full-width estimate, labelled source, budget status, responsive header, preserved controls.');
