@@ -766,6 +766,7 @@ function renderUnsafe(){
   document.getElementById('remain').textContent=(rem>=0?money(rem)+' left':money(Math.abs(rem))+' over');
   document.getElementById('ring').style.setProperty('--p',Math.min(100,Math.round(state.total/state.budget*100)));
   const planTitle=document.getElementById('planTitle');if(planTitle)planTitle.textContent=state.days+'-day plan';
+  const savedPrefs=document.getElementById('planFilterSummary');if(savedPrefs){const values=Object.values(state.taste?.ingredients||{});const strict=values.filter(v=>v===-2).length;const soft=values.filter(v=>v===-1).length;savedPrefs.textContent='Saved ingredient preferences: '+strict+' Never suggest, '+soft+' Not keen';}
 
   const hero=document.getElementById('hero'),heroAction=document.getElementById('heroAction'),m0=hasPlan?meal(0):null;
   if(m0){
