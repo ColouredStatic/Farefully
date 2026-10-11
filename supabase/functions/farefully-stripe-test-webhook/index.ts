@@ -119,7 +119,7 @@ Deno.serve(async (request) => {
     }
     const item = subscription.items.data[0];
     const itemPriceId = item?.price?.id ?? null;
-    const allowedPrices = [TEST_PRICE.monthly, TEST_PRICE.annual];
+    const allowedPrices: string[] = [TEST_PRICE.monthly, TEST_PRICE.annual];
     if (!allowedPrices.includes(itemPriceId ?? "") || !itemPriceId) {
       return respond({ received: true, ignored: true });
     }
