@@ -337,6 +337,123 @@
  .memberstatus #cloudSyncStatus{margin-left:0;text-align:left}
 }
 
+
+/* Farefully design refinement, October 2026.
+   A shared visual system across Home, Plan, Basket, Pantry and Household.
+   Deliberately presentation-only: no changes to prices, entitlements or recipes. */
+:root{
+  --bg:#f8f6f0;
+  --card:#fffefb;
+  --ink:#17322e;
+  --muted:#60776d;
+  --green:#176b55;
+  --green2:#24775a;
+  --line:#e1e8dd;
+  --soft:#edf5ee;
+  --shadow:0 9px 27px rgba(29,74,51,.055),0 1px 3px rgba(29,74,51,.025);
+}
+body{background:linear-gradient(110deg,#eef3eb 0%,#faf8f3 47%,#f4f1e9 100%);color:var(--ink)}
+.app{background:linear-gradient(180deg,#f9f7f1 0%,#f7f5ef 75%);padding-bottom:calc(103px + env(safe-area-inset-bottom,0px));box-shadow:0 0 48px rgba(18,54,37,.045)}
+h1,h2,h3{letter-spacing:-.025em}
+.screen{padding:21px 17px 27px}
+.screen.active{animation:farefully-screen-in .18s ease-out}
+@keyframes farefully-screen-in{from{opacity:.75;transform:translateY(3px)}to{opacity:1;transform:translateY(0)}}
+.card{border-color:#e1e8dd;border-radius:21px;background:#fffefa;box-shadow:var(--shadow)}
+.top{background:rgba(250,249,244,.96);border-bottom:1px solid #e5e8dd}
+.top .profilebtn{border-color:#d8e5db;background:#fffefb;color:#205d49}
+.memberstatus #cloudSyncStatus{color:#477660}
+.membershipbadge{background:#f5e8c0;border-color:#eadbaf;color:#634d1d;box-shadow:none}
+.section{margin:27px 3px 13px}
+.section h2{font-size:24px;letter-spacing:-.035em}
+.sub,.small,.desc{color:#62766d;line-height:1.48}
+.primary,.soft,.setupbanner button,.shopping-mode-switch button,
+.shop-helper-actions button,.shop-online-actions button,.shop-online-actions a,
+.shopping-extras-fields button,.plusbasket button{
+  transition:background-color .18s ease,border-color .18s ease,box-shadow .18s ease,transform .18s ease;
+}
+.primary{background:#176b55;box-shadow:0 6px 14px rgba(23,107,85,.13);font-size:14px;cursor:pointer;min-height:44px}
+.primary:hover{background:#125740;box-shadow:0 9px 19px rgba(23,107,85,.19)}
+.soft{background:#eaf4ec;border:1px solid #d5e7d8;color:#225843;min-height:40px;cursor:pointer}
+.soft:hover{background:#dff0e3;border-color:#afcdb8}
+button:disabled{cursor:not-allowed}
+button:focus-visible,a:focus-visible,
+input:focus-visible,select:focus-visible,textarea:focus-visible,
+[role="checkbox"]:focus-visible{outline:3px solid #4a9b75;outline-offset:3px}
+.nav{padding:6px 7px calc(5px + env(safe-area-inset-bottom,0px));border-top:1px solid #dde9de;
+ background:rgba(255,254,250,.97);box-shadow:0 -9px 30px rgba(37,76,54,.08);
+ border-radius:18px 18px 0 0;gap:3px}
+.nav button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
+ min-width:0;min-height:59px;padding:7px 1px 8px;border-radius:13px;font-size:11px;font-weight:750;
+ line-height:1.2;color:#64786f;cursor:pointer}
+.nav span{font-size:21px;line-height:1.2}
+.nav button.active{background:#e5f3e8;color:#155d45;font-weight:900}
+.nav button:hover:not(.active){background:#f1f6f0;color:#255b47}
+.hello h1{font-size:clamp(27px,5vw,32px)}
+.hero{border-radius:24px;box-shadow:0 12px 36px rgba(21,53,42,.12)}
+.heroimg{min-height:385px}
+.heroimg:after{background:linear-gradient(180deg,rgba(8,30,25,.02) 34%,rgba(8,30,25,.72) 100%)}
+.heroov{padding:25px}
+.hero h2{font-size:clamp(29px,6vw,36px);line-height:1.08}
+.kicker{letter-spacing:.11em;background:rgba(248,252,245,.94);color:#255c43}
+.use{padding:11px;border-radius:17px;border-color:#e2e9e0;box-shadow:0 4px 13px rgba(26,76,46,.045)}
+.use .small{font-size:11px;margin-top:3px;line-height:1.4}
+.foodicon{border-radius:12px;background:#f2f5ef}
+.tom{border-radius:19px;padding:11px;gap:12px}
+.tom h3{line-height:1.13}
+.weeklysavings,.basketoffers{padding:18px}
+.forecast{border-radius:19px;padding:17px}
+.planhead h1,#pantry>h1,#household>h1{font-size:clamp(34px,7vw,43px)!important;line-height:1.06}
+.planhead .sub{font-size:14px}
+.dayrow{margin:18px 0 20px;padding:2px 1px 7px;scrollbar-width:thin}
+.day{border-color:#dce8df;border-radius:14px;padding:11px 9px;min-height:61px;color:#234d3c;
+ box-shadow:0 2px 6px rgba(25,80,46,.025);cursor:pointer}
+.day:hover{border-color:#8cbaa0;background:#f0f8f0}
+.day .small{font-size:12px}
+.meal{border-radius:19px;padding:12px;gap:12px;margin-bottom:12px;min-width:0}
+.meal h3{font-size:21px;line-height:1.13}
+.meal .thumb{border-radius:14px;object-fit:cover}
+.meal .desc{font-size:12px}
+.actions{gap:8px}
+.aisle{padding:16px;margin-top:13px;border-radius:19px}
+.aisletop{gap:11px;padding-bottom:7px}
+.aisletop h3{font-size:20px}
+.aisletop b{font-size:14px;color:#225d47}
+.shoprow{padding:13px 1px;border-top-color:#edf0e9}
+.shoprow.done{opacity:.69}
+.shoprow[role="checkbox"]:hover{background:#f5f9f4}
+.check{border-color:#9dbba8;border-radius:7px}
+.shopping-assistant{padding:19px;border-color:#e0e8df}
+.shopping-assistant h2{letter-spacing:-.03em}
+.shopping-mode-switch{gap:7px}
+.shopping-mode-switch button{min-height:44px;background:#f3f8f2;border-color:#d5e6d8}
+.shopping-mode-switch button.on{background:#176b55;border-color:#176b55;box-shadow:0 4px 12px rgba(23,107,85,.1)}
+.shop-helper-actions button:hover{background:#e1f0e5}
+.pantrycurrent,.customrecipe-card,.plusbasket{border-radius:20px}
+.field input,.field select,.customtextarea,
+.pantrysearch,#shopSearch,.shopping-extras-fields input,.shop-online-row select{
+ background:#fffefc;border-color:#cbded0;border-radius:12px;min-height:44px}
+.field input:focus,.field select:focus,.customtextarea:focus,
+#shopSearch:focus,.pantrysearch:focus{border-color:#3b8d69}
+.sheet{background:#fbfaf6;box-shadow:0 -18px 55px rgba(19,46,35,.12)}
+.setupbanner{box-shadow:0 4px 15px rgba(42,85,56,.035)}
+.trustfooter{background:#fffefa;border-color:#e2e8df}
+@media(hover:hover) and (pointer:fine){
+ .meal:hover,.use:hover,.tom:hover{border-color:#d0e2d2;box-shadow:0 10px 25px rgba(22,70,49,.08)}
+ .primary:active,.soft:active,.nav button:active{transform:translateY(1px)}
+}
+@media(max-width:390px){
+ .screen{padding:16px 12px 23px}
+ .heroimg{min-height:350px}
+ .meal{padding:10px;gap:10px}
+ .nav button{font-size:10px}
+}
+@media(prefers-reduced-motion:reduce){
+ .screen.active{animation:none}
+ .primary,.soft,.setupbanner button,.shopping-mode-switch button,
+ .shop-helper-actions button,.shop-online-actions button,.shop-online-actions a,
+ .shopping-extras-fields button,.plusbasket button{transition:none}
+}
+
 </style></head><body><noscript>Farefully needs JavaScript enabled to work.</noscript><div class="app"><header class="top"><div class="brandrow"><div class="brandidentity"><div class="brand">Farefully 🌿</div><div class="tag">Good food brighter days</div><div class="betabadge">EARLY ACCESS</div></div><div class="topactions"><a href="account.html" class="profilebtn" aria-label="Farefully account">Account</a><button class="profilebtn" id="profileBtn">Set up</button></div></div><div class="memberstatus"><span id="farefullyPlusBadge" hidden class="membershipbadge" aria-label="Farefully Plus membership">★ Plus</span><span id="cloudSyncStatus" role="status" aria-live="polite">Connecting to your account…</span></div><div id="cloudConflictActions" role="group" aria-label="Resolve a cloud-saving conflict" style="display:none;gap:9px;align-items:center;flex-wrap:wrap;padding:12px 16px;background:#fff4dc;border:1px solid #c98b36;margin:0 12px 12px;border-radius:12px;color:#5c3912;font-size:13px"><strong>Another device has newer household changes. Choose which copy to keep:</strong><button id="cloudKeepLocal" type="button" style="background:#176b55;color:white;border:0;border-radius:8px;padding:9px 12px;cursor:pointer">Keep this device’s edits</button><button id="cloudUseLatest" type="button" style="background:white;color:#5c3912;border:1px solid #d3b98a;border-radius:8px;padding:9px 12px;cursor:pointer">Load newer cloud version</button></div></header><main><section class="screen active" id="home">
 <div class="setupbanner" id="setupBanner">
 <div>
