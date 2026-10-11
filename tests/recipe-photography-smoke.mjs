@@ -25,7 +25,7 @@ vm.runInContext(stripped,context,{timeout:15000});
 const run=code=>vm.runInContext(code,context,{timeout:15000});
 const curated=JSON.parse(run('JSON.stringify(RECIPE_PHOTOS)'));
 const photos=Object.entries(curated);
-assert.equal(photos.length,23,'Both curated batches should total 23 assigned photos');
+assert.equal(photos.length,35,'Three curated batches should total 35 assigned photos');
 const ids=JSON.parse(run('JSON.stringify(D.map(m=>m.id))'));
 assert.equal(new Set(ids).size,ids.length,'Dishes need distinct IDs');
 for(const [id,photo] of photos){
@@ -64,4 +64,17 @@ assert.equal(run("RECIPE_PHOTOS.fishpie.license"),'CC BY-SA 3.0');
 assert.equal(run("RECIPE_PHOTOS.tunajackets.license"),'CC0 1.0');
 assert.equal(run("RECIPE_PHOTOS.chickpeacurry.provider"),'Pexels');
 assert.match(app,/photo\.provider\|\|'Unsplash'/,'Credit renderer should support multiple libraries');
-console.log('Recipe photography checks passed: 23 credits, three photo providers, previous Wix images, image fallbacks and Batch 2 coverage.');
+const batch3Ids=['omelette','fishrice','eggchipspeas2','tunafishcakeshome','baconeggskillet','breakfastdinner','roastchickenleft','beefshepherdwraps','eggchickpeacurry','porkchopsmash','beefburgerbowl','chillijackets2'];
+assert.equal(new Set(batch3Ids).size,12,'Batch 3 recipe mapping must contain 12 distinct dishes');
+assert.deepEqual(
+  JSON.parse(run('JSON.stringify('+JSON.stringify(batch3Ids)+'.filter(id=>!RECIPE_PHOTOS[id]))')),
+  [],'All 12 Batch 3 plan-prioritised dishes must have photos'
+);
+for(const id of batch3Ids){
+  const photo=curated[id];
+  assert.ok(photo.note?.length>40,'Photo mismatch/representation note required for '+id);
+  assert.ok(photo.source.startsWith('https://'),'Source page required for '+id);
+}
+assert.equal(curated.chillijackets2.provider,'Unsplash','Chilli jacket meal uses original licensed Unsplash photograph');
+assert.equal(curated.baconeggskillet.provider,'Pexels');
+console.log('Recipe photography checks passed: 35 curated photos across three providers; first 12 plan-prioritised gaps covered with captions, source credits and fallbacks.');
