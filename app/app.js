@@ -656,6 +656,52 @@ function fitScore(m){
   return Math.max(10,Math.min(99,Math.round(s)))
 }
 function matchClass(v){return v>=78?'':v>=60?'mid':'low'}
+
+// Household Fit is not a percentage or a probability of enjoyment.
+// fitScore is only for internal ranking; these labels show actual preferences.
+function householdFit(m){
+ if(!m)return {label:'Not assessed',kind:'consider',icon:'○',reasons:['Recipe details are unavailable.']};
+ if(hardBlocked(m))return {label:'Outside your rules',kind:'excluded',icon:'⚠',reasons:['This recipe conflicts with a strict food exclusion, dietary rule or “Don’t suggest” rating, so it cannot be recommended.']};
+ const keys=new Set(Object.keys(effectiveIngredients(m.i||{})));
+ const positives=[],negatives=[],taste=state.taste||{};
+ const check=(label,v)=>{if(v===1)positives.push(label);else if(v===-1)negatives.push(label)};
+ for(const tag of mealProteinTags(m))check(tag,taste.proteins?.[tag]);
+ for(const tag of mealStyles(m)){
+   if(Object.prototype.hasOwnProperty.call(taste.styles||{},tag))
+     check(tag==='quick'?'quick meals':tag+' meals',taste.styles[tag]);
+ }
+ for(const [label,ids] of Object.entries(INGREDIENT_PREF_FAMILIES)){
+   if([...ids].some(k=>keys.has(k)))check(label,taste.ingredients?.[label]);
+ }
+ const rating=state.ratings?.[m.id],limit=Number(state.maxTime)||45,withinTime=Number(m.t)<=limit;
+ const cautious=!!negatives.length||!withinTime||rating==='mixed';
+ const strong=rating==='love'||(rating==='good'&&positives.length>0)||positives.length>=2;
+ const kind=cautious?'consider':strong?'excellent':'good';
+ const label=kind==='excellent'?'Excellent fit':kind==='good'?'Good fit':'Worth considering';
+ const icon=kind==='excellent'?'★':kind==='good'?'✓':'◌';
+ const reasons=['Meets your saved strict exclusions and dietary settings at recipe-ingredient level.'];
+ if(rating==='love')reasons.push('You previously rated this recipe “Loved it”.');
+ else if(rating==='good')reasons.push('You previously rated this recipe “Good”.');
+ else if(rating==='mixed')reasons.push('You previously rated this recipe “Mixed”.');
+ if(positives.length)reasons.push('Includes '+positives.slice(0,3).join(', ')+' you marked “Love it”.');
+ if(negatives.length)reasons.push('Includes '+negatives.slice(0,3).join(', ')+' you marked “Not keen”.');
+ reasons.push('About '+m.t+' minutes, '+(withinTime?'within':'above')+' your '+limit+'-minute cooking preference.');
+ if(!positives.length&&!rating)reasons.push('No matching favourites or past rating yet. Rate recipes to make future suggestions more personal.');
+ return {label,kind,icon,reasons};
+}
+function householdFitBadge(m){
+ const f=householdFit(m);
+ return '<span class="matchbadge '+f.kind+'" title="Based on saved preferences; not a percentage or guarantee.">'+esc(f.icon+' '+f.label)+'</span>';
+}
+function householdFitExplanation(m,expanded=false){
+ const f=householdFit(m);
+ return '<details class="household-fit-details"'+(expanded?' open':'')+'>'
+  +'<summary>'+(f.kind==='excluded'?'Why this recipe is excluded':'Why this fits your household')+'</summary>'
+  +'<ul>'+f.reasons.map(reason=>'<li>'+esc(reason)+'</li>').join('')+'</ul>'
+  +'<p>This guidance is not a guarantee of enjoyment, allergen safety or checkout prices. Always check food labels.</p>'
+  +'</details>';
+}
+
 function targetCount(kind){
   const days=state.days||14,f=kind==='veg'?state.vegFrequency:state.fishFrequency;
   const pw=kind==='veg'?(f==='often'?3:f==='some'?2:f==='low'?1:0):(f==='often'?2:f==='some'?1:f==='low'?.5:0);
