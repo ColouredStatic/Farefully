@@ -29,6 +29,17 @@ assert.match(checkout,/checkout\.livemode/,"Reject live checkout sessions");
 assert.match(checkout,/subscription_data: \{ metadata: \{/,"Subscription must retain mapped user ID");
 assert.match(checkout,/billingPortal\.sessions\.create/,"Customer needs cancellation route");
 assert.match(checkout,/plus_enabled: false/,"Sandbox must never confer Plus access");
+const monthly = "price_1UPOGJIls1DIXPlbzChS3dll";
+const annual = "price_1UPOHHIls1DIXPlber1baXmE";
+for (const source of [checkout, webhook]) {
+  assert.ok(source.includes(monthly), "Missing sandbox monthly price");
+  assert.ok(source.includes(annual), "Missing sandbox annual price");
+  assert.doesNotMatch(source, /STRIPE_TEST_PRICE_MONTHLY|STRIPE_TEST_PRICE_ANNUAL/,
+    "Price IDs are now safe public identifiers in versioned code");
+}
+assert.match(checkout, /price\.livemode\s*\|\|\s*!price\.active/,"Must reject live Stripe prices");
+assert.match(webhook, /event\.livemode !== false/, "Must reject live Stripe events");
+
 assert.match(webhook,/constructEventAsync/,"Verify raw Stripe webhook signature");
 assert.match(webhook,/request\.text\(\)/,"Signature verification must use raw request body");
 assert.match(webhook,/event\.livemode !== false/,"Live events forbidden");
