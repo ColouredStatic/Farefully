@@ -5,6 +5,7 @@ const checkout = readFileSync(new URL("../supabase/functions/farefully-billing-t
 const webhook = readFileSync(new URL("../supabase/functions/farefully-stripe-test-webhook/index.ts", import.meta.url), "utf8");
 const sql = readFileSync(new URL("../supabase/migrations/20261011143000_billing_test_only.sql", import.meta.url), "utf8");
 const docs = readFileSync(new URL("../docs/paid-launch-integration.md", import.meta.url), "utf8");
+const sandbox = readFileSync(new URL("../app/billing-sandbox.html", import.meta.url), "utf8");
 
 for(const [name,source] of [["checkout",checkout],["webhook",webhook],["migration",sql]]) {
   assert.doesNotMatch(source,/sk_live_|pk_live_|whsec_[A-Za-z0-9]{20,}|price_1UP3z/i,
@@ -40,4 +41,13 @@ assert.match(sql,/auth\.uid\(\)/);
 assert.match(sql,/references auth\.users\(id\) on delete cascade/);
 assert.match(sql,/revoke all on public\.stripe_test_webhook_events from anon, authenticated/);
 assert.match(docs,/FAREFULLY_TEST_BILLING_ENABLED/,"Document closed-by-default sandbox activation");
+assert.match(sandbox,/name="robots" content="noindex,nofollow"/);
+assert.match(sandbox,/TEST MODE ONLY/);
+assert.match(sandbox,/client\.functions\.invoke\('farefully-billing-test'/);
+assert.match(sandbox,/data-action="checkout" data-plan="monthly"/);
+assert.match(sandbox,/data-action="checkout" data-plan="annual"/);
+assert.match(sandbox,/data-action="portal"/);
+assert.match(sandbox,/checkout\.stripe\.com/);
+assert.match(sandbox,/billing\.stripe\.com/);
+assert.match(sandbox,/new URLSearchParams\(location\.search\)/);
 console.log("Farefully Stripe sandbox contract passed: authenticated test-only sessions, signed events, isolated DB and no live entitlement changes.");
