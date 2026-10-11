@@ -49,3 +49,7 @@ The owner approved keeping the everyday shopping basket good enough for most fam
 - **Never automatically promised:** automatic supermarket basket filling, access to a retailer's login, real-time prices or stock, or supermarket endorsements. Those require separate partner authorisation and product verification.
 - **Data protection:** paid-plan expiration does not remove a household's basket, manual extras, tick history or recipes. Advanced editing/export rights must be designed to avoid data loss when downgrading.
 - **Engineering:** the current browser-generated household JSON and frontend UI do not constitute secure subscription gating. Introduce server-side entitlement checks before restricting any premium basket action, and test legitimate Free usage, Plus, lifetime gift, expired Plus, offline mobile basket and cross-user isolation.
+
+## Development priority locked, 11 October 2026
+
+This implementation is P0 alongside authenticated, server-enforced Plus access. See [advanced basket ticket](https://github.com/ColouredStatic/Farefully/issues/16) and [secure entitlements](https://github.com/ColouredStatic/Farefully/issues/15). Free users retain the entire existing everyday basket. Premium features must be built, clearly differentiated and tested before a live paywall appears.
