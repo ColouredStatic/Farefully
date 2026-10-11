@@ -917,7 +917,7 @@ function renderUnsafe(){
     progress.after(collectionHint);
   }
   collectionHint.textContent='Shopping as you go? Tick an item when you put it in your trolley. Tick it again to undo. Your progress saves across devices.';
-  document.getElementById('basketGroups').innerHTML=Object.entries(groups).map(([c,items])=>`<div class="aisle card"><div class="aisletop"><h3>${esc(c)}</h3><b>${money(items.reduce((sum,x)=>sum+x[1].line,0))}</b></div>${items.map(([k,v])=>`<div class="shoprow ${state.checked[k]?'done':''}" role="checkbox" tabindex="0" aria-checked="${!!state.checked[k]}" aria-label="${esc(P[k].n)}: ${state.checked[k]?'collected':'still needed'}. Tap to change." data-shop-name="${esc(P[k].n.toLowerCase())}" data-shop-checked="${state.checked[k]?'1':'0'}" data-ff-action="toggle-basket" data-key="${esc(k)}"><div class="check">${state.checked[k]?'✓':''}</div><div><b>${esc(P[k].n)}</b><div class="small">${v.live&&v.liveQuote?v.liveQuote.items.map(x=>`${x.packs} × ${esc(x.row.packSize||liveProductName(x.row))}`).join(' + '):`${v.packs} × ${shoppingPackLabel(k,P[k].pack,P[k].u)} · recipe need ${fmtQty(k,state.need[k]||0)}`}${v.have?' · pantry '+fmtQty(k,v.have):''}${v.live?'<span class="liveprice">LIVE PRODUCT</span>':'<span class="fallbackprice">MODEL</span>'}${coeliacMode()&&coeliacLabelCheck(k)?'<span class="fallbackprice">CHECK COELIAC LABEL</span>':''}${wheatFreeMode()&&wheatLabelCheck(k)?'<span class="fallbackprice">CHECK WHEAT LABEL</span>':''}</div>${v.live&&v.liveQuote?`<div class="productdetail">${v.liveQuote.items.map(x=>esc(liveProductName(x.row))).join(' + ')}</div>`:''}</div><b>${money(v.line)}</b></div>`).join('')}</div>`).join('')||'<div class="card" style="padding:16px"><div class="small">No shopping lines yet.</div></div>';
+  document.getElementById('basketGroups').innerHTML=plusShopCategories().filter(cat=>groups[cat]).map(c=>[c,groups[c]]).map(([c,items])=>`<div class="aisle card"><div class="aisletop"><h3>${esc(c)}</h3><b>${money(items.reduce((sum,x)=>sum+x[1].line,0))}</b></div>${items.map(([k,v])=>`<div class="shoprow ${state.checked[k]?'done':''}" role="checkbox" tabindex="0" aria-checked="${!!state.checked[k]}" aria-label="${esc(P[k].n)}: ${state.checked[k]?'collected':'still needed'}. Tap to change." data-shop-name="${esc(P[k].n.toLowerCase())}" data-shop-checked="${state.checked[k]?'1':'0'}" data-ff-action="toggle-basket" data-key="${esc(k)}"><div class="check">${state.checked[k]?'✓':''}</div><div><b>${esc(P[k].n)}</b><div class="small">${v.live&&v.liveQuote?v.liveQuote.items.map(x=>`${x.packs} × ${esc(x.row.packSize||liveProductName(x.row))}`).join(' + '):`${v.packs} × ${shoppingPackLabel(k,P[k].pack,P[k].u)} · recipe need ${fmtQty(k,state.need[k]||0)}`}${v.have?' · pantry '+fmtQty(k,v.have):''}${v.live?'<span class="liveprice">LIVE PRODUCT</span>':'<span class="fallbackprice">MODEL</span>'}${coeliacMode()&&coeliacLabelCheck(k)?'<span class="fallbackprice">CHECK COELIAC LABEL</span>':''}${wheatFreeMode()&&wheatLabelCheck(k)?'<span class="fallbackprice">CHECK WHEAT LABEL</span>':''}</div>${v.live&&v.liveQuote?`<div class="productdetail">${v.liveQuote.items.map(x=>esc(liveProductName(x.row))).join(' + ')}</div>`:''}</div><b>${money(v.line)}</b></div>`).join('')}</div>`).join('')||'<div class="card" style="padding:16px"><div class="small">No shopping lines yet.</div></div>';
 
   renderShoppingExtras();
   refreshShoppingAssistant();
@@ -1217,6 +1217,149 @@ async function shoppingReviewPacks(){
   }finally{
     plusPackReviewPending=false;if(button)button.disabled=false;
   }
+}
+
+// Additional Plus basket tools. All reads/writes are authorised in Supabase.
+// Premium preferences are saved separately; the ordinary Free basket remains unchanged.
+let plusShopLoadedProfile=null,plusShopAisleOrder=[],plusShopActualSpend=null,plusShopBusy=false;
+function plusShopCategories(){
+  const cats=[...new Set(Object.keys(state?.basket||{}).filter(id=>P[id]).map(id=>P[id].c||'Groceries'))];
+  if(plusShopLoadedProfile!==active)return cats;
+  return [...cats].sort((a,b)=>{
+    const aa=plusShopAisleOrder.indexOf(a),bb=plusShopAisleOrder.indexOf(b);
+    return (aa<0?999:aa)-(bb<0?999:bb)||cats.indexOf(a)-cats.indexOf(b);
+  });
+}
+async function plusShopCall(action,payload={}){
+  if(!CLOUD_READY||!CLOUD_CLIENT||!active)throw Error('Sign in and open a saved household first.');
+  if(CLOUD_SAVING)throw Error('Wait for the cloud-save indicator, then try again.');
+  if(Object.keys(CLOUD_OUTBOX||{}).length)await cloudFlush();
+  if(CLOUD_CONFLICT_ID||Object.keys(CLOUD_OUTBOX||{}).length)throw Error('Your shopping list has unsynced changes. Save them before using Plus tools.');
+  const {data,error}=await CLOUD_CLIENT.rpc('farefully_plus_shopping_tools',{
+    p_source_profile_id:active,p_action:action,p_payload:payload
+  });
+  if(error)throw Error('Plus shopping tools are temporarily unavailable.');
+  if(!data?.eligible)throw Error('Farefully Plus is required. Your everyday shopping list remains free.');
+  if(data.error)throw Error(String(data.error));
+  return data;
+}
+async function plusShopLoadPrefs(force=false){
+  if(!force&&plusShopLoadedProfile===active)return;
+  const profileAtStart=active,data=await plusShopCall('get_preferences');
+  if(profileAtStart!==active)throw Error('Household changed. Please try again.');
+  plusShopLoadedProfile=profileAtStart;
+  plusShopAisleOrder=Array.isArray(data.aisle_order)?data.aisle_order.filter(x=>typeof x==='string').slice(0,35):[];
+  plusShopActualSpend=data.actual_spend==null?null:Number(data.actual_spend);
+  if(!Number.isFinite(plusShopActualSpend))plusShopActualSpend=null;
+}
+function plusShopSpendSummary(){
+  const output=document.getElementById('plusSpendResult');
+  if(!output)return;
+  if(plusShopLoadedProfile!==active){output.textContent='Your last recorded spend will appear when you open the Plus tools.';return;}
+  const input=document.getElementById('plusActualSpend');
+  if(input&&document.activeElement!==input)input.value=plusShopActualSpend==null?'':String(plusShopActualSpend);
+  if(plusShopActualSpend===null){
+    output.textContent='No actual grocery spend saved for this household. Your regular basket estimate is still available.';return;
+  }
+  const estimate=Number(state.total||0);
+  const diff=plusShopActualSpend-estimate;
+  output.textContent='Your entered spend: '+money(plusShopActualSpend)
+    +' · Current model basket estimate: '+money(estimate)
+    +' · '+money(Math.abs(diff))+(diff>=0?' above':' below')+' the estimate. '
+    +'The entered spend may relate to a different plan and can include extras; this is not a verified retailer price.';
+}
+async function plusShopSavePrefs(order,actual){
+  const data=await plusShopCall('save_preferences',{
+    aisle_order:order,actual_spend:actual===null?null:Number(actual).toFixed(2)
+  });
+  plusShopLoadedProfile=active;
+  plusShopAisleOrder=Array.isArray(data.aisle_order)?data.aisle_order:[];
+  plusShopActualSpend=data.actual_spend===null?null:Number(data.actual_spend);
+}
+async function plusShopSaveSpend(){
+  const result=document.getElementById('plusSpendResult'),input=document.getElementById('plusActualSpend');
+  if(!result||!input||plusShopBusy)return;
+  const value=input.value.trim();
+  if(value&&!/^\d{1,8}(?:\.\d{1,2})?$/.test(value)){
+    result.textContent='Enter a valid amount in pounds, with up to two decimal places.';return;
+  }
+  plusShopBusy=true;result.textContent='Saving your entered spend…';
+  try{
+    await plusShopLoadPrefs();
+    await plusShopSavePrefs(plusShopAisleOrder,value===''?null:Number(value));
+    plusShopSpendSummary();
+  }catch(err){result.textContent=err.message||'Unable to save your spend.'}
+  finally{plusShopBusy=false}
+}
+function plusShopRenderAisleControls(){
+  const out=document.getElementById('plusAisleResult');if(!out)return;
+  const list=plusShopCategories();
+  if(!list.length){out.textContent='Build a shopping list first.';return;}
+  out.innerHTML='<p>Use the arrows to organise your saved aisles. The ordinary shopping items and quantities are unchanged.</p>'
+    +list.map((cat,i)=>'<div class="plus-aisle-row"><b>'+esc(cat)+'</b>'
+      +'<span class="plus-aisle-controls">'
+      +'<button type="button" aria-label="Move '+esc(cat)+' earlier" data-ff-action="plus-aisle-up" data-aisle="'+esc(cat)+'" '+(i===0?'disabled':'')+'>↑</button>'
+      +'<button type="button" aria-label="Move '+esc(cat)+' later" data-ff-action="plus-aisle-down" data-aisle="'+esc(cat)+'" '+(i===list.length-1?'disabled':'')+'>↓</button>'
+      +'</span></div>').join('')
+    +'<p class="small">Aisle sequence is saved to your Farefully account and can differ from your supermarket layout.</p>';
+}
+async function plusShopOpenAisles(){
+  const out=document.getElementById('plusAisleResult');if(!out||plusShopBusy)return;
+  plusShopBusy=true;out.textContent='Checking membership and loading aisle order…';
+  try{await plusShopLoadPrefs(true);plusShopRenderAisleControls();render();}
+  catch(err){out.textContent=err.message||'Aisle order is unavailable.'}
+  finally{plusShopBusy=false}
+}
+async function plusShopMoveAisle(category,delta){
+  const out=document.getElementById('plusAisleResult');if(!out||plusShopBusy)return;
+  if(plusShopLoadedProfile!==active){out.textContent='Open your aisles to load your saved settings.';return}
+  const order=plusShopCategories(),i=order.indexOf(category),j=i+delta;
+  if(i<0||j<0||j>=order.length)return;
+  [order[i],order[j]]=[order[j],order[i]];
+  plusShopBusy=true;
+  try{
+    await plusShopSavePrefs(order,plusShopActualSpend);
+    render();plusShopRenderAisleControls();
+  }catch(err){out.textContent=err.message||'Unable to save aisle order.'}
+  finally{plusShopBusy=false}
+}
+function plusShopWeekNeeds(){
+  if(!state||state.plan?.length!==14)return [];
+  const weeks=[{},{}],factor=pf();
+  for(let day=0;day<14;day++){
+    const target=weeks[day<7?0:1];
+    const choices=[slotFor(breakfast,day),slotFor(lunch,day),slotFor(snacks,day),meal(day)];
+    choices.forEach(m=>{if(m?.i)add(target,effectiveIngredients(m.i),factor)});
+  }
+  const all=new Set([...Object.keys(weeks[0]),...Object.keys(weeks[1])]);
+  return [...all].filter(id=>P[id]&&Number(P[id].pack)>0).slice(0,160).map(id=>({
+    id,unit:P[id].u,pack:P[id].pack,
+    week1:Number((weeks[0][id]||0).toFixed(4)),
+    week2:Number((weeks[1][id]||0).toFixed(4))
+  }));
+}
+async function plusShopSplitFortnight(){
+  const out=document.getElementById('plusSplitResult');if(!out||plusShopBusy)return;
+  if(state?.plan?.length!==14){out.textContent='Build a fourteen-day plan first, then split it into two shopping visits.';return;}
+  const lines=plusShopWeekNeeds();
+  if(!lines.length){out.textContent='No ingredient list found. Try regenerating the shopping list.';return;}
+  plusShopBusy=true;out.textContent='Reviewing both weeks against your saved household…';
+  try{
+    const data=await plusShopCall('split_fortnight',lines);
+    const valid=Array.isArray(data.items)?data.items:[];
+    if(!valid.length){out.textContent='No shopping lines were matched to your saved plan. Wait for cloud sync and try again.';return;}
+    const makeWeek=(number,key,packs)=>'<div><b>Shop '+number+' · days '+(number===1?'1–7':'8–14')+'</b>'
+      +'<ul>'+valid.filter(x=>Number(x[key])>0).map(x=>{
+        const id=String(x.id||'');
+        return '<li>'+esc(P[id]?.n||id)+' · '+esc(fmtQty(id,Number(x[key])))
+          +' needed ('+Number(x[packs])+' estimated '+(Number(x[packs])===1?'pack':'packs')+')</li>';
+      }).join('')+'</ul></div>';
+    out.innerHTML='<p><b>'+valid.length+' recipe ingredient lines reviewed.</b> Pantry has been applied to the first shop before the second.</p>'
+      +makeWeek(1,'first_need','first_packs')
+      +makeWeek(2,'second_need','second_packs')
+      +'<p class="small">This is a two-trip planning view, not two retail orders. Items with longer storage lives may be bought together. Check packaging, use-by dates, product labels and any extras on the Free shopping list.</p>';
+  }catch(err){out.textContent=err.message||'Could not split your basket.'}
+  finally{plusShopBusy=false}
 }
 
 function shoppingAddExtra(){
@@ -1831,6 +1974,8 @@ document.addEventListener('click',function(event){
   else if(action==='toggle-basket')toggle(el.dataset.key);
   else if(action==='toggle-shopping-extra')shoppingToggleExtra(el.dataset.id);
   else if(action==='remove-shopping-extra')shoppingRemoveExtra(el.dataset.id);
+  else if(action==='plus-aisle-up')plusShopMoveAisle(el.dataset.aisle,-1);
+  else if(action==='plus-aisle-down')plusShopMoveAisle(el.dataset.aisle,1);
   else if(action==='finish-profile'){closeProfiles();openSetup()}
   else if(action==='reset-profile')resetProfile(el.dataset.profileId);
   else if(action==='switch-profile')switchProfile(el.dataset.profileId);
@@ -1874,6 +2019,9 @@ document.addEventListener('error',event=>{
 {const el=document.getElementById('shopShareOnline');if(el)el.addEventListener('click',shoppingShareList)}
 {const el=document.getElementById('shopResetChecks');if(el)el.addEventListener('click',shoppingResetChecks)}
 {const el=document.getElementById('plusBasketReviewButton');if(el)el.addEventListener('click',shoppingReviewPacks)}
+{const el=document.getElementById('plusSplitButton');if(el)el.addEventListener('click',plusShopSplitFortnight)}
+{const el=document.getElementById('plusSpendSaveButton');if(el)el.addEventListener('click',plusShopSaveSpend)}
+{const el=document.getElementById('plusAisleOpenButton');if(el)el.addEventListener('click',plusShopOpenAisles)}
 document.addEventListener('keydown',e=>{
   const row=e.target?.closest?.('.shoprow[role="checkbox"]');
   if(row&&e.target===row&&(e.key==='Enter'||e.key===' ')){
