@@ -19,15 +19,27 @@ Deployment target: Supabase `llhbudvpvqnogbgpvcug`. Both migrations were execute
 ## Access control limits
 - This protects the **Plus pack review server operation** and prepares a server-side write gate for >7-day plans. It does not make all current browser-side planning logic paid-only. Do not enable live billing until remaining Plus operations are equally protected and UX migration is complete.
 - `private.farefully_feature_policy.enforce_paid_plan_limits` must stay `false` until client code handles Free seven-day plans and previously saved fourteen-day plans without broken sync.
-- Actual grocery optimisations, split fortnight shopping, store aisle ordering and spend comparison remain future work, not yet included in the premium product for sale.
+- The first split-fortnight preview, aisle ordering and manually entered spend comparison are now working in beta; automated checkout, real SKU mapping, editable trip allocation and more sophisticated waste optimisation remain future work. Paid launch is still blocked.
 - Code is not a guarantee of diet/allergen safety; review product labels, pack quantities and real checkout prices.
 
+## Second Plus basket slice, implemented 11 October 2026
+- Server-authorised `farefully_plus_shopping_tools` checks the signed-in member's own gift or live active paid entitlement, never sandbox billing. Private shopping preferences are keyed to the account and household. Anonymous users and direct private table access are blocked.
+- **Two-trip basket preview** calculates days 1–7 and 8–14 from recipe ingredients (dinners plus breakfasts, lunches and snacks), confirms total consumption against the signed-in household's saved need, applies existing pantry quantities to the first trip, and returns separate model pack counts. It is not a perishable shelf-life guarantee, retailer transfer, or double-counted new basket.
+- **Custom aisle ordering** moves existing grocery categories up/down and persists them per household via a membership-checked RPC. Normal Free grouped shopping stays untouched.
+- **Actual spend** permits one user-entered amount per household, stored independently from the regular shopping list. The interface compares it with the *current model estimate*, clearly warning that grocery extras, substitutions and changes to the meal plan can make the comparison non-like-for-like. It is not a verified checkout price or transaction history.
+- The public homepage and unlinked Plus preview distinguish these beta features from future improvements. Free retains unlimited seven-day regenerations, standard recipes and the practical shopping list.
+- Migration: `supabase/migrations/20261011_plus_shopping_tools.sql`; applied in the Farefully production Supabase project. The fourteen-day Free write gate and live checkout remain disabled.
+
 ## Next implementation slices
-1. Pack-size data quality: distinguish verified store pack sizes from model estimates, explain rounding, avoid inflated lettuce counts, and maintain ingredient exclusions.
-2. Split one fourteen-day basket into two optional seven-day shops with perishable safeguards and clear override.
-3. Add optional entered actual-price tracking, without presenting estimated price as real.
-4. Custom aisle order saved to cloud without creating household sync conflicts.
-5. Server-enforce remaining Premium actions and build tested cancellation/downgrade messaging; only then enable customer billing under explicit authorisation.
+1. Improve realistic SKU/pack-size data provenance and handle excess purchase waste explicitly, without guaranteeing shelf life or product safety.
+2. Add editable trip assignments and safe reuse of sealed non-perishables rather than simply showing two estimates.
+3. Build a detailed receipt/actual spend history if user demand justifies it.
+4. Complete independent paid entitlement enforcement for all premium features, cancellation/downgrade messages and legal readiness. Public billing may only be enabled after separate approval.
+
+## Testing additions
+- `tests/plus-shopping-tools-smoke.mjs` mocks Plus and Free, asserts that weekly ingredient totals reconcile, exercises secured settings saves and confirms the Free basket does not change.
+- Supabase `farefully_plus_shopping_tools` was checked with an existing Plus gift in a rolled-back transaction and verified to reject accounts without Plus. Direct `anon` RPC access and authenticated direct-table access are denied.
+- Real mobile UX, pantry edge cases and cross-device acceptance remain to be checked before selling memberships.
 
 ## Tests
 `tests/plus-basket-smoke.mjs` runs with synthetic mock signed-in Free and Plus responses. The planner workflow checks syntax and regression tests. Back-end manually read-tested on an already gifted Plus account. A full end-to-end two-account acceptance test is still necessary before charging.
