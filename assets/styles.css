@@ -124,3 +124,45 @@ body{color:var(--ink);background:#fffefa;-webkit-font-smoothing:antialiased}
  .button,.plans-link,.navlinks a,.navcta,.foodcard{transition:none}
  .foodcard:hover{transform:none}
 }
+
+
+/* Farefully premium palette: same foundation as the app.
+   Brass is a small Plus-detail accent only, never white-background body text. */
+:root{
+ --ff-forest:#153F32;
+ --ff-leaf:#176B55;
+ --ff-sage:#E9F3EA;
+ --ff-oat:#F8F7F2;
+ --ff-paper:#FFFDF8;
+ --ff-brass:#C09249;
+ --ff-ink:#17322E;
+ --ff-line:#DCE7DE;
+ --cream:var(--ff-oat);
+ --cream2:var(--ff-paper);
+ --ink:var(--ff-ink);
+ --muted:#60756B;
+ --green:var(--ff-leaf);
+ --green2:var(--ff-leaf);
+ --mint:var(--ff-sage);
+ --line:var(--ff-line);
+ --white:var(--ff-paper);
+ --shadow:0 16px 42px rgba(21,63,50,.075);
+}
+body{background:var(--ff-paper)}
+.sitehead{background:rgba(255,253,248,.96);border-color:var(--ff-line)}
+.logo{color:var(--ff-forest)}
+.hero{background:radial-gradient(circle at 80% 18%,#DFEEE1 0,transparent 36%),linear-gradient(165deg,var(--ff-paper) 5%,#F4F1E8)}
+.hero h1 span{color:var(--ff-leaf)}
+.eyebrow,.icon{background:var(--ff-sage);color:var(--ff-forest)}
+.feature,.foodcard,.plans-card,.mockcard,.floatcard{background:var(--ff-paper);border-color:var(--ff-line)}
+.section.alt{background:var(--ff-oat)}
+.statement{background:var(--ff-forest)}
+.plans-section{background:linear-gradient(180deg,#EDF4EC,var(--ff-oat))}
+.plans-card-plus{position:relative;overflow:hidden;border-color:var(--ff-leaf)}
+.plans-card-plus:before{content:"";position:absolute;inset:0 0 auto;height:4px;background:linear-gradient(90deg,var(--ff-brass),#E7D5AD)}
+.plans-card-plus .plans-eyebrow{color:#785824}
+.plans-link-free{background:var(--ff-sage);color:var(--ff-forest)}
+.plans-link-plus,.navcta,.button.primary{background:var(--ff-leaf);border-color:var(--ff-leaf);color:#fff}
+.plans-link-plus:hover,.navcta:hover,.button.primary:hover{background:var(--ff-forest);border-color:var(--ff-forest)}
+.ctaBox{background:linear-gradient(130deg,var(--ff-forest),#205D46)}
+.sitefoot{background:var(--ff-paper);border-top-color:var(--ff-line)}
