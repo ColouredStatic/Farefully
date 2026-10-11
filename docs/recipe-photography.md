@@ -38,7 +38,7 @@ Images in `RECIPE_PHOTOS` are loaded as optimised third-party image URLs (typica
 
 ### Coverage
 
-After Batches 1 and 2: **27/220 built-in dinners** have assigned actual photographs (four pre-existing, 23 curated). The remaining 193 use the existing illustrated fallback. User-created recipes are unaffected.
+After Batches 1–3: **39/220 built-in dinners** have assigned photographs (four pre-existing, 35 curated). The remaining 181 use the existing illustrated fallback. The last-reviewed 14-day beta plan has imagery for all its dinners, including two covered in the earlier batches. User-created recipes are unaffected.
 
 Next: source specific, suitable images for the remaining most frequently suggested dinners, prioritising existing saved meal plans and then expanding to the broader recipe library.
 
@@ -64,3 +64,27 @@ Twelve newly mapped recipe photos. The illustrations below are **representative*
 **Batch 2 licensing:** Individual Pexels source pages indicate “Free to use”; Unsplash image page indicates “Free to use under the Unsplash License”; Wikimedia file pages specify CC BY-SA 3.0 and CC0 1.0 respectively. CC BY-SA requires appropriate attribution, the linked license and indication of adaptations; recipe detail retains these links and the photos are automatically cropped only for presentation. No stock photo establishes food-safety or ingredient accuracy.
 
 **Release checks:** `tests/recipe-photography-smoke.mjs` covers 23 mapped images, 3 source types, URL shapes, attribution, license links, photo fallbacks and recipe IDs. GitHub Pages deployment must be checked separately before claiming this batch is live.
+
+
+## Beta batch 3, 11 October 2026: plan-prioritised images
+
+Twelve additional illustrative photographs target dinners that have appeared in a beta household's two-week plan. Image captions explicitly disclose when stock photography shows only part of the meal. These are **not** prepared Farefully recipe photographs, verified ingredient lists, or evidence of dietary suitability.
+
+| Recipe ID | Dinner | Photographer | Individual source page | Photo-versus-recipe note |
+| --- | --- | --- | --- | --- |
+| `omelette` | Cheese omelette, wedges & peas | The Findin Pixels | [Pexels](https://www.pexels.com/photo/close-up-of-omelette-with-peas-and-tomato-sauce-37287421/) | Omelette and peas shown, not wedges/cheese |
+| `fishrice` | Crispy fish & rice | Jesus Cabrera | [Pexels](https://www.pexels.com/photo/fried-fish-with-vegetables-and-rice-on-white-ceramic-plate-5041493/) | Fish, rice and vegetables; coating may differ |
+| `eggchipspeas2` | Eggs, homemade chips & peas | Spencer Davis | [Pexels](https://www.pexels.com/photo/close-up-of-a-meal-4393015/) | Egg and chips, peas not shown |
+| `tunafishcakeshome` | Homemade tuna fishcakes & peas | Andi Farruku | [Pexels](https://www.pexels.com/photo/a-close-up-shot-of-fried-fish-cakes-on-a-wooden-board-8732583/) | Fishcakes; tuna filling and peas not verified |
+| `baconeggskillet` | Bacon, egg & potato skillet | freestocks.org | [Pexels](https://www.pexels.com/photo/eggs-with-meat-in-cooking-pan-1412010/) | Bacon and eggs, potatoes/peas not shown |
+| `breakfastdinner` | Eggs, beans & toast | Julian Jagtenberg | [Pexels](https://www.pexels.com/photo/fried-egg-and-bread-pklatter-103124/) | Eggs, baked beans and toast |
+| `roastchickenleft` | Roast chicken & vegetable leftovers bowl | Helen Brudna | [Pexels](https://www.pexels.com/photo/delicious-roast-chicken-with-fresh-vegetables-32023530/) | Roasted chicken and vegetables, not a leftovers bowl |
+| `beefshepherdwraps` | Cottage pie wraps | Mohamed Olwy | [Pexels](https://www.pexels.com/photo/tasty-beef-wrap-with-crispy-french-fries-36750264/) | Beef wrap photo has fries; real recipe uses mash/peas |
+| `eggchickpeacurry` | Egg & chickpea curry | Pranjall Kumar | [Pexels](https://www.pexels.com/photo/green-masala-egg-curry-dish-in-bowl-8625813/) | Egg-and-spinach curry, chickpeas/rice not pictured |
+| `porkchopsmash` | Pork chops, mash & green beans | Valeria Boltneva | [Pexels](https://www.pexels.com/photo/pork-chop-and-potatoes-17628617/) | Pork chop and mash, green beans not necessarily shown |
+| `beefburgerbowl` | Burger bowls with wedges | Nadin Sh | [Pexels](https://www.pexels.com/photo/a-salad-in-a-bowl-19582732/) | Beef salad bowl, wedges/cheese not pictured |
+| `chillijackets2` | Chilli-loaded jacket potatoes | Deepthi Clicks | [Unsplash](https://unsplash.com/photos/a-table-topped-with-bowls-filled-with-food-1_uLJ-gMEHQ) | Beef-and-bean chilli and baked potato separately, not loaded jacket |
+
+All linked Pexels pages are marked free to use under the [Pexels License](https://www.pexels.com/license/); the individual Unsplash page indicates free use under the [Unsplash License](https://unsplash.com/license). The Unsplash page's original image URL was inspected and its photo ID matched against the recipe mapping. Batch 3 does not change the consumer's household data, meal selection, ingredients, shopping basket, or pricing calculations.
+
+**Editorial follow-up:** The lowest-fidelity matches are cottage-pie wraps and burger bowls with wedges. Replace them with own-recipe photography as soon as practical. For now, their specific differences are visible in the app's photo credit line.
