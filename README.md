@@ -16,6 +16,19 @@ Farefully is a family meal planner and shopping-list application.
 - **Gifts:** Lifetime and 12-month gift entitlements are prepared but redemption remains locked until the Plus launch.
 - **Stripe:** Existing product and prices are created, but checkout/webhooks and paid access are **not live**.
 
+## Household Fit explanations
+
+The customer-facing recipe assessment uses **Excellent fit**, **Good fit**, **Worth considering** or **Outside your rules**, not the numerical `fitScore` heuristic. `fitScore` is used internally for ranking and is **not** a statistical percentage or a prediction of enjoyment.
+
+- Fully eligible, unrated recipes are **Good fit** by default, not penalised for a lack of positive feedback.
+- Recipes with multiple positive taste signals or a loved rating can be **Excellent fit**.
+- “Not keen”, mixed feedback or prep time above the household preference produces **Worth considering**.
+- Recipes violating any hard food exclusion, dietary rule or “Don't suggest” rating are **Outside your rules** and must stay excluded from future recommendations.
+- Expand **Why this fits your household** on plan cards, swaps or recipe detail to see specific evidence and limitations.
+- Never infer supermarket-product allergen safety or checkout price from the fit label.
+
+Regression checks: `node tests/household-fit-smoke.mjs`. The GitHub Actions planner smoke workflow includes these checks alongside the existing household/basket startup tests.
+
 ## Publishing checks
 Before shipping any planner change, run `node tests/planner-startup-smoke.mjs` and check the GitHub Actions planner smoke workflow. A working browser login is not proof that the meal plan or basket rendered successfully.
 
