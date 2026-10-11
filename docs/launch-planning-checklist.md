@@ -7,7 +7,7 @@ Status: internal preparation only. No live billing is authorised.
 
 **Free at launch:** seven-day meal planning, basic swaps and recipes, complete dietary safety and Coeliac packaging warnings, useful consolidated basket, pantry, saved household and cloud sync. No card needed.
 
-**Plus, £3.99 monthly / £34.99 annually:** Free plus fourteen-day plans, deeper meal variety and repeat controls, batch/freezer and leftover planning, advanced personal recipe/pantry controls, and evidence-backed budget options when verified sources exist.
+**Plus, £3.99 monthly / £34.99 annually:** Free plus fourteen-day plans, deeper meal variety and repeat controls, batch/freezer and leftover planning, and **advanced baskets**: smarter pack and waste optimisation, optional split fortnight shops, planned-versus-actual spend tracking, custom aisle order and deeper pantry/budget controls, when implemented and reliable.
 
 **Important scope distinction:** This is an approved product specification, not an implemented paywall. App beta currently defaults to fourteen-day plans for everyone and stays that way until the migration is communicated and secure feature gating passes. All current plans, data and lifetime Plus gift rights are protected.
 
