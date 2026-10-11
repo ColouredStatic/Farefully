@@ -9,6 +9,7 @@ on:
       - 'tests/planner-startup-smoke.mjs'
       - 'tests/household-fit-smoke.mjs'
       - 'tests/basket-quantity-variety-smoke.mjs'
+      - 'tests/recipe-photography-smoke.mjs'
       - '.github/workflows/planner-smoke.yml'
   pull_request:
     paths:
@@ -17,6 +18,7 @@ on:
       - 'tests/planner-startup-smoke.mjs'
       - 'tests/household-fit-smoke.mjs'
       - 'tests/basket-quantity-variety-smoke.mjs'
+      - 'tests/recipe-photography-smoke.mjs'
       - '.github/workflows/planner-smoke.yml'
   workflow_dispatch:
 
@@ -39,3 +41,5 @@ jobs:
         run: node tests/household-fit-smoke.mjs
       - name: Test shopping quantities and meal variety
         run: node tests/basket-quantity-variety-smoke.mjs
+      - name: Test recipe photo assignment and fallback
+        run: node tests/recipe-photography-smoke.mjs
