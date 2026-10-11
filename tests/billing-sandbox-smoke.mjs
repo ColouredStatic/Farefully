@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import vm from "node:vm";
 import { readFileSync } from "node:fs";
 
 const checkout = readFileSync(new URL("../supabase/functions/farefully-billing-test/index.ts", import.meta.url), "utf8");
@@ -50,4 +51,7 @@ assert.match(sandbox,/data-action="portal"/);
 assert.match(sandbox,/checkout\.stripe\.com/);
 assert.match(sandbox,/billing\.stripe\.com/);
 assert.match(sandbox,/new URLSearchParams\(location\.search\)/);
+const script=sandbox.match(/<script>([\s\S]*?)<\/script>/);
+assert.ok(script,"Billing sandbox client script must exist");
+new vm.Script(script[1]);
 console.log("Farefully Stripe sandbox contract passed: authenticated test-only sessions, signed events, isolated DB and no live entitlement changes.");
