@@ -454,6 +454,57 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,
  .shopping-extras-fields button,.plusbasket button{transition:none}
 }
 
+
+/* Farefully premium palette: forest, leaf, sage, oat and restrained brass. */
+:root{
+  --ff-forest:#153F32;
+  --ff-leaf:#176B55;
+  --ff-sage:#E9F3EA;
+  --ff-oat:#F8F7F2;
+  --ff-paper:#FFFDF8;
+  --ff-brass:#C09249;
+  --ff-ink:#17322E;
+  --ff-line:#DCE7DE;
+  --bg:var(--ff-oat);
+  --card:var(--ff-paper);
+  --ink:var(--ff-ink);
+  --muted:#60756B;
+  --green:var(--ff-leaf);
+  --green2:var(--ff-leaf);
+  --soft:var(--ff-sage);
+  --line:var(--ff-line);
+  --shadow:0 9px 27px rgba(21,63,50,.055),0 1px 3px rgba(21,63,50,.025);
+}
+body{background:linear-gradient(110deg,#f0f5ed,#fbfaf5 48%,#f4f1e8)}
+.app{background:linear-gradient(180deg,var(--ff-oat),#F6F4EC)}
+.card,.use,.aisle,.meal{background:var(--ff-paper);border-color:var(--ff-line)}
+.top{background:rgba(248,247,242,.97);border-bottom-color:var(--ff-line)}
+.top .brand{color:var(--ff-forest)}
+.memberstatus .membershipbadge{
+  background:#FBF4E5;
+  border:1px solid #E7D5AD;
+  color:#68521C;
+  box-shadow:inset 3px 0 0 var(--ff-brass);
+}
+.pill{background:var(--ff-sage);color:var(--ff-forest)}
+.betabadge{background:var(--ff-sage);color:var(--ff-forest)}
+#basket .totalbox{background:linear-gradient(145deg,var(--ff-paper),#F0F6EE)}
+.basketcost-icon,.foodicon,.kicker{background:var(--ff-sage)}
+.nav{background:rgba(255,253,248,.98);border-color:var(--ff-line)}
+.nav button.active{background:var(--ff-sage);color:var(--ff-forest)}
+.primary,.shopping-mode-switch button.on{background:var(--ff-leaf)}
+.primary:hover{background:var(--ff-forest)}
+.soft,.shop-helper-actions button{background:var(--ff-sage);color:var(--ff-forest)}
+.plusbasket{background:var(--ff-paper);border-color:var(--ff-line)}
+.plusbasket .plusbasket-tag{
+  background:#FBF4E5;
+  color:#68521C;
+  border:1px solid #E7D5AD;
+}
+.plusbasket-tool{background:#F1F7F0;border-color:var(--ff-line)}
+.status,.basketbudget{background:var(--ff-sage);color:var(--ff-forest)}
+.trustfooter{background:var(--ff-paper);border-color:var(--ff-line)}
+
 </style></head><body><noscript>Farefully needs JavaScript enabled to work.</noscript><div class="app"><header class="top"><div class="brandrow"><div class="brandidentity"><div class="brand">Farefully 🌿</div><div class="tag">Good food brighter days</div><div class="betabadge">EARLY ACCESS</div></div><div class="topactions"><a href="account.html" class="profilebtn" aria-label="Farefully account">Account</a><button class="profilebtn" id="profileBtn">Set up</button></div></div><div class="memberstatus"><span id="farefullyPlusBadge" hidden class="membershipbadge" aria-label="Farefully Plus membership">★ Plus</span><span id="cloudSyncStatus" role="status" aria-live="polite">Connecting to your account…</span></div><div id="cloudConflictActions" role="group" aria-label="Resolve a cloud-saving conflict" style="display:none;gap:9px;align-items:center;flex-wrap:wrap;padding:12px 16px;background:#fff4dc;border:1px solid #c98b36;margin:0 12px 12px;border-radius:12px;color:#5c3912;font-size:13px"><strong>Another device has newer household changes. Choose which copy to keep:</strong><button id="cloudKeepLocal" type="button" style="background:#176b55;color:white;border:0;border-radius:8px;padding:9px 12px;cursor:pointer">Keep this device’s edits</button><button id="cloudUseLatest" type="button" style="background:white;color:#5c3912;border:1px solid #d3b98a;border-radius:8px;padding:9px 12px;cursor:pointer">Load newer cloud version</button></div></header><main><section class="screen active" id="home">
 <div class="setupbanner" id="setupBanner">
 <div>
