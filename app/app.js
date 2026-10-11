@@ -900,7 +900,9 @@ function renderUnsafe(){
   document.getElementById('days').innerHTML=state.plan.map((x,i)=>`<button class="day" data-ff-action="scroll-day" data-index="${i}"><b>${['Mon','Tue','Wed','Thu','Fri','Sat','Sun'][i%7]}</b><div class="small">${i+1}</div></button>`).join('');
   document.getElementById('plans').innerHTML=state.plan.map((x,i)=>{const m=meal(i),b=slotFor(breakfast,i),l=slotFor(lunch,i),sn=slotFor(snacks,i);return`<div class="meal card" id="m${i}"><img class="thumb" src="${image(m)}" data-ff-photo-id="${esc(m.id)}" loading="lazy" decoding="async" data-ff-action="open-recipe" data-index="${i}" alt="${esc(m.n)}"><div><div class="small" style="font-weight:800">DAY ${i+1}</div><h3 data-ff-action="open-recipe" data-index="${i}">${esc(m.n)}</h3><div class="small">⏱ ${m.t} min · ${money(cost(m)/(state.adults+state.children))} pp</div>${householdFitBadge(m)}${prepBadges(m)}${offerBadge(m)}<div class="desc">${esc(m.d)}</div>${householdFitExplanation(m)}<div class="mealextras"><b>Breakfast:</b> ${esc(safeSlotName(b))}<br><b>Lunch:</b> ${esc(safeSlotName(l))}<br><b>Snack:</b> ${esc(safeSlotName(sn))}</div><div class="actions"><button class="soft" data-ff-action="open-swap" data-index="${i}">↔ Swap</button></div></div><button class="chev" aria-label="Open ${esc(m.n)} recipe" data-ff-action="open-recipe" data-index="${i}">›</button></div>`}).join('')||planEmptyMessage(matchingDinners);
 
-  document.getElementById('basketTotal').textContent=money(state.total);document.getElementById('basketRemain').textContent=rem>=0?money(rem)+' under budget':money(Math.abs(rem))+' over budget';
+  document.getElementById('basketTotal').textContent=money(state.total);
+  const basketBudget=document.getElementById('basketRemain');
+  if(basketBudget){basketBudget.textContent=rem>=0?money(rem)+' under budget':money(Math.abs(rem))+' over budget';basketBudget.classList.toggle('over',rem<0)}
   const groups={};for(const[k,v]of Object.entries(state.basket)){const item=P[k];if(!item)continue;(groups[item.c]||=[]).push([k,v])}
   const basketKeys=Object.keys(state.basket).filter(k=>P[k]);
   const extras=validShoppingExtras();
@@ -930,7 +932,17 @@ function renderUnsafe(){
     else if((state.allergens||[]).length){dietaryNote.style.display='block';dietaryNote.innerHTML='<b>Allergen filter active:</b> recommendations use known ingredient metadata, but the exact supermarket product label remains the authority. Always verify ingredients and “may contain” statements.'}
     else dietaryNote.style.display='none'
   }
-  const retailerNote=document.getElementById('retailerNote');if(retailerNote){const mode=LIVE_ROWS.length&&LIVE_RETAILERS.has(retailer)?`${retailer} hybrid quote · ${state.liveCoverage?.matched||0}/${state.liveCoverage?.eligible||0} ingredient lines using current product data`:`${retailer} benchmark estimate · not a live checkout quote`;retailerNote.textContent=autoShop?`No preferred shop · current best estimate: ${mode}`:mode}
+  const retailerNote=document.getElementById('retailerNote');
+  const basketCoverage=document.getElementById('basketCoverage');
+  const hasCurrentMatches=!!(LIVE_ROWS.length&&LIVE_RETAILERS.has(retailer));
+  if(retailerNote)retailerNote.textContent=(autoShop?'Suggested shop: ':'')+retailer+'-based estimate';
+  if(basketCoverage){
+    const matched=Math.max(0,Number(state.liveCoverage?.matched)||0);
+    const eligible=Math.max(0,Number(state.liveCoverage?.eligible)||0);
+    basketCoverage.textContent=hasCurrentMatches&&eligible
+      ?matched+' of '+eligible+' ingredient lines matched with current product data. Remaining prices are modelled; not a checkout quote.'
+      :'Benchmark-based estimate. Product prices, packs and final checkout totals may differ.';
+  }
   renderPantryPicker();renderPantryHighlights();renderRetailerComparison();renderWeeklyOffers();
   const shopSummary=autoShop?`No preference → ${retailer} current best estimate`:state.supermarket;
   document.getElementById('householdCard').innerHTML=`<p><b>Adults:</b> ${state.adults}</p><p><b>Children:</b> ${state.children}</p><p><b>Plan:</b> ${state.days} days</p><p><b>Budget:</b> ${money(state.budget)}</p><p><b>Supermarket:</b> ${esc(shopSummary||'Not selected')}</p><p><b>Loyalty pricing:</b> ${state.loyaltyPricing?'On':'Off'}</p><p><b>Weekly offers in planning:</b> ${state.useWeeklyOffers?'On':'Off'}</p><p><b>Diet:</b> ${esc(state.dietPattern==='omnivore'?'No specific diet':state.dietPattern)}</p><p><b>Extra exclusions:</b> ${esc((state.avoidGroups||[]).join(', ')||'None')}</p><p><b>Allergen filters:</b> ${esc((state.allergens||[]).join(', ')||'None')}</p><p><b>Not keen:</b> ${esc(Object.entries(state.taste?.proteins||{}).filter(([k,v])=>v===-1&&k!=='Halloumi & cheese').map(([k])=>k).concat(Object.entries(state.taste?.styles||{}).filter(([,v])=>v===-1).map(([k])=>k),Object.entries(state.taste?.ingredients||{}).filter(([,v])=>v===-1).map(([k])=>k)).join(', ')||'None')}</p><p><b>Never suggest:</b> ${esc(Object.entries(state.taste?.proteins||{}).filter(([k,v])=>v===-2&&k!=='Halloumi & cheese').map(([k])=>k).concat(Object.entries(state.taste?.styles||{}).filter(([,v])=>v===-2).map(([k])=>k),Object.entries(state.taste?.ingredients||{}).filter(([,v])=>v===-2).map(([k])=>k),(state.avoid||[])).join(', ')||'Nothing added')}</p><p><b>Weeknight time:</b> ${state.maxTime>=999?'No limit':state.maxTime+' minutes'}</p><p><b>Priority:</b> ${esc({budget:'Lowest cost',family:'Everyone eats it',quick:'Quick cooking',variety:'More variety',balance:'Balanced'}[state.priority]||'Balanced')}</p><div class="profile-summary"><b>Taste Profile:</b> ${state.tasteComplete?'Active · recommendations ranked for this household':'Not finished yet'}</div><p><b>Profile:</b> ${state.setupComplete&&state.tasteComplete?'Ready':'Setup incomplete'}</p>`;
