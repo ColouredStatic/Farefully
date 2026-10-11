@@ -48,4 +48,33 @@ run("state.maxTime=45;state.ratings[dish.id]='never';");
 assert.equal(run('householdFit(dish).label'),'Outside your rules');
 assert.match(run('householdFitExplanation(dish)'),/cannot be recommended/);
 assert.doesNotMatch(run('householdFitBadge(dish)'),/\d+%/);
+// Chips and wedges must be independent saved household choices.
+assert.match(html, /data-group="style" data-key="chips" data-value="0"/);
+assert.match(html, /data-group="style" data-key="wedges" data-value="0"/);
+run("state=def();state.supermarket='Aldi';state.useWeeklyOffers=false;"+
+    "globalThis.chipsDish=allDinners().find(m=>m.id==='eggchipspeas2');"+
+    "globalThis.wedgesDish=allDinners().find(m=>m.id==='beefburgerbowl');");
+assert.ok(run('!!chipsDish&&!!wedgesDish'),'Expected existing chip and wedge recipes');
+assert.equal(run("mealStyles(chipsDish).includes('chips')"),true);
+assert.equal(run("mealStyles(chipsDish).includes('wedges')"),false);
+assert.equal(run("mealStyles(wedgesDish).includes('wedges')"),true);
+assert.equal(run("mealStyles(wedgesDish).includes('chips')"),false);
+assert.match(run('prepBadges(chipsDish)'),/Homemade chips/);
+assert.doesNotMatch(run('prepBadges(chipsDish)'),/Homemade wedges/);
+assert.match(run('prepDetail(wedgesDish)'),/Homemade wedges/);
+assert.doesNotMatch(run('prepDetail(wedgesDish)'),/Homemade chips/);
+run('state.taste.styles.wedges=-2;');
+assert.equal(run('hardBlocked(wedgesDish)'),true,'Wedges Never suggest must exclude wedges');
+assert.equal(run('hardBlocked(chipsDish)'),false,'Wedges preference must not exclude chips');
+run('state.taste.styles.wedges=0;state.taste.styles.chips=-2;');
+assert.equal(run('hardBlocked(chipsDish)'),true,'Chips Never suggest must exclude chips');
+assert.equal(run('hardBlocked(wedgesDish)'),false,'Chips preference must not exclude wedges');
+run('state.taste.styles.chips=0;state.taste.styles.wedges=-1;');
+assert.equal(run('householdFit(wedgesDish).label'),'Worth considering');
+assert.equal(run('householdFit(chipsDish).label'),'Good fit');
+run('state.taste.styles.wedges=-2;build();');
+assert.equal(run("state.plan.some(id=>mealStyles(allDinners().find(m=>m.id===id)).includes('wedges'))"),false,
+  'Generated plans must respect Never suggest wedges');
+console.log('Separate chips/wedges controls, fit, badges and strict plan exclusion passed.');
+
 console.log('Household Fit regression checks passed (neutral, loved, disliked, excluded, cooking time, explanations).');
