@@ -4,7 +4,7 @@
 
 Farefully has 220 built-in dinners. Four already have existing Wix-hosted images; this batch assigns **11 additional dish-specific illustrative photos**. Never silently assign a generic photo to another recipe unless someone checks that it matches the dish.
 
-Images in `RECIPE_PHOTOS` are loaded as optimised 1100-pixel Unsplash URL variants. The linked free-use photo pages explicitly state they are covered by the [Unsplash License](https://unsplash.com/license). Photographer attribution is voluntarily displayed below each recipe's main picture, along with a notice that ingredients and presentation may differ. Recipe images are **illustrative**, not representations of the specific supermarket products or dietary/allergen guarantees.
+Images in `RECIPE_PHOTOS` are loaded as optimised third-party image URLs (typically 1100 pixels). Batch 1 uses [Unsplash](https://unsplash.com/license); Batch 2 includes [Pexels](https://www.pexels.com/license/) and Creative Commons photographs on Wikimedia Commons. Each image retains its individual source record. Photographer attribution and relevant Creative Commons licenses are displayed on the recipe detail page, with ingredient/presentation caveats. Recipe images are **illustrative**, not representations of the specific supermarket products or dietary/allergen guarantees.
 
 | Recipe ID | Meal | Photographer | Free photo and source |
 | --- | --- | --- | --- |
@@ -38,6 +38,29 @@ Images in `RECIPE_PHOTOS` are loaded as optimised 1100-pixel Unsplash URL varian
 
 ### Coverage
 
-As of this batch: **15/220 built-in dinners** have assigned actual photographs (four pre-existing, 11 new). The remaining 205 use the existing illustrated fallback. User-created recipes are unaffected.
+After Batches 1 and 2: **27/220 built-in dinners** have assigned actual photographs (four pre-existing, 23 curated). The remaining 193 use the existing illustrated fallback. User-created recipes are unaffected.
 
 Next: source specific, suitable images for the remaining most frequently suggested dinners, prioritising existing saved meal plans and then expanding to the broader recipe library.
+
+## Beta batch 2, 11 October 2026
+
+Twelve newly mapped recipe photos. The illustrations below are **representative**, not pictures of the precise Farefully recipe or confirmation of its ingredients. Where an exact stock-photo match was unavailable, we chose an image of the same type of prepared dish and included an explicit caveat next to the credit. Those images should be replaced with exact recipe photography when available.
+
+| Recipe ID | Recipe | Image source | Photographer | Match note / license |
+| --- | --- | --- | --- | --- |
+| `pasta` | Chicken pasta bake | [Pexels](https://www.pexels.com/photo/delicious-baked-macaroni-in-glass-dish-38090650/) | Muhammad Khawar Nazir | Baked pasta; chicken not independently verified as pictured, Pexels |
+| `chickenbacon` | Chicken & bacon pasta | [Pexels](https://www.pexels.com/photo/close-up-photo-of-delicious-pasta-12557555/) | Alejandro Aznar | Creamy bacon pasta; chicken may not be visible, Pexels |
+| `sausagecass` | Sausage casserole | [Pexels](https://www.pexels.com/photo/delicious-beans-with-bits-of-sausages-in-a-pan-9201962/) | Erik Mclean | Sausages and beans in pan, Pexels |
+| `sausagetray` | Sausage & vegetable traybake | [Pexels](https://www.pexels.com/photo/rustic-potato-and-sausage-dish-on-checkered-cloth-37275057/) | cami | Roasted sausage and potatoes, vegetables vary, Pexels |
+| `burgers` | Homemade beef burgers | [Pexels](https://www.pexels.com/photo/beef-burger-with-tomato-and-lettuce-14509069/) | Ruben Dao Cuentas | Beef burger, Pexels |
+| `chickenburgers` | Chicken burgers & wedges | [Pexels](https://www.pexels.com/photo/chicken-burger-with-fries-1431305/) | Anush Gorak | Chicken burger with fries, not wedges, Pexels |
+| `fishpie` | Easy fish pie | [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Fish_Pie.jpg) | Atelier Joly | Actual fish pie with mashed potato topping, [CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/) |
+| `tunapasta` | Tuna pasta bake | [Pexels](https://www.pexels.com/photo/creamy-baked-pasta-dish-on-white-napkin-35622190/) | bams awey | Baked pasta; tuna not independently verified as pictured, Pexels |
+| `jacket` | Jacket potatoes, beans & cheese | [Unsplash](https://unsplash.com/photos/a-white-plate-topped-with-a-baked-potato-covered-in-beans-7N2zWBNJ_Hw) | Gennady Zakharin | Baked potato with beans, cheese may differ, Unsplash |
+| `tunajackets` | Tuna mayo jacket potatoes | [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Baked_potato_with_tuna,_sweetcorn_and_mayonnaise_-_Waitrose_caf%C3%A9,_Worthing_2025-12-11.jpg) | Andy Li | Actual tuna and mayonnaise jacket potato, [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) |
+| `vegpastabake` | Vegetable pasta bake | [Pexels](https://www.pexels.com/photo/cheesy-baked-pasta-with-olives-and-peppers-34567494/) | Tanha Tamanna Syed | Baked pasta with peppers and olives, Pexels |
+| `chickpeacurry` | Chickpea curry | [Pexels](https://www.pexels.com/photo/food-healthy-beans-dinner-6544375/) | Alesia Kozik | Chickpea and rice curry bowl, Pexels |
+
+**Batch 2 licensing:** Individual Pexels source pages indicate “Free to use”; Unsplash image page indicates “Free to use under the Unsplash License”; Wikimedia file pages specify CC BY-SA 3.0 and CC0 1.0 respectively. CC BY-SA requires appropriate attribution, the linked license and indication of adaptations; recipe detail retains these links and the photos are automatically cropped only for presentation. No stock photo establishes food-safety or ingredient accuracy.
+
+**Release checks:** `tests/recipe-photography-smoke.mjs` covers 23 mapped images, 3 source types, URL shapes, attribution, license links, photo fallbacks and recipe IDs. GitHub Pages deployment must be checked separately before claiming this batch is live.
