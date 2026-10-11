@@ -53,7 +53,9 @@ context.mockPlus=async(name,params)=>{
   if(params.p_action==='split_fortnight'){
     return{data:{eligible:true,lines:params.p_payload.length,items:params.p_payload.map(x=>({
       id:x.id,first_need:x.week1,second_need:x.week2,
-      first_packs:Math.ceil(x.week1/x.pack),second_packs:Math.ceil(x.week2/x.pack)
+      first_packs:Math.ceil(x.week1/x.pack),second_packs:Math.ceil(x.week2/x.pack),
+      combined_packs:Math.ceil((x.week1+x.week2)/x.pack),
+      potential_duplicate_packs:1
     }))},error:null};
   }
   throw Error('unexpected action');
@@ -62,6 +64,7 @@ run('CLOUD_CLIENT={rpc:mockPlus}');
 await run('plusShopSplitFortnight()');
 assert.match(el('plusSplitResult').innerHTML,/Shop 1/);
 assert.match(el('plusSplitResult').innerHTML,/Shop 2/);
+assert.match(el('plusSplitResult').innerHTML,/Possible pack consolidation/);
 assert.ok(calls.find(x=>x.action==='split_fortnight'));
 assert.equal(run('JSON.stringify(state.basket)'),basketBefore,'Split must not alter Free basket');
 
