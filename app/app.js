@@ -546,6 +546,13 @@ function mealStyles(m){
   if(m.t<=25)a.push('quick');
   return[...new Set(a)]
 }
+// Pure presentation helper: labels homemade chips/wedges in recipe cards.
+// The planner no longer rewards or forces these dishes into meal plans.
+function homemadeChipsWedges(m){
+ if(!m)return false;
+ const label=String(m.n||'')+' '+String(m.d||'');
+ return !!m.i?.potatoes && /\b(chips?|wedges?)\b/i.test(label);
+}
 // Avoid predictable weekly repeats. Chips and wedges remain distinct sides.
 function excessiveRepeat(m,day,plan=state.plan,lookup=null){
  const styles=mealStyles(m),week=Math.floor(day/7),weeks=Math.max(1,Math.ceil((state.days||14)/7));
@@ -722,7 +729,7 @@ function calc(){
   if(LIVE_ROWS.length&&LIVE_RETAILERS.has(retailer)){
     const h=hybridQuote(retailer);for(const d of h.details){if(!state.basket[d.id])continue;state.basket[d.id].line=d.cost;state.basket[d.id].live=d.live;if(d.live){state.basket[d.id].liveQuote=d.quote;state.basket[d.id].packs=d.quote.items.reduce((s,x)=>s+x.packs,0)}}state.total=h.total;state.liveCoverage={matched:h.matched,eligible:h.eligible}
   }else{state.total=retailerBasketTotal(retailer,state.basket);state.liveCoverage={matched:0,eligible:Object.keys(state.basket).length}}
-}function render(){
+}function renderUnsafe(){
   calc();
   const p=prof(),hasPlan=state.plan.length>0,retailer=selectedRetailer(),autoShop=!RETAILERS[state.supermarket];
   document.getElementById('profileBtn').textContent=p?p.name:'Set up';
@@ -791,6 +798,18 @@ function calc(){
   const shopSummary=autoShop?`No preference → ${retailer} current best estimate`:state.supermarket;
   document.getElementById('householdCard').innerHTML=`<p><b>Adults:</b> ${state.adults}</p><p><b>Children:</b> ${state.children}</p><p><b>Plan:</b> ${state.days} days</p><p><b>Budget:</b> ${money(state.budget)}</p><p><b>Supermarket:</b> ${esc(shopSummary||'Not selected')}</p><p><b>Loyalty pricing:</b> ${state.loyaltyPricing?'On':'Off'}</p><p><b>Weekly offers in planning:</b> ${state.useWeeklyOffers?'On':'Off'}</p><p><b>Diet:</b> ${esc(state.dietPattern==='omnivore'?'No specific diet':state.dietPattern)}</p><p><b>Extra exclusions:</b> ${esc((state.avoidGroups||[]).join(', ')||'None')}</p><p><b>Allergen filters:</b> ${esc((state.allergens||[]).join(', ')||'None')}</p><p><b>Not keen:</b> ${esc(Object.entries(state.taste?.proteins||{}).filter(([k,v])=>v===-1&&k!=='Halloumi & cheese').map(([k])=>k).concat(Object.entries(state.taste?.styles||{}).filter(([,v])=>v===-1).map(([k])=>k),Object.entries(state.taste?.ingredients||{}).filter(([,v])=>v===-1).map(([k])=>k)).join(', ')||'None')}</p><p><b>Never suggest:</b> ${esc(Object.entries(state.taste?.proteins||{}).filter(([k,v])=>v===-2&&k!=='Halloumi & cheese').map(([k])=>k).concat(Object.entries(state.taste?.styles||{}).filter(([,v])=>v===-2).map(([k])=>k),Object.entries(state.taste?.ingredients||{}).filter(([,v])=>v===-2).map(([k])=>k),(state.avoid||[])).join(', ')||'Nothing added')}</p><p><b>Weeknight time:</b> ${state.maxTime>=999?'No limit':state.maxTime+' minutes'}</p><p><b>Priority:</b> ${esc({budget:'Lowest cost',family:'Everyone eats it',quick:'Quick cooking',variety:'More variety',balance:'Balanced'}[state.priority]||'Balanced')}</p><div class="profile-summary"><b>Taste Profile:</b> ${state.tasteComplete?'Active · recommendations ranked for this household':'Not finished yet'}</div><p><b>Profile:</b> ${state.setupComplete&&state.tasteComplete?'Ready':'Setup incomplete'}</p>`;
   applyAccessibility();save()
+}
+
+// Fail visibly if a recipe, basket or pricing renderer ever throws.
+// Authentication, cloud data and membership are left intact.
+function render(){
+ try {return renderUnsafe()}
+ catch(err){
+   console.error('Farefully planner display error',err);
+   cloudShowGate('Farefully could not display your planner or basket. Your account data is still saved. Refresh to retry; if this continues, contact support@farefully.co.uk.',true);
+   cloudStatus('Planner display issue · refresh to retry',true);
+   return false;
+ }
 }
 
 let customEditingId=null,customDraftIngredients={};
