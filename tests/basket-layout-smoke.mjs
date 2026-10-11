@@ -24,8 +24,8 @@ assert.match(html,/\.basketbudget\.over\{/);
 assert.match(html,/@media\(max-width:450px\)/);
 assert.ok(html.includes('class="topactions"')&&html.includes('class="memberstatus"'),
   'Header should separate account actions from membership and cloud sync');
-assert.ok(!html.includes('text-overflow:ellipsis;white-space:nowrap}.screen'),
-  'Original truncated button layout should not be the final header treatment');
+assert.match(html,/\.top \.profilebtn\{[^}]*white-space:normal/,
+  'Premium header must override the legacy ellipsis styling');
 assert.match(js,/basketBudget\.classList\.toggle\('over',rem<0\)/);
 assert.match(js,/basketCoverage\.textContent=hasCurrentMatches/);
 assert.match(js,/Remaining prices are modelled; not a checkout quote/);
