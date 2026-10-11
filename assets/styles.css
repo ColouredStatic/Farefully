@@ -53,3 +53,74 @@
 .plans-link-plus{background:#176b55;color:white}
 .plans-footnote{font-size:13px;color:#536b5d;line-height:1.7;margin:21px 0 0}
 @media(max-width:700px){.plans-grid{grid-template-columns:1fr}.plans-card{padding:24px}.plans-card h3{font-size:29px}.plans-price span{display:block}}
+
+
+/* Farefully visual refinement: calm, readable, more consistent with the app. */
+:root{--cream:#f8f6ef;--cream2:#fffefa;--ink:#17322e;--muted:#60756b;--line:#e0e8dd;--mint:#edf5ee;--shadow:0 16px 42px rgba(22,66,43,.075)}
+body{color:var(--ink);background:#fffefa;-webkit-font-smoothing:antialiased}
+.sitehead{background:rgba(255,254,250,.96);border-bottom:1px solid #e7ece4;box-shadow:0 3px 16px rgba(26,67,43,.025)}
+.navrow{min-height:74px}
+.logo{letter-spacing:-.025em}
+.navlinks{gap:18px}
+.navlinks a{color:#405f51;transition:color .18s ease}
+.navlinks a:hover{color:#176b55}
+.navcta,.button.primary{background:#176b55;border-color:#176b55;color:white;box-shadow:0 7px 19px rgba(23,107,85,.15)}
+.navcta:hover,.button.primary:hover{background:#11533f;border-color:#11533f;box-shadow:0 10px 24px rgba(23,107,85,.19);filter:none}
+.button.secondary{border-color:#d5e5d8;background:#fffefa;color:#206047}
+.button.secondary:hover{background:#eff6f0}
+.button,.plans-link{transition:background-color .18s ease,border-color .18s ease,box-shadow .18s ease,transform .18s ease}
+.button:focus-visible,.navlinks a:focus-visible,.logo:focus-visible,
+.plans-link:focus-visible,.footlinks a:focus-visible{outline:3px solid #479774;outline-offset:4px}
+.hero{background:radial-gradient(circle at 82% 17%,#dcece0 0,transparent 37%),linear-gradient(165deg,#fffefa 5%,#f7f3e9 100%)}
+.hero h1{line-height:1.015;letter-spacing:-.046em}
+.hero .lead{line-height:1.58;color:#50695e}
+.hero .micro{max-width:580px;line-height:1.7}
+.eyebrow{letter-spacing:.085em;background:#e6f2e9;color:#205a43}
+.phone{transform:rotate(1deg);border-color:#213b32;box-shadow:0 25px 72px rgba(18,52,34,.20)}
+.blob{background:#e1efe2}
+.floatcard{box-shadow:0 10px 30px rgba(30,78,49,.1);border-color:#deeadf}
+.section{padding:78px 0}
+.sectionHead h2,.pagehero h1{line-height:1.07;letter-spacing:-.035em}
+.sectionHead p,.pagehero p{line-height:1.6}
+.feature,.foodcard,.proof,.plans-card{border-color:#e3eae0;box-shadow:0 9px 25px rgba(30,72,45,.055)}
+.feature{border-radius:21px;padding:25px 24px}
+.feature h3{line-height:1.15}
+.feature p{line-height:1.64;color:#62776d}
+.icon{background:#eaf5eb;border-radius:13px}
+.proof{border-radius:17px}
+.proof b{letter-spacing:-.035em}
+.statement{border-radius:28px;box-shadow:0 15px 39px rgba(24,69,43,.12)}
+.stepno{background:#176b55}
+.plans-section{background:linear-gradient(180deg,#eff5ed,#f9f8f3)}
+.plans-card{border-radius:24px;padding:30px}
+.plans-card-plus{border-color:#176b55;box-shadow:0 12px 34px rgba(28,84,55,.10)}
+.plans-card h3{letter-spacing:-.035em}
+.plans-price{font-size:clamp(29px,4vw,35px);line-height:1.2}
+.plans-link{border-radius:13px;padding:13px 19px}
+.plans-link-plus{background:#176b55;color:#fff}
+.plans-link-plus:hover{background:#12523f}
+.plans-link-free:hover{background:#dceee0}
+.plans-footnote{max-width:900px}
+.ctaBox{border-radius:27px;background:linear-gradient(130deg,#173f32,#236b50)}
+.ctaBox .button{border-color:transparent}
+.sitefoot{background:#fffefa;border-top-color:#e4ebe1}
+.footlinks a{color:#496756}
+@media(hover:hover) and (pointer:fine){
+ .foodcard:hover,.feature:hover,.plans-card:hover{box-shadow:0 14px 38px rgba(25,76,44,.105)}
+ .button:active,.plans-link:active{transform:translateY(1px)}
+}
+@media(max-width:850px){.hero{padding-top:58px}.heroGrid{gap:26px}.section{padding:65px 0}}
+@media(max-width:560px){
+ .hero h1{font-size:clamp(40px,10.4vw,51px);line-height:1.04}
+ .hero .lead{font-size:17px}
+ .navrow{min-height:67px}
+ .logo{font-size:25px}
+ .feature{padding:21px}
+ .plans-card{padding:24px}
+ .ctaBox{border-radius:23px}
+}
+@media(prefers-reduced-motion:reduce){
+ html{scroll-behavior:auto}
+ .button,.plans-link,.navlinks a,.navcta,.foodcard{transition:none}
+ .foodcard:hover{transform:none}
+}
