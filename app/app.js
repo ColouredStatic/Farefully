@@ -1049,7 +1049,12 @@ function shoppingBasketItemLines(id,row){
  if(quote.length){
    return quote.map(q=>{
      const product=liveProductName(q.row)||item.n;
-     const pack=String(q.row?.packSize||'').trim()||shoppingPackLabel(id,item.pack,item.u);
+     // Retailers often give egg products a weight (e.g. 328g) while the
+     // actual purchasable unit is a six-pack. Use parsed count, not weight.
+     const liveQty=Number(q.row?._qty)||parsePackQuantity(q.row?.packSize,item.u,product);
+     const pack=(item.u==='each'||item.u==='slice')&&liveQty
+       ?shoppingPackLabel(id,liveQty,item.u)
+       :String(q.row?.packSize||'').trim()||(liveQty?shoppingPackLabel(id,liveQty,item.u):'pack size to verify');
      return item.n+' — '+q.packs+' × '+pack+(product.toLowerCase()!==item.n.toLowerCase()?' ('+product+')':'');
    });
  }
