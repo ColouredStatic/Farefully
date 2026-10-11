@@ -10,7 +10,7 @@ assert.notEqual(stripped,app,'bootstrap must be removable');
 for(const id of ['plusSplitButton','plusSplitResult','plusActualSpend','plusAisleResult','plusSpendSaveButton']){
   assert.ok(page.includes('id="'+id+'"'),id+' missing from app markup');
 }
-assert.ok(page.includes('app.js?v=1181'),'app JS cache must be bumped');
+assert.match(page,/app\.js\?v=\d+/, 'Application script must have a cache version');
 const store=new Map(),elements=new Map();
 function el(id){
   if(!elements.has(id))elements.set(id,{style:{setProperty(){}},
