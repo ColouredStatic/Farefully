@@ -292,7 +292,7 @@ function def(){return{
   adults:2,children:3,days:14,budget:200,avoid:[],pantry:{},plan:[],basket:{},need:{},total:0,checked:{},
   supermarket:'',autoRetailer:'Aldi',loyaltyPricing:true,useWeeklyOffers:true,taste:{proteins:{},styles:{},ingredients:{}},maxTime:45,vegFrequency:'some',fishFrequency:'some',
   novelty:'balanced',priority:'balance',ratings:{},tasteComplete:false,planGeneration:0,recentPlans:[],
-  dietPattern:'omnivore',avoidGroups:[],allergens:[],dietComplete:false,setupComplete:false,customRecipes:[]
+  dietPattern:'omnivore',avoidGroups:[],allergens:[],dietComplete:false,setupComplete:false,customRecipes:[],shoppingExtras:[]
 }}function prof(){return profiles.find(x=>x.id===active)}function normalizeState(){
   if(typeof state.setupComplete!=='boolean')state.setupComplete=false;
   if(typeof state.supermarket!=='string')state.supermarket='';
@@ -316,6 +316,8 @@ function def(){return{
   if(!Array.isArray(state.avoidGroups))state.avoidGroups=[];
   if(!Array.isArray(state.allergens))state.allergens=[];
   if(typeof state.dietComplete!=='boolean')state.dietComplete=false;if(typeof state.loyaltyPricing!=='boolean')state.loyaltyPricing=true;if(typeof state.useWeeklyOffers!=='boolean')state.useWeeklyOffers=true;if(!Array.isArray(state.customRecipes))state.customRecipes=[];
+  if(!Array.isArray(state.shoppingExtras))state.shoppingExtras=[];
+  state.shoppingExtras=state.shoppingExtras.filter(x=>x&&typeof x.id==='string'&&typeof x.name==='string').slice(0,60);
 }
 function load(){
   profiles=JSON.parse(store.get(PK)||'[]');active=store.get(AK);
@@ -708,10 +710,11 @@ function calc(){
   document.getElementById('basketTotal').textContent=money(state.total);document.getElementById('basketRemain').textContent=rem>=0?money(rem)+' under budget':money(Math.abs(rem))+' over budget';
   const groups={};for(const[k,v]of Object.entries(state.basket)){const item=P[k];if(!item)continue;(groups[item.c]||=[]).push([k,v])}
   const basketKeys=Object.keys(state.basket).filter(k=>P[k]);
-  const collected=basketKeys.filter(k=>state.checked[k]).length;
+  const extras=validShoppingExtras();
+  const collected=basketKeys.filter(k=>state.checked[k]).length+extras.filter(x=>state.checked['extra:'+x.id]).length;
   let progress=document.getElementById('basketCollectionProgress');
   if(!progress){progress=document.createElement('div');progress.id='basketCollectionProgress';progress.className='small';document.getElementById('basketGroups').before(progress)}
-  progress.textContent=collected+' of '+basketKeys.length+' shopping items collected';
+  progress.textContent=collected+' of '+(basketKeys.length+extras.length)+' shopping items collected';
   let collectionHint=document.getElementById('basketCollectionHint');
   if(!collectionHint){
     collectionHint=document.createElement('p');
@@ -721,7 +724,11 @@ function calc(){
     progress.after(collectionHint);
   }
   collectionHint.textContent='Shopping as you go? Tick an item when you put it in your trolley. Tick it again to undo. Your progress saves across devices.';
-  document.getElementById('basketGroups').innerHTML=Object.entries(groups).map(([c,items])=>`<div class="aisle card"><div class="aisletop"><h3>${esc(c)}</h3><b>${money(items.reduce((sum,x)=>sum+x[1].line,0))}</b></div>${items.map(([k,v])=>`<div class="shoprow ${state.checked[k]?'done':''}" data-ff-action="toggle-basket" data-key="${esc(k)}"><div class="check">${state.checked[k]?'✓':''}</div><div><b>${esc(P[k].n)}</b><div class="small">${v.live&&v.liveQuote?v.liveQuote.items.map(x=>`${x.packs} × ${esc(x.row.packSize||liveProductName(x.row))}`).join(' + '):`${v.packs} × ${P[k].pack}${P[k].u} · recipe need ${fmtQty(k,state.need[k]||0)}`}${v.have?' · pantry '+fmtQty(k,v.have):''}${v.live?'<span class="liveprice">LIVE PRODUCT</span>':'<span class="fallbackprice">MODEL</span>'}${coeliacMode()&&coeliacLabelCheck(k)?'<span class="fallbackprice">CHECK COELIAC LABEL</span>':''}${wheatFreeMode()&&wheatLabelCheck(k)?'<span class="fallbackprice">CHECK WHEAT LABEL</span>':''}</div>${v.live&&v.liveQuote?`<div class="productdetail">${v.liveQuote.items.map(x=>esc(liveProductName(x.row))).join(' + ')}</div>`:''}</div><b>${money(v.line)}</b></div>`).join('')}</div>`).join('')||'<div class="card" style="padding:16px"><div class="small">No shopping lines yet.</div></div>';
+  document.getElementById('basketGroups').innerHTML=Object.entries(groups).map(([c,items])=>`<div class="aisle card"><div class="aisletop"><h3>${esc(c)}</h3><b>${money(items.reduce((sum,x)=>sum+x[1].line,0))}</b></div>${items.map(([k,v])=>`<div class="shoprow ${state.checked[k]?'done':''}" role="checkbox" tabindex="0" aria-checked="${!!state.checked[k]}" aria-label="${esc(P[k].n)}: ${state.checked[k]?'collected':'still needed'}. Tap to change." data-shop-name="${esc(P[k].n.toLowerCase())}" data-shop-checked="${state.checked[k]?'1':'0'}" data-ff-action="toggle-basket" data-key="${esc(k)}"><div class="check">${state.checked[k]?'✓':''}</div><div><b>${esc(P[k].n)}</b><div class="small">${v.live&&v.liveQuote?v.liveQuote.items.map(x=>`${x.packs} × ${esc(x.row.packSize||liveProductName(x.row))}`).join(' + '):`${v.packs} × ${P[k].pack}${P[k].u} · recipe need ${fmtQty(k,state.need[k]||0)}`}${v.have?' · pantry '+fmtQty(k,v.have):''}${v.live?'<span class="liveprice">LIVE PRODUCT</span>':'<span class="fallbackprice">MODEL</span>'}${coeliacMode()&&coeliacLabelCheck(k)?'<span class="fallbackprice">CHECK COELIAC LABEL</span>':''}${wheatFreeMode()&&wheatLabelCheck(k)?'<span class="fallbackprice">CHECK WHEAT LABEL</span>':''}</div>${v.live&&v.liveQuote?`<div class="productdetail">${v.liveQuote.items.map(x=>esc(liveProductName(x.row))).join(' + ')}</div>`:''}</div><b>${money(v.line)}</b></div>`).join('')}</div>`).join('')||'<div class="card" style="padding:16px"><div class="small">No shopping lines yet.</div></div>';
+
+  renderShoppingExtras();
+  refreshShoppingAssistant();
+  applyShoppingFilters();
 
   const dietaryNote=document.getElementById('basketDietaryNote');
   if(dietaryNote){
@@ -867,7 +874,160 @@ function addPantry(){
   state.pantry[k]=(state.pantry[k]||0)+q;
   calc();render();showToast(P[k].n+' added to pantry')
 }
-function removePantry(k){delete state.pantry[k];calc();render();showToast('Removed from pantry')}function toggle(k){state.checked[k]=!state.checked[k];render()}function openSwap(i){
+function removePantry(k){delete state.pantry[k];calc();render();showToast('Removed from pantry')}
+// Shopping Companion: additional essentials, in-store filters and honest online handoff.
+// Extras stay separate from recipe calculations and have no modelled price.
+let shoppingMode='store',shoppingQuery='',shoppingRemainingOnly=false,shoppingOnlineRetailer=null;
+const SHOP_ONLINE_STORES=Object.freeze({
+  'Tesco':'https://www.tesco.com/shop/en-GB/landing/groceries',
+  'Asda':'https://www.asda.com/',
+  "Sainsbury's":'https://www.sainsburys.co.uk/gol-ui/groceries',
+  'Morrisons':'https://groceries.morrisons.com/',
+  'Ocado':'https://www.ocado.com/',
+  'Waitrose':'https://www.waitrose.com/ecom/shop/browse/groceries'
+});
+function validShoppingExtras(){
+ return Array.isArray(state?.shoppingExtras)
+   ?state.shoppingExtras.filter(x=>x&&typeof x.id==='string'&&typeof x.name==='string')
+   :[];
+}
+function renderShoppingExtras(){
+ const extras=validShoppingExtras(),basket=document.getElementById('basketGroups');
+ if(!basket||!extras.length)return;
+ const collected=extras.filter(x=>state.checked['extra:'+x.id]).length;
+ const block=document.createElement('div');
+ block.className='aisle card';block.dataset.shoppingExtras='true';
+ block.innerHTML=`<div class="aisletop"><h3>Everyday extras</h3><b class="small">${collected}/${extras.length} collected</b></div>`
+ +extras.map(x=>{
+   const checked=!!state.checked['extra:'+x.id];
+   return `<div class="shoprow ${checked?'done':''}" data-shop-name="${esc((x.name+' '+(x.qty||'')).toLowerCase())}" data-shop-checked="${checked?'1':'0'}">
+    <button type="button" class="check" aria-pressed="${checked}" aria-label="Mark ${esc(x.name)} ${checked?'still needed':'collected'}" data-ff-action="toggle-shopping-extra" data-id="${esc(x.id)}">${checked?'✓':''}</button>
+    <div class="shop-extra-name"><b>${esc(x.name)}</b><div class="small">${esc(x.qty||'Extra item')} · added by you · no price estimate</div></div>
+    <button type="button" class="shopping-extra-remove" aria-label="Remove ${esc(x.name)}" data-ff-action="remove-shopping-extra" data-id="${esc(x.id)}">Remove</button>
+   </div>`;
+ }).join('');
+ basket.append(block);
+}
+function applyShoppingFilters(){
+ const basket=document.getElementById('basketGroups');
+ if(!basket)return;
+ const term=shoppingMode==='store'?shoppingQuery.toLocaleLowerCase().trim():'';
+ const hideCollected=shoppingMode==='online'||shoppingRemainingOnly;
+ let visible=0;
+ basket.querySelectorAll('.aisle').forEach(aisle=>{
+   let groupVisible=0;
+   aisle.querySelectorAll('.shoprow').forEach(row=>{
+     const match=(!term||row.dataset.shopName?.toLocaleLowerCase().includes(term))
+         &&(!hideCollected||row.dataset.shopChecked!=='1');
+     row.hidden=!match;if(match){groupVisible++;visible++}
+   });
+   aisle.hidden=groupVisible===0;
+ });
+ let empty=document.getElementById('basketFilterEmpty');
+ if(!empty){empty=document.createElement('div');empty.id='basketFilterEmpty';basket.append(empty)}
+ empty.hidden=visible>0;
+ if(!visible)empty.textContent='Nothing to show here. Try another search or untick “Show only items still needed”.';
+}
+function refreshShoppingAssistant(){
+ const basket=state.basket||{},keys=Object.keys(basket).filter(k=>P[k]);
+ const extras=validShoppingExtras();
+ const count=keys.length+extras.length;
+ const checked=keys.filter(k=>state.checked[k]).length+extras.filter(x=>state.checked['extra:'+x.id]).length;
+ const percent=count?Math.round(100*checked/count):0;
+ const collectedEstimated=keys.filter(k=>state.checked[k]).reduce((sum,k)=>sum+(+basket[k].line||0),0);
+ const remainingEstimated=Math.max(0,(+state.total||0)-collectedEstimated);
+ const label=document.getElementById('shopProgressLabel');
+ if(label)label.textContent=count?`${checked} of ${count} items collected`:'Your list is ready when your meal plan is';
+ const percentLabel=document.getElementById('shopProgressPct');if(percentLabel)percentLabel.textContent=percent+'%';
+ const bar=document.getElementById('shopProgressBar');if(bar)bar.setAttribute('aria-valuenow',String(percent));
+ const fill=document.getElementById('shopProgressFill');if(fill)fill.style.width=percent+'%';
+ const estimate=document.getElementById('shopSpendEstimate');
+ if(estimate)estimate.textContent=`${money(collectedEstimated)} collected · ${money(remainingEstimated)} still needed (estimated groceries only; excludes extras)`;
+ const storePanel=document.getElementById('shoppingStorePanel'),onlinePanel=document.getElementById('shoppingOnlinePanel');
+ if(storePanel)storePanel.hidden=shoppingMode!=='store';
+ if(onlinePanel)onlinePanel.hidden=shoppingMode!=='online';
+ for(const [id,mode] of [['shopModeStore','store'],['shopModeOnline','online']]){
+   const btn=document.getElementById(id);if(btn){btn.classList.toggle('on',shoppingMode===mode);btn.setAttribute('aria-pressed',String(shoppingMode===mode))}
+ }
+ if(!shoppingOnlineRetailer){
+   const preferred=selectedRetailer();
+   shoppingOnlineRetailer=SHOP_ONLINE_STORES[preferred]?preferred:'Tesco';
+ }
+ const selector=document.getElementById('shopOnlineRetailer');
+ if(selector&&selector.value!==shoppingOnlineRetailer)selector.value=shoppingOnlineRetailer;
+ const link=document.getElementById('shopOpenRetailer');
+ if(link&&SHOP_ONLINE_STORES[shoppingOnlineRetailer]){
+   link.href=SHOP_ONLINE_STORES[shoppingOnlineRetailer];
+   link.textContent='Open '+shoppingOnlineRetailer+' groceries ↗';
+ }
+}
+function shoppingAddExtra(){
+ const field=document.getElementById('shopExtraName'),quantity=document.getElementById('shopExtraQty');
+ const name=field?.value.trim().replace(/\s+/g,' ').slice(0,80)||'';
+ const qty=quantity?.value.trim().replace(/\s+/g,' ').slice(0,35)||'';
+ if(!name){showToast('Enter the name of an extra item');return}
+ if(validShoppingExtras().length>=60){showToast('Maximum 60 extra items per list');return}
+ if(!Array.isArray(state.shoppingExtras))state.shoppingExtras=[];
+ const id='x_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,10);
+ state.shoppingExtras.push({id,name,qty});
+ field.value='';quantity.value='';
+ render();
+ showToast(name+' added to your shopping list');
+ field.focus();
+}
+function shoppingToggleExtra(id){
+ if(!validShoppingExtras().some(x=>x.id===id))return;
+ const key='extra:'+id;state.checked[key]=!state.checked[key];render();
+}
+function shoppingRemoveExtra(id){
+ const existing=validShoppingExtras(),item=existing.find(x=>x.id===id);
+ if(!item)return;
+ state.shoppingExtras=existing.filter(x=>x.id!==id);
+ delete state.checked['extra:'+id];render();showToast(item.name+' removed');
+}
+function shoppingListText(){
+ const out=['FAREFULLY SHOPPING LIST','Items still needed',''];
+ let total=0;
+ const groups=new Map();
+ for(const [id,row] of Object.entries(state.basket||{})){
+   if(!P[id]||state.checked[id])continue;
+   const cat=P[id].c||'Groceries';
+   const amount=`${row.packs} × ${P[id].pack}${P[id].u}`;
+   const note=(coeliacMode()&&coeliacLabelCheck(id))?' [CHECK COELIAC LABEL]':
+     (wheatFreeMode()&&wheatLabelCheck(id))?' [CHECK WHEAT LABEL]':'';
+   if(!groups.has(cat))groups.set(cat,[]);
+   groups.get(cat).push(`${P[id].n} — ${amount}${note}`);
+   total++;
+ }
+ const extras=validShoppingExtras().filter(x=>!state.checked['extra:'+x.id]);
+ if(extras.length){groups.set('Other essentials',extras.map(x=>x.name+(x.qty?' — '+x.qty:'')));total+=extras.length}
+ for(const [category,items] of groups){out.push(category.toUpperCase());items.forEach(i=>out.push('☐ '+i));out.push('')}
+ if(!total)out.push('Everything collected!','');
+ out.push('Recipe groceries estimate: '+money(state.total||0)+' (not a checkout quote).');
+ out.push('Manually added extras are not included in the estimate.');
+ out.push('Check packaging and supermarket availability, especially for allergies and Coeliac needs.');
+ return out.join('\n');
+}
+async function shoppingCopyList(){
+ const text=shoppingListText();
+ try{
+   if(navigator.clipboard?.writeText)await navigator.clipboard.writeText(text);
+   else{
+     const box=document.createElement('textarea');
+     box.value=text;box.setAttribute('readonly','');
+     box.style.cssText='position:fixed;left:-9999px;top:0';
+     document.body.append(box);box.select();
+     if(!document.execCommand('copy'))throw Error('Copy unavailable');
+     box.remove();
+   }
+   showToast('Remaining shopping list copied. Paste it into your notes or online order.');
+ }catch(err){showToast('Could not copy automatically. Check browser clipboard permissions.')}
+}
+function shoppingSetMode(mode){
+ shoppingMode=mode==='online'?'online':'store';
+ refreshShoppingAssistant();applyShoppingFilters();
+}
+function toggle(k){state.checked[k]=!state.checked[k];render()}function openSwap(i){
   swapIndex=i;const cur=meal(i);document.getElementById('swapTitle').textContent='Replace '+cur.n;
   const opts=allDinners().filter(x=>x.id!==cur.id&&!state.plan.includes(x.id)&&!hardBlocked(x)).map(m=>{
     const old=state.plan[i],before=state.total;state.plan[i]=m.id;calc();const after=state.total;state.plan[i]=old;calc();
@@ -1318,6 +1478,8 @@ document.addEventListener('click',function(event){
   else if(action==='scroll-day')document.getElementById('m'+el.dataset.index)?.scrollIntoView();
   else if(action==='open-swap')openSwap(Number(el.dataset.index));
   else if(action==='toggle-basket')toggle(el.dataset.key);
+  else if(action==='toggle-shopping-extra')shoppingToggleExtra(el.dataset.id);
+  else if(action==='remove-shopping-extra')shoppingRemoveExtra(el.dataset.id);
   else if(action==='finish-profile'){closeProfiles();openSetup()}
   else if(action==='reset-profile')resetProfile(el.dataset.profileId);
   else if(action==='switch-profile')switchProfile(el.dataset.profileId);
@@ -1333,6 +1495,22 @@ document.addEventListener('click',function(event){
   else if(action==='refresh-offers')refreshOfferData(true);
   else if(action==='open-trust')openTrustModal();
   else if(action==='close-trust')closeTrustModal();
+});
+
+// Shopping companion event handlers. Search / display filters are device-local;
+// quantities and collected checks live inside the cloud-synced household.
+{const el=document.getElementById('shoppingExtraForm');if(el)el.addEventListener('submit',e=>{e.preventDefault();shoppingAddExtra()})}
+{const el=document.getElementById('shopModeStore');if(el)el.addEventListener('click',()=>shoppingSetMode('store'))}
+{const el=document.getElementById('shopModeOnline');if(el)el.addEventListener('click',()=>shoppingSetMode('online'))}
+{const el=document.getElementById('shopRemainingOnly');if(el)el.addEventListener('change',()=>{shoppingRemainingOnly=el.checked;applyShoppingFilters()})}
+{const el=document.getElementById('shopSearch');if(el)el.addEventListener('input',()=>{shoppingQuery=el.value;applyShoppingFilters()})}
+{const el=document.getElementById('shopOnlineRetailer');if(el)el.addEventListener('change',()=>{if(SHOP_ONLINE_STORES[el.value]){shoppingOnlineRetailer=el.value;refreshShoppingAssistant()}})}
+{const el=document.getElementById('shopCopyOnline');if(el)el.addEventListener('click',shoppingCopyList)}
+document.addEventListener('keydown',e=>{
+  const row=e.target?.closest?.('.shoprow[role="checkbox"]');
+  if(row&&e.target===row&&(e.key==='Enter'||e.key===' ')){
+    e.preventDefault();row.click();
+  }
 });
 
 // v1.12.2 Wix CSP-safe event bindings
