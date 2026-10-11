@@ -30,6 +30,16 @@ function normRetailer(v){
 function liveProductName(row){return String(row?.name||row?.productName||row?.retailerProductName||row?.title||'')}
 function liveTimestamp(row){return Date.parse(row?.scrapedAt||row?.fetchedAt||row?.updatedAt||0)||0}
 function ingredientForLive(row){
+  // Specific product descriptions override overly broad retailer tags.
+  // Sweet potatoes must never be priced or recommended as ordinary potatoes;
+  // orzo is not a drop-in substitute for every pasta recipe.
+  const productName=(' '+liveProductName(row)+' ').toLowerCase();
+  if(/\bsweet[ -]+potatoes?\b/.test(productName))return P.sweetpotatoes?'sweetpotatoes':'';
+  if(/\borzo\b/.test(productName))return P.orzo?'orzo':'';
+  if(/\bgnocchi\b/.test(productName))return P.gnocchi?'gnocchi':'';
+  if(/\bspaghetti\b/.test(productName))return P.spaghetti?'spaghetti':'';
+  if(/\bpenne\b/.test(productName))return P.penne?'penne':'';
+  if(/\bmacaroni\b/.test(productName))return P.macaroni?'macaroni':'';
   if(row?.canonicalIngredientId&&P[row.canonicalIngredientId])return row.canonicalIngredientId;
   if(row?.ingredientId&&P[row.ingredientId])return row.ingredientId;
   const n=(' '+liveProductName(row)+' ').toLowerCase();
@@ -724,7 +734,7 @@ function calc(){
     progress.after(collectionHint);
   }
   collectionHint.textContent='Shopping as you go? Tick an item when you put it in your trolley. Tick it again to undo. Your progress saves across devices.';
-  document.getElementById('basketGroups').innerHTML=Object.entries(groups).map(([c,items])=>`<div class="aisle card"><div class="aisletop"><h3>${esc(c)}</h3><b>${money(items.reduce((sum,x)=>sum+x[1].line,0))}</b></div>${items.map(([k,v])=>`<div class="shoprow ${state.checked[k]?'done':''}" role="checkbox" tabindex="0" aria-checked="${!!state.checked[k]}" aria-label="${esc(P[k].n)}: ${state.checked[k]?'collected':'still needed'}. Tap to change." data-shop-name="${esc(P[k].n.toLowerCase())}" data-shop-checked="${state.checked[k]?'1':'0'}" data-ff-action="toggle-basket" data-key="${esc(k)}"><div class="check">${state.checked[k]?'✓':''}</div><div><b>${esc(P[k].n)}</b><div class="small">${v.live&&v.liveQuote?v.liveQuote.items.map(x=>`${x.packs} × ${esc(x.row.packSize||liveProductName(x.row))}`).join(' + '):`${v.packs} × ${P[k].pack}${P[k].u} · recipe need ${fmtQty(k,state.need[k]||0)}`}${v.have?' · pantry '+fmtQty(k,v.have):''}${v.live?'<span class="liveprice">LIVE PRODUCT</span>':'<span class="fallbackprice">MODEL</span>'}${coeliacMode()&&coeliacLabelCheck(k)?'<span class="fallbackprice">CHECK COELIAC LABEL</span>':''}${wheatFreeMode()&&wheatLabelCheck(k)?'<span class="fallbackprice">CHECK WHEAT LABEL</span>':''}</div>${v.live&&v.liveQuote?`<div class="productdetail">${v.liveQuote.items.map(x=>esc(liveProductName(x.row))).join(' + ')}</div>`:''}</div><b>${money(v.line)}</b></div>`).join('')}</div>`).join('')||'<div class="card" style="padding:16px"><div class="small">No shopping lines yet.</div></div>';
+  document.getElementById('basketGroups').innerHTML=Object.entries(groups).map(([c,items])=>`<div class="aisle card"><div class="aisletop"><h3>${esc(c)}</h3><b>${money(items.reduce((sum,x)=>sum+x[1].line,0))}</b></div>${items.map(([k,v])=>`<div class="shoprow ${state.checked[k]?'done':''}" role="checkbox" tabindex="0" aria-checked="${!!state.checked[k]}" aria-label="${esc(P[k].n)}: ${state.checked[k]?'collected':'still needed'}. Tap to change." data-shop-name="${esc(P[k].n.toLowerCase())}" data-shop-checked="${state.checked[k]?'1':'0'}" data-ff-action="toggle-basket" data-key="${esc(k)}"><div class="check">${state.checked[k]?'✓':''}</div><div><b>${esc(P[k].n)}</b><div class="small">${v.live&&v.liveQuote?v.liveQuote.items.map(x=>`${x.packs} × ${esc(x.row.packSize||liveProductName(x.row))}`).join(' + '):`${v.packs} × ${shoppingPackLabel(k,P[k].pack,P[k].u)} · recipe need ${fmtQty(k,state.need[k]||0)}`}${v.have?' · pantry '+fmtQty(k,v.have):''}${v.live?'<span class="liveprice">LIVE PRODUCT</span>':'<span class="fallbackprice">MODEL</span>'}${coeliacMode()&&coeliacLabelCheck(k)?'<span class="fallbackprice">CHECK COELIAC LABEL</span>':''}${wheatFreeMode()&&wheatLabelCheck(k)?'<span class="fallbackprice">CHECK WHEAT LABEL</span>':''}</div>${v.live&&v.liveQuote?`<div class="productdetail">${v.liveQuote.items.map(x=>esc(liveProductName(x.row))).join(' + ')}</div>`:''}</div><b>${money(v.line)}</b></div>`).join('')}</div>`).join('')||'<div class="card" style="padding:16px"><div class="small">No shopping lines yet.</div></div>';
 
   renderShoppingExtras();
   refreshShoppingAssistant();
@@ -986,6 +996,37 @@ function shoppingRemoveExtra(id){
  state.shoppingExtras=existing.filter(x=>x.id!==id);
  delete state.checked['extra:'+id];render();showToast(item.name+' removed');
 }
+function shoppingPackLabel(id,size,unit){
+ const n=Number(size);
+ if(!Number.isFinite(n)||n<=0)return String(size||'pack');
+ if(unit==='g')return n>=1000?(+(n/1000).toFixed(2))+'kg':n+'g';
+ if(unit==='ml'){
+   if(id==='milk'&&n===2272)return '4 pints (2.27L)';
+   return n>=1000?(+(n/1000).toFixed(2))+'L':n+'ml';
+ }
+ if(unit==='each'){
+   if(id==='eggs')return n+' eggs';
+   if(id==='lettuce')return n===1?'whole lettuce':n+' lettuces';
+   if(id==='broccoli')return n===1?'head of broccoli':n+' heads of broccoli';
+   if(id==='courgettes')return n+' courgettes';
+   return n+' items';
+ }
+ if(unit==='slice')return n+' slices';
+ return n+' '+String(unit||'units');
+}
+function shoppingBasketItemLines(id,row){
+ const item=P[id];
+ if(!item)return [];
+ const quote=row.live&&Array.isArray(row.liveQuote?.items)?row.liveQuote.items.filter(x=>x&&x.packs>0):[];
+ if(quote.length){
+   return quote.map(q=>{
+     const product=liveProductName(q.row)||item.n;
+     const pack=String(q.row?.packSize||'').trim()||shoppingPackLabel(id,item.pack,item.u);
+     return item.n+' — '+q.packs+' × '+pack+(product.toLowerCase()!==item.n.toLowerCase()?' ('+product+')':'');
+   });
+ }
+ return [item.n+' — '+row.packs+' × '+shoppingPackLabel(id,item.pack,item.u)+' (estimated pack size)'];
+}
 function shoppingListText(){
  const out=['FAREFULLY SHOPPING LIST','Items still needed',''];
  let total=0;
@@ -993,11 +1034,10 @@ function shoppingListText(){
  for(const [id,row] of Object.entries(state.basket||{})){
    if(!P[id]||state.checked[id])continue;
    const cat=P[id].c||'Groceries';
-   const amount=`${row.packs} × ${P[id].pack}${P[id].u}`;
    const note=(coeliacMode()&&coeliacLabelCheck(id))?' [CHECK COELIAC LABEL]':
      (wheatFreeMode()&&wheatLabelCheck(id))?' [CHECK WHEAT LABEL]':'';
    if(!groups.has(cat))groups.set(cat,[]);
-   groups.get(cat).push(`${P[id].n} — ${amount}${note}`);
+   for(const itemLine of shoppingBasketItemLines(id,row))groups.get(cat).push(itemLine+note);
    total++;
  }
  const extras=validShoppingExtras().filter(x=>!state.checked['extra:'+x.id]);
