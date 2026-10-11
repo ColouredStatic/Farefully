@@ -35,7 +35,19 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: cors });
   if (req.method !== "POST") return json({ error: "Method not allowed" }, 405);
   if (req.headers.get("Origin") !== ORIGIN) return json({ error: "Origin not allowed" }, 403);
-  if (!configured()) return json({ error: "Test billing is not enabled." }, 503);
+  if (!configured()) {
+    // Return only the names of missing settings, never their protected values.
+    const missing: string[] = [];
+    if (env("FAREFULLY_TEST_BILLING_ENABLED") !== "true") missing.push("FAREFULLY_TEST_BILLING_ENABLED");
+    if (!env("STRIPE_TEST_SECRET_KEY").startsWith("sk_test_")) missing.push("STRIPE_TEST_SECRET_KEY");
+    if (!env("SUPABASE_URL")) missing.push("SUPABASE_URL");
+    if (!env("SUPABASE_ANON_KEY")) missing.push("SUPABASE_ANON_KEY");
+    if (!env("SUPABASE_SERVICE_ROLE_KEY")) missing.push("SUPABASE_SERVICE_ROLE_KEY");
+    return json({
+      error: "Farefully sandbox configuration incomplete.",
+      missing_settings: missing,
+    }, 503);
+  }
 
   const token = req.headers.get("Authorization")?.match(/^Bearer (.+)$/i)?.[1];
   if (!token) return json({ error: "Sign in before managing billing." }, 401);
