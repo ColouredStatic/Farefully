@@ -744,9 +744,19 @@ function calc(){
   if(LIVE_ROWS.length&&LIVE_RETAILERS.has(retailer)){
     const h=hybridQuote(retailer);for(const d of h.details){if(!state.basket[d.id])continue;state.basket[d.id].line=d.cost;state.basket[d.id].live=d.live;if(d.live){state.basket[d.id].liveQuote=d.quote;state.basket[d.id].packs=d.quote.items.reduce((s,x)=>s+x.packs,0)}}state.total=h.total;state.liveCoverage={matched:h.matched,eligible:h.eligible}
   }else{state.total=retailerBasketTotal(retailer,state.basket);state.liveCoverage={matched:0,eligible:Object.keys(state.basket).length}}
-}function renderUnsafe(){
+}function planEmptyMessage(matchingDinners){
+ if(!state.setupComplete||!state.tasteComplete||!state.dietComplete){
+   return '<div class="card" style="padding:18px"><b>Your meal plan is nearly ready</b><div class="small" style="margin-top:6px">Finish your household preferences first. Farefully will then build your dinners.</div><button type="button" class="soft" style="margin-top:12px" data-ff-action="open-household-setup">Finish household setup</button></div>';
+ }
+ if(matchingDinners>0){
+   return '<div class="card" style="padding:18px"><b>Your meal plan has not appeared yet</b><div class="small" style="margin-top:6px">There are '+matchingDinners+' dinner recipes compatible with your saved rules. This is a planning or loading issue, not a reason to relax your food exclusions.</div><button type="button" class="soft" style="margin-top:12px" data-ff-action="recover-missing-plan">Generate my plan</button></div>';
+ }
+ return '<div class="card" style="padding:18px"><b>No dinners match every hard exclusion</b><div class="small" style="margin-top:6px">Your strict “Never suggest”, dietary and allergen rules are still respected. Review household settings to see which requirements could be adjusted. “Not keen” foods are preferences, not exclusions.</div><button type="button" class="soft" style="margin-top:12px" data-ff-action="open-household-setup">Review household settings</button></div>';
+}
+function renderUnsafe(){
   calc();
   const p=prof(),hasPlan=state.plan.length>0,retailer=selectedRetailer(),autoShop=!RETAILERS[state.supermarket];
+  const matchingDinners=hasPlan?-1:allDinners().filter(m=>!hardBlocked(m)).length;
   document.getElementById('profileBtn').textContent=p?p.name:'Set up';
   document.getElementById('setupBanner').classList.toggle('show',!!p&&(!state.setupComplete||!state.tasteComplete||!state.dietComplete));
   document.getElementById('greet').textContent=p?'Good evening, '+p.name:'Good evening';
@@ -764,9 +774,9 @@ function calc(){
     const pc=Object.keys(effectiveIngredients(m0.i)).filter(k=>(state.pantry[k]||0)>0).length;document.getElementById('heroPantry').textContent=pc+' pantry item'+(pc==1?'':'s');
     heroAction.textContent='Start cooking →';heroAction.onclick=()=>openRecipe(0);document.getElementById('heroPrep').innerHTML=prepBadges(m0)+offerBadge(m0)
   }else{
-    hero.style.backgroundImage='none';document.getElementById('heroTitle').textContent='No meals match every current dietary filter';
-    document.getElementById('heroTime').textContent='Review your settings';document.getElementById('heroPP').textContent='';document.getElementById('heroPantry').textContent='';document.getElementById('heroPrep').innerHTML='';
-    heroAction.textContent='Review dietary settings →';heroAction.onclick=openSetup
+    hero.style.backgroundImage='none';document.getElementById('heroTitle').textContent=matchingDinners>0?'Your plan is ready to generate':state.setupComplete?'No dinners meet all strict exclusions':'Set up your household';
+    document.getElementById('heroTime').textContent=matchingDinners>0?matchingDinners+' matching dinners':'Review your settings';document.getElementById('heroPP').textContent='';document.getElementById('heroPantry').textContent='';document.getElementById('heroPrep').innerHTML='';
+    heroAction.textContent=matchingDinners>0&&state.setupComplete?'Generate my plan →':'Review household settings →';heroAction.onclick=matchingDinners>0&&state.setupComplete?rebuildPlan:openSetup
   }
 
   const m1=hasPlan?meal(Math.min(1,state.plan.length-1)):null;
@@ -776,7 +786,7 @@ function calc(){
   const prepMeals=state.plan.map((x,i)=>meal(i)).filter(Boolean),batchCount=prepMeals.filter(m=>prepFlags(m).batch).length,freezeCount=prepMeals.filter(m=>prepFlags(m).freeze).length,prepSummary=document.getElementById('prepSummary');
   if(prepMeals.length&&(batchCount||freezeCount)){prepSummary.style.display='flex';prepSummary.innerHTML=`<div><b>Meal-prep friendly plan</b><div class="prepcounts">${batchCount} batch-cook option${batchCount===1?'':'s'} · ${freezeCount} freezer-friendly option${freezeCount===1?'':'s'}</div></div><div class="prepbadges"><span class="prepbadge batch">🍲 Batch cook</span><span class="prepbadge freeze">❄️ Freezer friendly</span></div>`}else prepSummary.style.display='none';
   document.getElementById('days').innerHTML=state.plan.map((x,i)=>`<button class="day" data-ff-action="scroll-day" data-index="${i}"><b>${['Mon','Tue','Wed','Thu','Fri','Sat','Sun'][i%7]}</b><div class="small">${i+1}</div></button>`).join('');
-  document.getElementById('plans').innerHTML=state.plan.map((x,i)=>{const m=meal(i),b=slotFor(breakfast,i),l=slotFor(lunch,i),sn=slotFor(snacks,i);return`<div class="meal card" id="m${i}"><img class="thumb" src="${image(m)}" data-ff-action="open-recipe" data-index="${i}" alt="${esc(m.n)}"><div><div class="small" style="font-weight:800">DAY ${i+1}</div><h3 data-ff-action="open-recipe" data-index="${i}">${esc(m.n)}</h3><div class="small">⏱ ${m.t} min · ${money(cost(m)/(state.adults+state.children))} pp</div><div class="matchbadge ${matchClass(fitScore(m))}">✨ ${fitScore(m)}% household match</div>${prepBadges(m)}${offerBadge(m)}<div class="desc">${esc(m.d)}</div><div class="mealextras"><b>Breakfast:</b> ${esc(safeSlotName(b))}<br><b>Lunch:</b> ${esc(safeSlotName(l))}<br><b>Snack:</b> ${esc(safeSlotName(sn))}</div><div class="actions"><button class="soft" data-ff-action="open-swap" data-index="${i}">↔ Swap</button></div></div><button class="chev" aria-label="Open ${esc(m.n)} recipe" data-ff-action="open-recipe" data-index="${i}">›</button></div>`}).join('')||'<div class="card" style="padding:18px"><b>No meals are currently safe under every selected filter.</b><div class="small" style="margin-top:6px">Farefully has not relaxed your dietary rules. Review the Household settings to build another plan.</div></div>';
+  document.getElementById('plans').innerHTML=state.plan.map((x,i)=>{const m=meal(i),b=slotFor(breakfast,i),l=slotFor(lunch,i),sn=slotFor(snacks,i);return`<div class="meal card" id="m${i}"><img class="thumb" src="${image(m)}" data-ff-action="open-recipe" data-index="${i}" alt="${esc(m.n)}"><div><div class="small" style="font-weight:800">DAY ${i+1}</div><h3 data-ff-action="open-recipe" data-index="${i}">${esc(m.n)}</h3><div class="small">⏱ ${m.t} min · ${money(cost(m)/(state.adults+state.children))} pp</div><div class="matchbadge ${matchClass(fitScore(m))}">✨ ${fitScore(m)}% household match</div>${prepBadges(m)}${offerBadge(m)}<div class="desc">${esc(m.d)}</div><div class="mealextras"><b>Breakfast:</b> ${esc(safeSlotName(b))}<br><b>Lunch:</b> ${esc(safeSlotName(l))}<br><b>Snack:</b> ${esc(safeSlotName(sn))}</div><div class="actions"><button class="soft" data-ff-action="open-swap" data-index="${i}">↔ Swap</button></div></div><button class="chev" aria-label="Open ${esc(m.n)} recipe" data-ff-action="open-recipe" data-index="${i}">›</button></div>`}).join('')||planEmptyMessage(matchingDinners);
 
   document.getElementById('basketTotal').textContent=money(state.total);document.getElementById('basketRemain').textContent=rem>=0?money(rem)+' under budget':money(Math.abs(rem))+' over budget';
   const groups={};for(const[k,v]of Object.entries(state.basket)){const item=P[k];if(!item)continue;(groups[item.c]||=[]).push([k,v])}
@@ -1659,6 +1669,8 @@ document.addEventListener('click',function(event){
   else if(action==='edit-custom-recipe')editCustomRecipe(el.dataset.id);
   else if(action==='delete-custom-recipe')deleteCustomRecipe(el.dataset.id);
   else if(action==='remove-custom-ingredient')removeCustomIngredient(el.dataset.id);
+  else if(action==='recover-missing-plan')rebuildPlan();
+  else if(action==='open-household-setup')openSetup();
   else if(action==='rebuild-offers')rebuildAroundOffers();
   else if(action==='refresh-offers')refreshOfferData(true);
   else if(action==='open-trust')openTrustModal();
