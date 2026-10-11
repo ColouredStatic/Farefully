@@ -332,6 +332,18 @@ function def(){return{
   novelty:'balanced',priority:'balance',ratings:{},tasteComplete:false,planGeneration:0,recentPlans:[],
   dietPattern:'omnivore',avoidGroups:[],allergens:[],dietComplete:false,setupComplete:false,customRecipes:[],shoppingExtras:[]
 }}function prof(){return profiles.find(x=>x.id===active)}function normalizeState(){
+  if(!state||typeof state!=='object'||Array.isArray(state))state=def();
+  if(!Array.isArray(state.plan))state.plan=[];
+  state.plan=state.plan.filter(id=>typeof id==='string').slice(0,14);
+  if(!state.checked||typeof state.checked!=='object'||Array.isArray(state.checked))state.checked={};
+  if(!state.pantry||typeof state.pantry!=='object'||Array.isArray(state.pantry))state.pantry={};
+  if(!state.basket||typeof state.basket!=='object'||Array.isArray(state.basket))state.basket={};
+  if(!state.need||typeof state.need!=='object'||Array.isArray(state.need))state.need={};
+  if(!Array.isArray(state.avoid))state.avoid=[];
+  if(!Number.isFinite(state.adults)||state.adults<1)state.adults=2;
+  if(!Number.isFinite(state.children)||state.children<0)state.children=0;
+  if(![7,14].includes(state.days))state.days=14;
+  if(!Number.isFinite(state.budget)||state.budget<0)state.budget=200;
   if(typeof state.setupComplete!=='boolean')state.setupComplete=false;
   if(typeof state.supermarket!=='string')state.supermarket='';
   if(!RETAILERS[state.autoRetailer])state.autoRetailer='Aldi';
@@ -358,7 +370,10 @@ function def(){return{
   state.shoppingExtras=state.shoppingExtras.filter(x=>x&&typeof x.id==='string'&&typeof x.name==='string').slice(0,60);
 }
 function load(){
-  profiles=JSON.parse(store.get(PK)||'[]');active=store.get(AK);
+  try{profiles=JSON.parse(store.get(PK)||'[]')}catch(_){profiles=[]}
+  if(!Array.isArray(profiles))profiles=[];
+  profiles=profiles.filter(p=>p&&typeof p.id==='string'&&typeof p.name==='string');
+  active=store.get(AK);
   if(!profiles.some(p=>p.id===active)){state=def();return false}
   try{state=JSON.parse(store.get(sk(active)))||def()}catch(e){state=def()}
   normalizeState();
@@ -1486,6 +1501,39 @@ async function cloudRefreshPlusBadge(){
     console.warn('Farefully membership status pending',err);
   }
 }
+// Account-scoped reset marker. When an administrator purges a household,
+// clear only this account's cached profile/drafts across every signed-in device.
+// Keep Supabase login tokens, memberships, and unrelated legacy beta data.
+async function cloudApplyResetMarker(prefix){
+ const {data,error}=await CLOUD_CLIENT.from('household_reset_epochs')
+   .select('reset_token').eq('owner_id',CLOUD_USER_ID).maybeSingle();
+ if(error)throw error;
+ const token=typeof data?.reset_token==='string'?data.reset_token:'';
+ if(!token)return false;
+ const seenKey=prefix+'last_reset_token';
+ if(store.get(seenKey)===token)return false;
+ try{
+   const keys=[];
+   for(let i=0;i<localStorage.length;i++){
+     const key=localStorage.key(i);
+     if(key&&(key.startsWith(prefix)||key.startsWith('farefully_conflict_backup_'+CLOUD_USER_ID+'_')))keys.push(key);
+   }
+   for(const key of keys)localStorage.removeItem(key);
+ }catch(err){
+   // Even if storage enumeration is restricted, explicitly clear current
+   // profile and outbox keys so old changes do not resurface.
+   let known=[];
+   try{known=JSON.parse(store.get(PK)||'[]')}catch(_){}
+   if(Array.isArray(known))known.forEach(p=>{if(p?.id)store.del(sk(p.id))});
+   store.del(PK);store.del(AK);store.del(CLOUD_OUTBOX_KEY);
+ }
+ CLOUD_OUTBOX={};
+ CLOUD_REVISIONS.clear();
+ CLOUD_SYNCED.clear();
+ store.set(seenKey,token);
+ cloudStatus('Household reset recognised. Create a fresh household.');
+ return true;
+}
 async function cloudStart(){
  cloudShowGate('Connecting to your Farefully account…',false);
  if(!window.supabase?.createClient){
@@ -1503,6 +1551,7 @@ async function cloudStart(){
    CLOUD_USER_ID=result.data.user.id;
    const prefix='farefully_cloud_'+CLOUD_USER_ID+'_';
    PK=prefix+'profiles';AK=prefix+'active';CLOUD_STATE_PREFIX=prefix+'state_';CLOUD_OUTBOX_KEY=prefix+'pending';
+   await cloudApplyResetMarker(prefix);
    try{
      const pending=JSON.parse(store.get(CLOUD_OUTBOX_KEY)||'{}');
      CLOUD_OUTBOX=(pending&&typeof pending==='object'&&!Array.isArray(pending))?pending:{};
