@@ -39,3 +39,13 @@ Status: First beta implementation on `/app/`. Shopping extras, collected ticks a
 5. **Retailer integrations:** only add product matching, order export or direct trolley-fill when a retailer grants documented and tested integration access. Keep user control and clearly distinguish retailer prices.
 6. **Recipe photography:** properly licence and attribute actual dish photos. Do not repurpose random images from recipe websites or assume “free to view” means free for commercial reuse.
 
+
+## Confirmed Free / proposed Plus separation
+
+The owner approved keeping the everyday shopping basket good enough for most families while offering genuinely useful advanced basket workflows in Plus. **No entitlement changes have been activated in the beta.**
+
+- **Free, always:** recipe ingredient list, correct household quantities and units, in-store collected ticks and progress, everyday extras, search and remaining-items filter, copied/shared shopping list, core pantry deductions, essential cloud sync, official links to grocers, basic estimates and safety warnings. These cannot be artificially disabled to force subscriptions.
+- **Plus when built and server-authorised:** (1) pack-size and waste-aware optimisation without duplicating ingredients, (2) optional split of 14-day baskets into first and second shops so perishables aren't purchased too soon, (3) advanced planned-versus-actual cost tracker with optional shopper-entered actual prices, and (4) saved custom aisle sequence and advanced pantry/store-budget scenarios. Retailer offer comparisons are included only where data rights and freshness permit.
+- **Never automatically promised:** automatic supermarket basket filling, access to a retailer's login, real-time prices or stock, or supermarket endorsements. Those require separate partner authorisation and product verification.
+- **Data protection:** paid-plan expiration does not remove a household's basket, manual extras, tick history or recipes. Advanced editing/export rights must be designed to avoid data loss when downgrading.
+- **Engineering:** the current browser-generated household JSON and frontend UI do not constitute secure subscription gating. Introduce server-side entitlement checks before restricting any premium basket action, and test legitimate Free usage, Plus, lifetime gift, expired Plus, offline mobile basket and cross-user isolation.
