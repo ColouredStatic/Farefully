@@ -39,7 +39,11 @@ Deno.serve(async (req) => {
     // Return only the names of missing settings, never their protected values.
     const missing: string[] = [];
     if (env("FAREFULLY_TEST_BILLING_ENABLED") !== "true") missing.push("FAREFULLY_TEST_BILLING_ENABLED");
-    if (!env("STRIPE_TEST_SECRET_KEY").startsWith("sk_test_")) missing.push("STRIPE_TEST_SECRET_KEY");
+    const testSecret = env("STRIPE_TEST_SECRET_KEY");
+    if (!testSecret) missing.push("STRIPE_TEST_SECRET_KEY (missing or empty)");
+    else if (!testSecret.startsWith("sk_test_")) {
+      missing.push("STRIPE_TEST_SECRET_KEY (saved value is not a Stripe sk_test_ secret key)");
+    }
     if (!env("SUPABASE_URL")) missing.push("SUPABASE_URL");
     if (!env("SUPABASE_ANON_KEY")) missing.push("SUPABASE_ANON_KEY");
     if (!env("SUPABASE_SERVICE_ROLE_KEY")) missing.push("SUPABASE_SERVICE_ROLE_KEY");
