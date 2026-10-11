@@ -749,7 +749,7 @@ function calc(){
    return '<div class="card" style="padding:18px"><b>Your meal plan is nearly ready</b><div class="small" style="margin-top:6px">Finish your household preferences first. Farefully will then build your dinners.</div><button type="button" class="soft" style="margin-top:12px" data-ff-action="open-household-setup">Finish household setup</button></div>';
  }
  if(matchingDinners>0){
-   return '<div class="card" style="padding:18px"><b>Your meal plan has not appeared yet</b><div class="small" style="margin-top:6px">There are '+matchingDinners+' dinner recipes compatible with your saved rules. This is a planning or loading issue, not a reason to relax your food exclusions.</div><button type="button" class="soft" style="margin-top:12px" data-ff-action="recover-missing-plan">Generate my plan</button></div>';
+   return '<div class="card" style="padding:18px"><b>Your meal plan has not appeared yet</b><div class="small" style="margin-top:6px">There are '+matchingDinners+' dinner recipes compatible with your saved rules. This is a planning or loading issue, not a reason to relax your food exclusions.</div><button type="button" class="soft" style="margin-top:12px" data-ff-action="reload-saved-plan">Reload saved plan</button> <button type="button" class="soft" style="margin-top:12px" data-ff-action="recover-missing-plan">Build a fresh plan</button></div>';
  }
  return '<div class="card" style="padding:18px"><b>No dinners match every hard exclusion</b><div class="small" style="margin-top:6px">Your strict “Never suggest”, dietary and allergen rules are still respected. Review household settings to see which requirements could be adjusted. “Not keen” foods are preferences, not exclusions.</div><button type="button" class="soft" style="margin-top:12px" data-ff-action="open-household-setup">Review household settings</button></div>';
 }
@@ -1670,6 +1670,7 @@ document.addEventListener('click',function(event){
   else if(action==='delete-custom-recipe')deleteCustomRecipe(el.dataset.id);
   else if(action==='remove-custom-ingredient')removeCustomIngredient(el.dataset.id);
   else if(action==='recover-missing-plan')rebuildPlan();
+  else if(action==='reload-saved-plan')window.location.reload();
   else if(action==='open-household-setup')openSetup();
   else if(action==='rebuild-offers')rebuildAroundOffers();
   else if(action==='refresh-offers')refreshOfferData(true);
