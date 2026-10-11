@@ -68,7 +68,7 @@ Twelve newly mapped recipe photos. The illustrations below are **representative*
 
 ## Beta batch 3, 11 October 2026: plan-prioritised images
 
-Twelve additional illustrative photographs target dinners that have appeared in a beta household's two-week plan. Image captions explicitly disclose when stock photography shows only part of the meal. These are **not** prepared Farefully recipe photographs, verified ingredient lists, or evidence of dietary suitability.
+Twelve assigned illustrative images target dinners that have appeared in a beta household's two-week plan. Image captions explicitly disclose when stock photography shows only part of the meal. These are **not** prepared Farefully recipe photographs, verified ingredient lists, or evidence of dietary suitability.
 
 | Recipe ID | Dinner | Photographer | Individual source page | Photo-versus-recipe note |
 | --- | --- | --- | --- | --- |
@@ -79,12 +79,16 @@ Twelve additional illustrative photographs target dinners that have appeared in 
 | `baconeggskillet` | Bacon, egg & potato skillet | freestocks.org | [Pexels](https://www.pexels.com/photo/eggs-with-meat-in-cooking-pan-1412010/) | Bacon and eggs, potatoes/peas not shown |
 | `breakfastdinner` | Eggs, beans & toast | Julian Jagtenberg | [Pexels](https://www.pexels.com/photo/fried-egg-and-bread-pklatter-103124/) | Eggs, baked beans and toast |
 | `roastchickenleft` | Roast chicken & vegetable leftovers bowl | Helen Brudna | [Pexels](https://www.pexels.com/photo/delicious-roast-chicken-with-fresh-vegetables-32023530/) | Roasted chicken and vegetables, not a leftovers bowl |
-| `beefshepherdwraps` | Cottage pie wraps | Mohamed Olwy | [Pexels](https://www.pexels.com/photo/tasty-beef-wrap-with-crispy-french-fries-36750264/) | Beef wrap photo has fries; real recipe uses mash/peas |
+| `beefshepherdwraps` | Cottage pie wraps | Farefully (AI-generated) | [Farefully-hosted illustration](https://static.wixstatic.com/media/88ce25_c96f0e1ad3c344588e4854931f6d9ec9~mv2.jpg) | Beef mince, mashed potato and peas in grilled wraps; garnish may differ |
 | `eggchickpeacurry` | Egg & chickpea curry | Pranjall Kumar | [Pexels](https://www.pexels.com/photo/green-masala-egg-curry-dish-in-bowl-8625813/) | Egg-and-spinach curry, chickpeas/rice not pictured |
 | `porkchopsmash` | Pork chops, mash & green beans | Valeria Boltneva | [Pexels](https://www.pexels.com/photo/pork-chop-and-potatoes-17628617/) | Pork chop and mash, green beans not necessarily shown |
-| `beefburgerbowl` | Burger bowls with wedges | Nadin Sh | [Pexels](https://www.pexels.com/photo/a-salad-in-a-bowl-19582732/) | Beef salad bowl, wedges/cheese not pictured |
+| `beefburgerbowl` | Burger bowls with wedges | Farefully (AI-generated) | [Farefully-hosted illustration](https://static.wixstatic.com/media/88ce25_0bb6cd3a41324ac7b7d228addb6b24ee~mv2.jpg) | Beef mince, lettuce, cheddar, salsa and wedges; extra vegetables may differ |
 | `chillijackets2` | Chilli-loaded jacket potatoes | Deepthi Clicks | [Unsplash](https://unsplash.com/photos/a-table-topped-with-bowls-filled-with-food-1_uLJ-gMEHQ) | Beef-and-bean chilli and baked potato separately, not loaded jacket |
 
 All linked Pexels pages are marked free to use under the [Pexels License](https://www.pexels.com/license/); the individual Unsplash page indicates free use under the [Unsplash License](https://unsplash.com/license). The Unsplash page's original image URL was inspected and its photo ID matched against the recipe mapping. Batch 3 does not change the consumer's household data, meal selection, ingredients, shopping basket, or pricing calculations.
 
-**Editorial follow-up:** The lowest-fidelity matches are cottage-pie wraps and burger bowls with wedges. Replace them with own-recipe photography as soon as practical. For now, their specific differences are visible in the app's photo credit line.
+**Editorial update, 11 October 2026:** The two lowest-fidelity stock photographs (cottage-pie wraps and burger bowls with wedges) were replaced with individual, generated illustrations styled to the Farefully recipe ingredients. The first source is the original image generated for Farefully; the copyright/license of stock suppliers does not apply to these images. Both JPEG files were uploaded to the user's Farefully Wix Media Manager and publicly linked on `static.wixstatic.com`. Their recipe credits display **AI-generated Farefully recipe illustration** rather than inventing a photographer or implying an exact finished-dish photograph. The generated pictures can include illustrative garnishes not in the recipe: the ingredient list is authoritative.
+
+The photo total remains **39/220**, because these replace two previously assigned photos rather than cover new meals. The next editorial improvement is to cook and photograph these recipes ourselves for an exact plate-by-plate match.
+
+**Beta imaging notes:** Farefully-owned generated pictures are stored in Wix Media Manager as optimised JPEG files, not third-party stock hotlinks. They are clearly described as AI-generated and may contain presentation variations. Stock-photo provider licenses and attribution are unchanged for every other meal.
