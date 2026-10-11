@@ -1354,10 +1354,20 @@ async function plusShopSplitFortnight(){
         return '<li>'+esc(P[id]?.n||id)+' · '+esc(fmtQty(id,Number(x[key])))
           +' needed ('+Number(x[packs])+' estimated '+(Number(x[packs])===1?'pack':'packs')+')</li>';
       }).join('')+'</ul></div>';
+    const consolidation=valid.filter(x=>['Cupboard','Frozen'].includes(P[String(x.id||'')]?.c)
+        &&Number(x.potential_duplicate_packs)>0)
+      .sort((a,b)=>Number(b.potential_duplicate_packs)-Number(a.potential_duplicate_packs)).slice(0,8);
+    const consolidationNote=consolidation.length
+      ?'<p><b>Possible pack consolidation:</b> Some shelf-stable or frozen ingredients may not need separate full packs for each visit.</p><ul>'
+        +consolidation.map(x=>'<li>'+esc(P[String(x.id||'')]?.n||String(x.id||''))+
+          ' · up to '+Number(x.potential_duplicate_packs)+' extra model pack(s) when shopping separately; '+
+          Number(x.combined_packs)+' combined packs estimated</li>').join('')+'</ul>'
+      :'<p class="small">No potential overlapping model packs were identified for cupboard or frozen ingredients.</p>';
     out.innerHTML='<p><b>'+valid.length+' recipe ingredient lines reviewed.</b> Pantry has been applied to the first shop before the second.</p>'
       +makeWeek(1,'first_need','first_packs')
       +makeWeek(2,'second_need','second_packs')
-      +'<p class="small">This is a two-trip planning view, not two retail orders. Items with longer storage lives may be bought together. Check packaging, use-by dates, product labels and any extras on the Free shopping list.</p>';
+      +consolidationNote
+      +'<p class="small">This is a two-trip planning view, not two retail orders. Only consolidate packs if correct packaging, freezer capacity and safe storage allow it. Fresh or chilled items are not automatically combined. Check use-by dates, product labels and any extras on the Free shopping list.</p>';
   }catch(err){out.textContent=err.message||'Could not split your basket.'}
   finally{plusShopBusy=false}
 }
