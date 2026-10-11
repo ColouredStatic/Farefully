@@ -17,7 +17,15 @@ const msg=document.getElementById('message'),membership=document.getElementById(
 let ready=false,busy=false;
 async function callBilling(body){
  const {data,error}=await client.functions.invoke('farefully-billing-test',{body});
- if(error)throw new Error(data?.error || error.message || 'Test billing unavailable');
+ if(error){
+  let responseData=data;
+  if(error.context && typeof error.context.json==='function'){
+   try{responseData=await error.context.clone().json()}catch{}
+  }
+  const base=(responseData && typeof responseData.error==='string')?responseData.error:(error.message||'Test billing unavailable');
+  const missing=Array.isArray(responseData?.missing_settings)?responseData.missing_settings.filter(x=>typeof x==='string'):[];
+  throw new Error(base+(missing.length?' Check these Supabase Edge Function settings: '+missing.join(', '):''));
+ }
  if(data?.error)throw new Error(data.error);
  return data;
 }
@@ -33,7 +41,7 @@ async function refresh(){
   const period=result.current_period_end?' · until '+new Date(result.current_period_end).toLocaleDateString('en-GB'):'';
   state.textContent='Stripe sandbox available · '+String(result.status||'inactive')+period+' · no live Plus access';
   msg.textContent=new URLSearchParams(location.search).get('test_billing')==='success'?'Returned from test Checkout. Subscription access will update once the signed Stripe test webhook is processed.':'';
- }catch(e){ready=false;controls.hidden=true;state.textContent='Sandbox disabled or not configured';msg.textContent='The Stripe test environment is not yet ready. No payment can be taken.'}
+ }catch(e){ready=false;controls.hidden=true;state.textContent='Sandbox setup needs attention';msg.textContent=(e?.message||'The Stripe test environment is not yet ready.')+' No payment can be taken.'}
 }
 async function action(action,plan){
  if(!ready||busy)return;
