@@ -2,7 +2,7 @@
 Owner direction approved 11 October 2026: Free must be genuinely useful to most families; Plus must visibly save further effort. This is the **commercial design**, not yet implemented as a paywall or live billing.
 
 ## Product promise
-- Free solves the weekly problem, safely, without requiring a credit card or artificial friction.
+- Free solves the weekly problem, safely, without requiring a credit card, daily/weekly generation limits, artificial swap limits or normal recipe usage caps.
 - Plus makes the same household routine faster, less repetitive and easier to manage across a fortnight, not more medically safe.
 - A paying member must receive additional working functionality, not promises about future retailer integrations.
 - No loss of stored meals, household data, preferences or shopping lists after cancellation. Premium editing/generation may cease, but existing content stays available.
@@ -13,12 +13,12 @@ Owner direction approved 11 October 2026: Free must be genuinely useful to most 
 | Household adults/children, dislikes, favourite foods, allergy/Coeliac/halal/vegetarian/vegan rules | Full support | Full support |
 | Safe recipe matches and required ingredient/packaging checks | Full support | Full support |
 | Meal-plan length | 7 days at launch | 7 or 14 days |
-| Recipe catalogue and detailed instructions | Access to core catalogue | Same catalogue; no artificial safety omissions |
+| Recipes and detailed cooking instructions | All normal available recipes and instructions | Everything in Free, plus additional planning controls |
 | Household pantry and shopping lists | Practical pantry deductions; grouped grocery list with quantities, ticks, everyday extras, cloud sync and copy/share | Everything in Free plus optional advanced shopping automation and optimisation |
 | Account, saved preferences, cloud sync, mobile basket | Included | Included |
-| Swaps and avoiding unacceptable foods | Included | Additional variety controls and repeated-meal management |
+| Regenerating and swapping seven-day meal plans | Unlimited normal use, including preferences and dietary exclusions | Everything in Free, plus advanced variety controls and repeated-meal management |
 | Batch/freezer-friendly meals | Available | Advanced multi-day batch/prep workflows |
-| Custom recipes | Starter collection (limit to be user-tested before adoption) | Expanded collection (size and technical cap to be agreed) |
+| Creating and saving personal recipes | Existing normal functionality stays available without artificial Free caps | Everything in Free, plus future advanced recipe organisation and reuse tools if built |
 | Grocery budget and retailer estimates | Basic basket estimate and verified offers with source/date disclosures | Planned-versus-actual spending, smarter pack/waste comparisons and advanced verified offer scenarios, where trusted data exists |
 | Advanced shopping organisation | Essential checklist, current-category grouping and official retailer links | Saved custom aisle order, two-trip split for a fortnight, advanced stock-up reminders (once built) |
 | Automated online supermarket basket | Neither tier until partner authorised | Future partner-dependent capability, not sold as present |
@@ -33,7 +33,7 @@ Owner direction approved 11 October 2026: Free must be genuinely useful to most 
 5. **Less shopping rework:** trusted, dated and disclosed supermarket offers, only where a legitimate verified feed exists; no fabricated savings.
 6. **Flexible membership:** £3.99/month or £34.99/year; self-service renewal and cancellation; existing lifetime entitlement always overrides the need to purchase.
 
-Prioritise a clearly working premium basket enhancement alongside fortnight planning, variety and batch preparation for launch. More speculative retailer integration is a separately funded partnership roadmap.
+**Locked next development priority:** Build Plus advanced basket optimisation **alongside** secure Free/Plus entitlement controls. [Basket implementation issue](https://github.com/ColouredStatic/Farefully/issues/16) and [secure entitlement issue](https://github.com/ColouredStatic/Farefully/issues/15) are both P0. The first deliverable is working optimised packs, quantities and waste awareness with no regression in Free baskets. Prioritise a clearly working premium basket enhancement alongside fortnight planning, variety and batch preparation for launch. More speculative retailer integration is a separately funded partnership roadmap.
 
 ## Existing accounts and beta migration
 The live beta app currently defaults to 14 days for everyone. **Do not retroactively truncate or replace a user's existing plan.** Retain fourteen-day generation while beta is in progress. Before switching on the Free plan at paid launch, show a clear product change notice, move future Free plan creation to seven days, preserve previously generated 14-day plans and their associated shopping lists read-only as necessary. Plus and lifetime gifts continue 14-day generation. Never change food restrictions during downgrade.

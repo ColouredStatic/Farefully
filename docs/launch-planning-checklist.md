@@ -5,13 +5,19 @@ Status: internal preparation only. No live billing is authorised.
 ## Product offer, owner-approved direction
 **Product principle confirmed 11 October:** Free must genuinely work for the majority of households and should never rely on artificial friction. Plus must be visibly more useful and save real time, rather than paywalling safety.
 
-**Free at launch:** seven-day meal planning, basic swaps and recipes, complete dietary safety and Coeliac packaging warnings, useful consolidated basket, pantry, saved household and cloud sync. No card needed.
+**Free at launch:** seven-day meal planning with unlimited normal regenerations/swaps, all normal recipes and detailed instructions, personal recipes already supported in beta, complete dietary safety and Coeliac packaging warnings, useful consolidated basket, pantry, saved household and cloud sync. No card needed.
 
 **Plus, £3.99 monthly / £34.99 annually:** Free plus fourteen-day plans, deeper meal variety and repeat controls, batch/freezer and leftover planning, and **advanced baskets**: smarter pack and waste optimisation, optional split fortnight shops, planned-versus-actual spend tracking, custom aisle order and deeper pantry/budget controls, when implemented and reliable.
 
 **Important scope distinction:** This is an approved product specification, not an implemented paywall. App beta currently defaults to fourteen-day plans for everyone and stays that way until the migration is communicated and secure feature gating passes. All current plans, data and lifetime Plus gift rights are protected.
 
 **Engineering definition:** Existing app constructs plans in browser JavaScript and writes household JSON; server-side membership RPC is currently only an access badge. A paid-tier feature cannot be safely protected by browser restrictions alone. Implement actual server-side enforcement before activating live Stripe; no public subscriptions until then. Full specification: [Approved Free/Plus product boundary](approved-free-plus-spec.md).
+
+## Locked next two development workstreams
+1. **P0 Advanced basket optimisation:** [GitHub issue #16](https://github.com/ColouredStatic/Farefully/issues/16). Correct pack/unit counts, waste control, optional split fortnight shopping and advanced spend tracking. Keep all current Free shopping features intact.
+2. **P0 Secure Free/Plus entitlement controls:** [GitHub issue #15](https://github.com/ColouredStatic/Farefully/issues/15). Enforce Plus server-side, preserve lifetime and beta access, and never rely on frontend-only restrictions.
+
+Both are required before selling Plus. **No change to current beta functionality or public billing settings is authorised by this prioritisation.**
 
 ## Technical prerequisites
 1. Enforce tier access in the authenticated backend, not just interface controls.
