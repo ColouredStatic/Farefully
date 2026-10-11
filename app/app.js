@@ -34,6 +34,9 @@ function ingredientForLive(row){
   // Sweet potatoes must never be priced or recommended as ordinary potatoes;
   // orzo is not a drop-in substitute for every pasta recipe.
   const productName=(' '+liveProductName(row)+' ').toLowerCase();
+  // Prepared meals and filled pasta cannot stand in for raw/plain ingredients.
+  if(/\b(?:girasoli|tortellini|ravioli|cannelloni|lasagn[ae]|stuffed|filled|nduja|ready[ -]?meal|pasta[ -]?bake|macaroni[ -]?cheese)\b/.test(productName))return '';
+  if(/\begg[ -]?noodles?\b/.test(productName))return P.eggnoodles?'eggnoodles':'';
   if(/\bsweet[ -]+potatoes?\b/.test(productName))return P.sweetpotatoes?'sweetpotatoes':'';
   if(/\borzo\b/.test(productName))return P.orzo?'orzo':'';
   if(/\bgnocchi\b/.test(productName))return P.gnocchi?'gnocchi':'';
@@ -56,16 +59,41 @@ function ingredientForLive(row){
   return''
 }
 function parsePackQuantity(pack,unit,name=''){
-  let s=String(pack||'').toLowerCase().replace(/,/g,'').trim(),m;
-  m=s.match(/(\d+(?:\.\d+)?)\s*x\s*(\d+(?:\.\d+)?)\s*(kg|g|ml|l)\b/);
-  if(m){let q=+m[2];if(m[3]==='kg'||m[3]==='l')q*=1000;return +m[1]*q}
-  m=s.match(/(\d+(?:\.\d+)?)\s*(kg|g|ml|l)\b/);
-  if(m){let q=+m[1];if(m[2]==='kg'||m[2]==='l')q*=1000;return q}
-  if(String(unit).toLowerCase()==='each'){
-    m=s.match(/(?:pack of |x\s*)?(\d+)\b/);if(m)return +m[1];
-    m=String(name||'').toLowerCase().match(/(\d+)\s*(?:pack|eggs?|slices?)\b/);if(m)return +m[1]
+  const s=String(pack||'').toLowerCase().replace(/,/g,'').trim();
+  const label=String(name||'').toLowerCase().replace(/,/g,'').trim();
+  const mUnit=String(unit||'').toLowerCase();
+  let m;
+  // Count-based ingredients must NOT interpret 328g of packaged eggs as 328 eggs.
+  if(mUnit==='each'||mUnit==='slice'){
+    const candidates=[
+      s.match(/(?:^|\s)(\d+(?:\.\d+)?)\s*(?:pack|pk|eggs?|each|items?|heads?|slices?)\b/),
+      s.match(/(?:^|\s)x\s*(\d+(?:\.\d+)?)\b/),
+      s.match(/\bpack\s+of\s+(\d+(?:\.\d+)?)\b/),
+      label.match(/\bx\s*(\d+(?:\.\d+)?)\b/),
+      label.match(/\bpack\s+of\s+(\d+(?:\.\d+)?)\b/),
+      label.match(/\b(\d+(?:\.\d+)?)\s*(?:pack|pk|eggs?|slices?)\b/)
+    ];
+    for(const found of candidates){
+      const n=Number(found?.[1]);
+      if(Number.isInteger(n)&&n>=1&&n<=100)return n;
+    }
+    if(/^(?:each|single|one item|one head)$/.test(s))return 1;
+    return null;
   }
-  return null
+  if(mUnit==='g'||mUnit==='ml'){
+    const allowed=mUnit==='g'?'(kg|g)':'(ml|l)';
+    const multi=new RegExp('(\\d+(?:\\.\\d+)?)\\s*x\\s*(\\d+(?:\\.\\d+)?)\\s*'+allowed+'\\b');
+    m=s.match(multi);
+    if(m){const factor=(m[3]==='kg'||m[3]==='l')?1000:1;return +m[1]*(+m[2])*factor}
+    const single=new RegExp('(\\d+(?:\\.\\d+)?)\\s*'+allowed+'\\b');
+    m=s.match(single);
+    if(m){const factor=(m[2]==='kg'||m[2]==='l')?1000:1;return (+m[1])*factor}
+    if(mUnit==='ml'){
+      m=s.match(/(\d+(?:\.\d+)?)\s*(?:pints?|pt)\b/);
+      if(m)return Math.round(+m[1]*568);
+    }
+  }
+  return null;
 }
 function numOrNull(v){if(v===null||v===undefined||v==='')return null;const n=Number(v);return Number.isFinite(n)&&n>0?n:null}
 function activeLivePrice(row){
