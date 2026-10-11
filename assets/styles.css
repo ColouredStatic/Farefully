@@ -166,3 +166,29 @@ body{background:var(--ff-paper)}
 .plans-link-plus:hover,.navcta:hover,.button.primary:hover{background:var(--ff-forest);border-color:var(--ff-forest)}
 .ctaBox{background:linear-gradient(130deg,var(--ff-forest),#205D46)}
 .sitefoot{background:var(--ff-paper);border-top-color:var(--ff-line)}
+
+
+/* Navigation CTA: explicit link-state contrast overrides generic .navlinks a. */
+.navlinks a.navcta,
+.navlinks a.navcta:link,
+.navlinks a.navcta:visited {
+  background:#176b55;
+  border-color:#176b55;
+  color:#ffffff;
+  -webkit-text-fill-color:#ffffff;
+  font-weight:850;
+  text-decoration:none;
+}
+.navlinks a.navcta:hover,
+.navlinks a.navcta:focus-visible {
+  background:#11533f;
+  border-color:#11533f;
+  color:#ffffff;
+  -webkit-text-fill-color:#ffffff;
+}
+.navlinks a.navcta:active {
+  background:#0e4636;
+  border-color:#0e4636;
+  color:#ffffff;
+  -webkit-text-fill-color:#ffffff;
+}
