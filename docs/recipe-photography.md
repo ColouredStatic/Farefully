@@ -38,7 +38,7 @@ Images in `RECIPE_PHOTOS` are loaded as optimised third-party image URLs (typica
 
 ### Coverage
 
-After Batches 1–3: **39/220 built-in dinners** have assigned photographs (four pre-existing, 35 curated). The remaining 181 use the existing illustrated fallback. The last-reviewed 14-day beta plan has imagery for all its dinners, including two covered in the earlier batches. User-created recipes are unaffected.
+After Batches 1–4: **47/220 built-in dinners** have assigned photographs (four pre-existing, 43 curated). The remaining 173 use the existing illustrated fallback. The last-reviewed 14-day beta plan has imagery for all its dinners, including two covered in the earlier batches. User-created recipes are unaffected.
 
 Next: source specific, suitable images for the remaining most frequently suggested dinners, prioritising existing saved meal plans and then expanding to the broader recipe library.
 
@@ -92,3 +92,23 @@ All linked Pexels pages are marked free to use under the [Pexels License](https:
 The photo total remains **39/220**, because these replace two previously assigned photos rather than cover new meals. The next editorial improvement is to cook and photograph these recipes ourselves for an exact plate-by-plate match.
 
 **Beta imaging notes:** Farefully-owned generated pictures are stored in Wix Media Manager as optimised JPEG files, not third-party stock hotlinks. They are clearly described as AI-generated and may contain presentation variations. Stock-photo provider licenses and attribution are unchanged for every other meal.
+
+
+## Beta batch 4, 11 October 2026: accuracy-first release
+
+**Eight** of the ten candidates cleared the editorial sourcing check, bringing assigned photos to **47/220**. The other **two**, lentil bolognese (`lentilbolo`) and broccoli cheese pasta (`broccolipasta`), remain on their illustrated placeholders. Available photos either did not establish that the sauce contained lentils or visibly contained seafood/meat that is not in Farefully's vegetarian recipe. We will not compromise ingredient correctness for percentage coverage.
+
+| Recipe ID | Dinner | Photographer | Verified source / reuse terms | Image accuracy |
+| --- | --- | --- | --- | --- |
+| `toad` | Toad in the hole | Jerry Pank | [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Toad_in_the_hole1.jpg), [CC BY 2.0](https://creativecommons.org/licenses/by/2.0/) | Authentic sausages baked in Yorkshire pudding batter, peas and gravy added according to recipe |
+| `chickenpie` | Easy chicken pie | Mayara Caroline Mombelli | [Pexels](https://www.pexels.com/photo/delicious-chicken-pot-pie-on-orange-plate-39070797/), [Pexels License](https://www.pexels.com/license/) | A golden pie with visible filling, precise filling ingredients may differ |
+| `traychicken` | Chicken & potato traybake | ArtHouse Studio | [Pexels](https://www.pexels.com/photo/cooked-chicken-with-potatoes-on-black-metal-tray-4589140/), Pexels License | Roasted chicken/vegetables on tray; exact vegetable mix may differ |
+| `salmonpotatoes` | Salmon, potatoes & broccoli | Valeria Boltneva | [Pexels](https://www.pexels.com/photo/potatoes-fish-and-broccoli-in-a-dish-20182310/), Pexels License | Cooked salmon, broccoli and potatoes; photograph may have additional sauce |
+| `chickennoodles` | Chicken stir-fry noodles | Leonardo Aquino | [Pexels](https://www.pexels.com/photo/a-bowl-of-noodles-with-vegetables-and-meat-27640566/), Pexels License | Chicken noodles with vegetables; sauce/veg may differ |
+| `enchiladas` | Beef enchilada bake | ROMAN ODINTSOV | [Pexels](https://www.pexels.com/photo/close-up-of-food-on-plate-on-table-5840311/), Pexels License | Enchiladas with sauce and cheese, beef filling not independently verified in photo |
+| `fishtacos` | Fish tacos | Matthew Baxter | [Pexels](https://www.pexels.com/photo/crispy-fish-taco-with-fresh-salsa-on-dark-plate-35983504/), Pexels License | Crispy fish, lettuce and salsa in tortilla; garnish may differ |
+| `gammonegg` | Gammon, egg & chips | Acabashi | [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Egg_beans_gammon_and_chips_at_Stable_Yard_Hatfield_House_Hertfordshire_England.jpg), [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) | Genuine gammon/eggs/chips; photo has beans instead of the recipe's peas |
+
+Photos are linked to individual source pages and their attribution is displayed in the recipe details, including Creative Commons license links. Image display may crop/rescale photographs for the app, without changing the authoritative ingredient list. Wikimedia's CC BY-SA image remains separately attributed under its specified license. Any reused/modified versions of that photograph must meet the license's share-alike conditions.
+
+**Editorial outcome:** The last two shortlisted recipes were *not* silently replaced with generic bolognese or seafood pasta. Revisit them only with a reliable licence and genuinely matching photograph or an explicitly marked Farefully-owned illustration. Full photo availability and visual appearance still require manual in-browser checking with a signed-in beta account; automated tests only verify mapping, source record shape and fallback logic.
