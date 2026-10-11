@@ -15,13 +15,17 @@ const cors = {
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: cors });
 const env = (key: string) => Deno.env.get(key)?.trim() ?? "";
+// These are public identifiers from the dedicated FarefullySandbox, not secret keys.
+const TEST_PRICE = Object.freeze({
+  monthly: "price_1UPOGJIls1DIXPlbzChS3dll",
+  annual: "price_1UPOHHIls1DIXPlber1baXmE",
+});
 
 function configured() {
   const secret = env("STRIPE_TEST_SECRET_KEY");
   return env("FAREFULLY_TEST_BILLING_ENABLED") === "true" &&
     secret.startsWith("sk_test_") &&
-    !!env("STRIPE_TEST_PRICE_MONTHLY") &&
-    !!env("STRIPE_TEST_PRICE_ANNUAL") &&
+
     !!env("SUPABASE_URL") &&
     !!env("SUPABASE_ANON_KEY") &&
     !!env("SUPABASE_SERVICE_ROLE_KEY");
@@ -94,7 +98,7 @@ Deno.serve(async (req) => {
       return json({ error: "A test subscription exists. Manage it in the billing portal." }, 409);
     }
     const monthly = payload.plan === "monthly";
-    const priceId = env(monthly ? "STRIPE_TEST_PRICE_MONTHLY" : "STRIPE_TEST_PRICE_ANNUAL");
+    const priceId = monthly ? TEST_PRICE.monthly : TEST_PRICE.annual;
     const price = await stripe.prices.retrieve(priceId);
     // A live price/key must never be usable, even if an operator misconfigures an env variable.
     if (price.livemode || !price.active || price.currency !== "gbp" ||
