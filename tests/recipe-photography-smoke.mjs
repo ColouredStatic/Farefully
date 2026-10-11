@@ -25,15 +25,25 @@ vm.runInContext(stripped,context,{timeout:15000});
 const run=code=>vm.runInContext(code,context,{timeout:15000});
 const curated=JSON.parse(run('JSON.stringify(RECIPE_PHOTOS)'));
 const photos=Object.entries(curated);
-assert.equal(photos.length,11,'First curated batch should have 11 photos');
+assert.equal(photos.length,23,'Both curated batches should total 23 assigned photos');
 const ids=JSON.parse(run('JSON.stringify(D.map(m=>m.id))'));
 assert.equal(new Set(ids).size,ids.length,'Dishes need distinct IDs');
 for(const [id,photo] of photos){
   assert.ok(ids.includes(id),'Photo references missing dinner '+id);
-  assert.match(photo.src,/^https:\/\/images\.unsplash\.com\/photo-[\w-]+\?/);
-  assert.match(photo.source,/^https:\/\/unsplash\.com\/photos\//);
+  const provider=photo.provider||'Unsplash';
+  if(provider==='Unsplash'){
+    assert.match(photo.src,/^https:\/\/images\.unsplash\.com\/photo-[\w-]+\?/);
+    assert.match(photo.source,/^https:\/\/unsplash\.com\/photos\//);
+  }else if(provider==='Pexels'){
+    assert.match(photo.src,/^https:\/\/images\.pexels\.com\/photos\/\d+\/pexels-photo-\d+\.jpeg\?/);
+    assert.match(photo.source,/^https:\/\/www\.pexels\.com\/photo\//);
+  }else if(provider==='Wikimedia Commons'){
+    assert.match(photo.src,/^https:\/\/commons\.wikimedia\.org\/wiki\/Special:FilePath\//);
+    assert.match(photo.source,/^https:\/\/commons\.wikimedia\.org\/wiki\/File:/);
+    assert.match(photo.licenseUrl,/^https:\/\/creativecommons\.org\//);
+  }else assert.fail('Unrecognised photo provider '+provider);
   assert.ok(photo.by.length>=3,'Photographer attribution missing for '+id);
-  assert.match(photo.src,/w=1100/,'Photo should request a resized version');
+  assert.match(photo.src,/(?:w=1100|width=1100)/,'Photo should request a resized version');
   assert.equal(run("image(allDinners().find(m=>m.id==="+JSON.stringify(id)+"))"),photo.src);
 }
 assert.equal(run("image(allDinners().find(m=>m.id==='curry'))").includes('wixstatic.com'),true,
@@ -46,4 +56,12 @@ assert.ok(html.includes('id="recipePhotoCredit"'),'Photo attribution field absen
 assert.ok(app.includes('Photo is illustrative'),'Photo context missing');
 assert.ok(app.includes("el.dataset.ffPhotoFallback='1'"),'Image loading fallback absent');
 assert.match(app,/loading="lazy" decoding="async"/,'Card photos should lazy-load');
-console.log('Recipe photography checks passed: 11 credits, real photo URLs, existing Wix images, placeholders and fallback.');
+assert.deepEqual(
+  JSON.parse(run("JSON.stringify(['pasta','chickenbacon','sausagecass','sausagetray','burgers','chickenburgers','fishpie','tunapasta','jacket','tunajackets','vegpastabake','chickpeacurry'].filter(id=>!RECIPE_PHOTOS[id]))")),
+  [],'Every approved Batch 2 recipe must have a photograph'
+);
+assert.equal(run("RECIPE_PHOTOS.fishpie.license"),'CC BY-SA 3.0');
+assert.equal(run("RECIPE_PHOTOS.tunajackets.license"),'CC0 1.0');
+assert.equal(run("RECIPE_PHOTOS.chickpeacurry.provider"),'Pexels');
+assert.match(app,/photo\.provider\|\|'Unsplash'/,'Credit renderer should support multiple libraries');
+console.log('Recipe photography checks passed: 23 credits, three photo providers, previous Wix images, image fallbacks and Batch 2 coverage.');
