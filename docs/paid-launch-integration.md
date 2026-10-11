@@ -1,13 +1,13 @@
 # Farefully Plus production integration
 
-Status: **NOT LIVE. Do not accept paid subscriptions until the checks below pass.**
+Status: **NOT LIVE. Sandbox integration code is prepared but disabled until separately configured and tested. Do not accept paid subscriptions until the checks below pass.**
 
 ## Production source of truth
 - GitHub repository: `ColouredStatic/Farefully`, branch `main`.
 - Public app: `https://farefully.co.uk/app/` (GitHub Pages).
 - IONOS manages the domain and email. Preserve existing DNS/email records.
 - The Wix deployment is a secondary copy. Never overwrite the GitHub app with older Wix files.
-- Existing household profiles are stored in browser localStorage under `farefully_profiles_1` and active profile ID under `farefully_active_1`. Legacy keys `tp_profiles_2` and `tp_active_2` may exist.
+- Live household accounts and profiles are stored in Supabase (public.households) with revision-safe sync and account-scoped browser caches. Legacy beta browser-only profiles are deliberately not imported.
 
 ## Required production services
 1. Identity provider with verified email sign-up, login, password recovery and refreshable sessions.
@@ -49,3 +49,44 @@ Status: **NOT LIVE. Do not accept paid subscriptions until the checks below pass
 - Domain and IONOS email remain working.
 
 **Do not publish paid checkout links before all acceptance tests pass.**
+
+## Stripe sandbox foundation (11 October 2026)
+
+Two Supabase Edge Functions are prepared:
+- `supabase/functions/farefully-billing-test/index.ts`: authenticated sandbox Checkout, account status and billing portal.
+- `supabase/functions/farefully-stripe-test-webhook/index.ts`: signed test-only webhook with idempotent event handling and current subscription retrieval.
+- `supabase/migrations/20261011143000_billing_test_only.sql`: separate `public.billing_test_accounts` and `public.stripe_test_webhook_events` tables, with RLS.
+
+**Critical guard:** `FAREFULLY_TEST_BILLING_ENABLED` defaults absent/false and the functions require `sk_test_` keys. Both URLs return an unavailable response unless deliberately configured. Only test prices are accepted, checked for `livemode=false`, GBP currency and exact approved amounts (£3.99 monthly, £34.99 yearly). Sandbox subscriptions write only to test tables and **NEVER** grant production Farefully Plus. The live `public.billing_accounts` and `get_farefully_plus_status` records/functions are untouched.
+
+Deploy checkout with JWT verification **enabled** and webhook with JWT verification **disabled** (Stripe sends signatures, not Supabase JWTs; code verifies the raw signed request and test-mode flag before any database operations). Only checkout requests with a validated, confirmed Supabase user token and the Farefully origin are accepted. Do not copy API keys or webhook secrets into GitHub, frontend code, support chat or documentation.
+
+### Project secrets needed for the disabled sandbox to become testable
+
+Set in Supabase's protected Edge Function secrets **after** creating matching *test-mode* prices and webhook configuration in the Coloured Static Stripe account:
+
+- `FAREFULLY_TEST_BILLING_ENABLED=true` (the only opt-in gate, **not set by this release**)
+- `STRIPE_TEST_SECRET_KEY` (must start with `sk_test_`)
+- `STRIPE_TEST_PRICE_MONTHLY` (test-mode recurring GBP price for £3.99/month)
+- `STRIPE_TEST_PRICE_ANNUAL` (test-mode recurring GBP price for £34.99/year)
+- `STRIPE_TEST_WEBHOOK_SECRET` (test-mode Stripe webhook endpoint signing secret, begins `whsec_`)
+- `STRIPE_TEST_PORTAL_CONFIGURATION` (optional specific *test-mode* billing portal configuration ID; if absent the account's test-mode default portal config must be enabled)
+
+`SUPABASE_URL`, `SUPABASE_ANON_KEY`, and `SUPABASE_SERVICE_ROLE_KEY` are supplied automatically to eligible Supabase Edge Functions. The service role is used only server-side and is never exposed to the browser.
+
+Sandbox webhook endpoint URL when deployed:
+`https://llhbudvpvqnogbgpvcug.supabase.co/functions/v1/farefully-stripe-test-webhook`
+
+Listen to `checkout.session.completed`, `customer.subscription.created`, `customer.subscription.updated`, `customer.subscription.deleted`, `invoice.paid`, and `invoice.payment_failed`. Webhooks must be configured **in Stripe test mode**. The current Stripe connection in this workspace exposes the live Coloured Static account only; do not reuse live Price IDs with test-mode API keys. Stripe test prices/configuration still need creating or linking separately, with no risk of real money moving.
+
+### Remaining acceptance criteria
+
+1. Confirm separate test prices and test portal in Stripe, store secrets, activate the opt-in test gate *only after code review*.
+2. Verify valid signed test webhook, invalid signature rejection, duplicate delivery and out-of-order events.
+3. Test Checkout and portal with an authenticated throwaway user in Stripe test mode. Verify account-scoped sandbox rows change, **without** changing the live Plus RPC response.
+4. Cover active, trialing, payment failure, cancellation, renewal, and webhook-retry paths; verify no accidental duplicate subscription or orphaned customer record.
+5. Determine exactly which features are free versus Plus. Build production server-enforced entitlements after agreement; do not enable a subscription paywall yet.
+6. Provide accessible customer billing/renewal/cancellation/privacy wording, account deletion/export and operational alerts. Test a second account for privacy isolation.
+7. Perform a separate, explicit review and authorisation before any live Stripe settings, webhook endpoints, payment links, or paid checkout are switched on.
+
+For CI, `node tests/billing-sandbox-smoke.mjs` verifies that no live keys or live-price IDs enter the sandbox source and that authentication, strict price checks, signed webhooks, test-only tables and fail-closed gates are present. **Static checks are not equivalent to an actual Stripe test transaction.**
