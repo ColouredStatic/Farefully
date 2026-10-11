@@ -9,6 +9,7 @@ on:
       - 'index.html'
       - 'assets/styles.css'
       - 'tests/plus-basket-smoke.mjs'
+      - 'tests/plus-shopping-tools-smoke.mjs'
       - 'tests/planner-startup-smoke.mjs'
       - 'tests/household-fit-smoke.mjs'
       - 'tests/basket-quantity-variety-smoke.mjs'
@@ -21,6 +22,7 @@ on:
       - 'index.html'
       - 'assets/styles.css'
       - 'tests/plus-basket-smoke.mjs'
+      - 'tests/plus-shopping-tools-smoke.mjs'
       - 'tests/planner-startup-smoke.mjs'
       - 'tests/household-fit-smoke.mjs'
       - 'tests/basket-quantity-variety-smoke.mjs'
@@ -45,6 +47,8 @@ jobs:
         run: node --check app/app.js
       - name: Validate Plus basket and homepage plans
         run: node tests/plus-basket-smoke.mjs
+      - name: Test Plus two-trip shopping, aisle settings and actual spend
+        run: node tests/plus-shopping-tools-smoke.mjs
       - name: Test logged-in planner, basket and reset flow
         run: node tests/planner-startup-smoke.mjs
       - name: Test household fit labels and explanations

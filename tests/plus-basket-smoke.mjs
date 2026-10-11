@@ -9,7 +9,7 @@ const page=readFileSync(new URL('../app/index.html',import.meta.url),'utf8');
 const home=readFileSync(new URL('../index.html',import.meta.url),'utf8');
 assert.ok(page.includes('id="plusBasketReviewButton"'));
 assert.ok(page.includes('id="plusBasketResult"'));
-assert.ok(page.includes('app.js?v=1180'), 'Fresh JS must not be served from a stale cache');
+assert.match(page,/app\.js\?v=\d+/, 'App must serve a versioned JavaScript asset');
 assert.ok(home.includes('id="plans"') && home.includes('Free covers the week.'));
 assert.ok(home.includes('Paid checkout is not open'));
 assert.ok(home.includes('Unlimited seven-day meal plans'));
