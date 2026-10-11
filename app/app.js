@@ -1306,7 +1306,7 @@ function plusShopRenderAisleControls(){
 async function plusShopOpenAisles(){
   const out=document.getElementById('plusAisleResult');if(!out||plusShopBusy)return;
   plusShopBusy=true;out.textContent='Checking membership and loading aisle order…';
-  try{await plusShopLoadPrefs(true);plusShopRenderAisleControls();render();}
+  try{await plusShopLoadPrefs(true);plusShopRenderAisleControls();plusShopSpendSummary();render();}
   catch(err){out.textContent=err.message||'Aisle order is unavailable.'}
   finally{plusShopBusy=false}
 }
