@@ -41,9 +41,14 @@ for(const [id,photo] of photos){
     assert.match(photo.src,/^https:\/\/commons\.wikimedia\.org\/wiki\/Special:FilePath\//);
     assert.match(photo.source,/^https:\/\/commons\.wikimedia\.org\/wiki\/File:/);
     assert.match(photo.licenseUrl,/^https:\/\/creativecommons\.org\//);
+  }else if(provider==='Farefully'){
+    assert.equal(photo.generated,true,'Farefully-hosted images must be labelled as generated');
+    assert.match(photo.src,/^https:\/\/static\.wixstatic\.com\/media\/[\w~-]+\.jpg$/);
+    assert.equal(photo.source,photo.src,'Store the authoritative owned-media image URL');
+    assert.match(photo.note,/AI-generated recipe illustration/);
   }else assert.fail('Unrecognised photo provider '+provider);
-  assert.ok(photo.by.length>=3,'Photographer attribution missing for '+id);
-  assert.match(photo.src,/(?:w=1100|width=1100)/,'Photo should request a resized version');
+  assert.ok(photo.by.length>=3,'Photographer/creator attribution missing for '+id);
+  if(provider!=='Farefully')assert.match(photo.src,/(?:w=1100|width=1100)/,'Stock photo should request a resized version');
   assert.equal(run("image(allDinners().find(m=>m.id==="+JSON.stringify(id)+"))"),photo.src);
 }
 assert.equal(run("image(allDinners().find(m=>m.id==='curry'))").includes('wixstatic.com'),true,
@@ -77,4 +82,11 @@ for(const id of batch3Ids){
 }
 assert.equal(curated.chillijackets2.provider,'Unsplash','Chilli jacket meal uses original licensed Unsplash photograph');
 assert.equal(curated.baconeggskillet.provider,'Pexels');
-console.log('Recipe photography checks passed: 35 curated photos across three providers; first 12 plan-prioritised gaps covered with captions, source credits and fallbacks.');
+for(const id of ['beefshepherdwraps','beefburgerbowl']){
+ assert.equal(curated[id].provider,'Farefully');
+ assert.equal(curated[id].generated,true);
+ assert.equal(curated[id].by,'Farefully');
+}
+assert.match(app,/photo\.generated\?'AI-generated Farefully recipe illustration/,'Generated photo disclosure must render without stock attribution');
+
+console.log('Recipe photography checks passed: 35 curated photos, including 2 Farefully-hosted AI illustrations; credentials, credits, source links and fallback unchanged.');
