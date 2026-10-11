@@ -52,9 +52,10 @@ Status: **NOT LIVE. Sandbox integration code is prepared but disabled until sepa
 
 ## Stripe sandbox foundation (11 October 2026)
 
-Two Supabase Edge Functions are prepared:
+Two Supabase Edge Functions and an unlinked local test harness are prepared:
 - `supabase/functions/farefully-billing-test/index.ts`: authenticated sandbox Checkout, account status and billing portal.
 - `supabase/functions/farefully-stripe-test-webhook/index.ts`: signed test-only webhook with idempotent event handling and current subscription retrieval.
+- `app/billing-sandbox.html`: a noindex, unlinked, signed-in test page at https://farefully.co.uk/app/billing-sandbox.html. Its controls are hidden until the backend sandbox gate responds. No live subscription buttons are added to the consumer site.
 - `supabase/migrations/20261011143000_billing_test_only.sql`: separate `public.billing_test_accounts` and `public.stripe_test_webhook_events` tables, with RLS.
 
 **Critical guard:** `FAREFULLY_TEST_BILLING_ENABLED` defaults absent/false and the functions require `sk_test_` keys. Both URLs return an unavailable response unless deliberately configured. Only test prices are accepted, checked for `livemode=false`, GBP currency and exact approved amounts (£3.99 monthly, £34.99 yearly). Sandbox subscriptions write only to test tables and **NEVER** grant production Farefully Plus. The live `public.billing_accounts` and `get_farefully_plus_status` records/functions are untouched.
