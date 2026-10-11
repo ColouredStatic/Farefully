@@ -68,8 +68,7 @@ Set in Supabase's protected Edge Function secrets **after** creating matching *t
 
 - `FAREFULLY_TEST_BILLING_ENABLED=true` (the only opt-in gate, **not set by this release**)
 - `STRIPE_TEST_SECRET_KEY` (must start with `sk_test_`)
-- `STRIPE_TEST_PRICE_MONTHLY` (test-mode recurring GBP price for £3.99/month)
-- `STRIPE_TEST_PRICE_ANNUAL` (test-mode recurring GBP price for £34.99/year)
+- Both test price IDs have been supplied and checked into the sandbox functions as public **non-secret** price identifiers. Do not add them as Edge Function secrets. Monthly £3.99: `price_1UPOGJIls1DIXPlbzChS3dll`. Annual £34.99: `price_1UPOHHIls1DIXPlber1baXmE`. The backend separately verifies the associated Stripe price is active, non-live, GBP, for the specified billing interval and correct amount.
 - `STRIPE_TEST_WEBHOOK_SECRET` (test-mode Stripe webhook endpoint signing secret, begins `whsec_`)
 - `STRIPE_TEST_PORTAL_CONFIGURATION` (optional specific *test-mode* billing portal configuration ID; if absent the account's test-mode default portal config must be enabled)
 
@@ -78,11 +77,11 @@ Set in Supabase's protected Edge Function secrets **after** creating matching *t
 Sandbox webhook endpoint URL when deployed:
 `https://llhbudvpvqnogbgpvcug.supabase.co/functions/v1/farefully-stripe-test-webhook`
 
-Listen to `checkout.session.completed`, `customer.subscription.created`, `customer.subscription.updated`, `customer.subscription.deleted`, `invoice.paid`, and `invoice.payment_failed`. Webhooks must be configured **in Stripe test mode**. The current Stripe connection in this workspace exposes the live Coloured Static account only; do not reuse live Price IDs with test-mode API keys. Stripe test prices/configuration still need creating or linking separately, with no risk of real money moving.
+Listen to `checkout.session.completed`, `customer.subscription.created`, `customer.subscription.updated`, `customer.subscription.deleted`, `invoice.paid`, and `invoice.payment_failed`. Webhooks must be configured **in Stripe test mode**. The current Stripe connection in this workspace exposes the **live** Colouredstatic account only; the user supplied the IDs from the dedicated FarefullySandbox. Never reuse live price IDs or live Stripe API keys. Sandbox price identifiers are configured, but the test API secret, signing secret, webhook endpoint and portal configuration still require activation and verification.
 
 ### Remaining acceptance criteria
 
-1. Confirm separate test prices and test portal in Stripe, store secrets, activate the opt-in test gate *only after code review*.
+1. Confirm the two sandbox price identifiers belong to FarefullySandbox by running a test-only Stripe API call. Configure a test billing portal, a test webhook and protected secrets. Activate the opt-in test gate *only after reviewing these settings*.
 2. Verify valid signed test webhook, invalid signature rejection, duplicate delivery and out-of-order events.
 3. Test Checkout and portal with an authenticated throwaway user in Stripe test mode. Verify account-scoped sandbox rows change, **without** changing the live Plus RPC response.
 4. Cover active, trialing, payment failure, cancellation, renewal, and webhook-retry paths; verify no accidental duplicate subscription or orphaned customer record.
