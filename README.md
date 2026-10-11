@@ -9,11 +9,16 @@ Farefully is a family meal planner and shopping-list application.
 - **Account page:** `/app/account.html` (email sign-up, login, password recovery, gift membership status).
 - **Planner:** `/app/index.html`, `/app/app.js`. Requires a signed-in account and loads profiles from the `public.households` table.
 - **Cloud saving:** Every profile change queues an account-scoped write through Supabase `save_household_versioned` or `delete_household_versioned` RPCs. PostgreSQL household revisions and atomic compare-and-save checks prevent a stale session from silently overwriting newer updates. The account-specific localStorage cache and pending-write outbox retain unsent changes. On a version conflict, the user chooses which copy to keep; choosing the cloud copy also preserves the unsent edits as a browser-only backup.
+- **Household resets:** Admin-only reset markers in `public.household_reset_epochs` let devices clear stale account-scoped household caches on their next sign-in/refresh. Auth, payments and Plus membership are unaffected. Only household data is purged.
+- **Display recovery:** The planner has a render-error boundary with a visible retry gate; regressions should never silently leave the basket blank.
+- **Regression checks:** `node tests/planner-startup-smoke.mjs` tests a saved 14-day basket render, malformed local cache handling and account reset recovery. `.github/workflows/planner-smoke.yml` runs the checks on relevant pushes and pull requests.
 - **Previous beta profiles:** Remain stored under legacy `farefully_profiles_1`, `farefully_active_1` and `farefully_state_*` keys, but are deliberately **not migrated** to the new account. Customers start a new household.
 - **Gifts:** Lifetime and 12-month gift entitlements are prepared but redemption remains locked until the Plus launch.
 - **Stripe:** Existing product and prices are created, but checkout/webhooks and paid access are **not live**.
 
 ## Publishing checks
+Before shipping any planner change, run `node tests/planner-startup-smoke.mjs` and check the GitHub Actions planner smoke workflow. A working browser login is not proof that the meal plan or basket rendered successfully.
+
 1. Validate syntax for `/app/app.js` and the account page scripts.
 2. Confirm the GitHub Pages version displays the authentication gate for signed-out visitors.
 3. Register and verify an account, save a new household, sign in on a second device and check the restored plan, preferences, basket and custom recipes.
