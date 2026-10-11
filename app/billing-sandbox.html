@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en-GB"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><meta name="theme-color" content="#176b55"><title>Farefully billing sandbox | Not live</title>
+<style>
+:root{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#f6f4ee;color:#1a3b32}*{box-sizing:border-box}body{margin:0;padding:18px}.wrap{max-width:650px;margin:36px auto}.card{background:#fff;border:1px solid #deded4;border-radius:20px;padding:22px;margin-bottom:16px;box-shadow:0 8px 25px #163e2d12}h1{margin:4px 0 10px;font-size:28px}h2{font-size:20px}p{line-height:1.5}.warn{padding:13px;background:#fff3d6;border-left:4px solid #c98d1c;border-radius:9px}button{background:#176b55;border:none;border-radius:10px;color:white;padding:12px 16px;font:700 15px system-ui;cursor:pointer;margin:5px 6px 5px 0}button:disabled{opacity:.45;cursor:not-allowed}.secondary{background:#ecf5ec;color:#176b55}.small{font-size:13px;color:#65776e}a{color:#176b55}#message{min-height:2em}#actions[hidden]{display:none}
+</style></head>
+<body><main class="wrap">
+<p><a href="/app/account.html">← Account</a></p>
+<section class="card"><p class="warn"><strong>TEST MODE ONLY. NOT A LIVE SUBSCRIPTION PAGE.</strong> Payment links on this page, when enabled, use Stripe test cards and cannot charge real money. A test subscription never grants live Farefully Plus.</p><h1>Farefully billing integration sandbox</h1><p>Private testing page for checking the monthly and annual Checkout flows, renewals, cancellation, and Stripe's Billing Portal. It is intentionally not linked from the public website.</p><p class="small">No checkout is enabled until the protected backend test configuration has been completed.</p></section>
+<section class="card"><h2>Sandbox membership</h2><p id="member">Checking account session…</p><p id="sandboxState" class="small">Checking whether sandbox billing is configured.</p>
+<div id="actions" hidden><button data-action="checkout" data-plan="monthly">Test £3.99 monthly</button><button data-action="checkout" data-plan="annual">Test £34.99 annual</button><button class="secondary" data-action="portal">Test billing portal</button><button class="secondary" data-action="status">Refresh test status</button></div><p id="message" role="status" aria-live="polite"></p></section>
+<p class="small">This page does not change the existing Farefully Plus feature access, your recipes, shopping basket or household data. Actual paid subscriptions remain disabled.</p>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script><script>
+'use strict';
+const client=window.supabase?.createClient('https://llhbudvpvqnogbgpvcug.supabase.co','sb_publishable_8r-gf7lbTGpPyNARUzOVAw_4gSD4I9M',{auth:{autoRefreshToken:true,persistSession:true,detectSessionInUrl:false}});
+const msg=document.getElementById('message'),membership=document.getElementById('member'),state=document.getElementById('sandboxState'),controls=document.getElementById('actions');
+let ready=false,busy=false;
+async function callBilling(body){
+ const {data,error}=await client.functions.invoke('farefully-billing-test',{body});
+ if(error)throw new Error(data?.error || error.message || 'Test billing unavailable');
+ if(data?.error)throw new Error(data.error);
+ return data;
+}
+async function refresh(){
+ if(!client){membership.textContent='Account service unavailable';return}
+ const {data,error}=await client.auth.getUser();
+ if(error||!data?.user){membership.innerHTML='Please <a href="/app/account.html">sign in to Farefully</a> first.';state.textContent='Sandbox locked';controls.hidden=true;return}
+ membership.textContent='Signed in as '+(data.user.email||'Farefully member');
+ try{
+  const result=await callBilling({action:'status'});
+  if(result.mode!=='test')throw new Error('Unexpected billing environment');
+  ready=true;controls.hidden=false;
+  const period=result.current_period_end?' · until '+new Date(result.current_period_end).toLocaleDateString('en-GB'):'';
+  state.textContent='Stripe sandbox available · '+String(result.status||'inactive')+period+' · no live Plus access';
+  msg.textContent=new URLSearchParams(location.search).get('test_billing')==='success'?'Returned from test Checkout. Subscription access will update once the signed Stripe test webhook is processed.':'';
+ }catch(e){ready=false;controls.hidden=true;state.textContent='Sandbox disabled or not configured';msg.textContent='The Stripe test environment is not yet ready. No payment can be taken.'}
+}
+async function action(action,plan){
+ if(!ready||busy)return;
+ busy=true;const buttons=controls.querySelectorAll('button');buttons.forEach(x=>x.disabled=true);msg.textContent='Connecting to Stripe test mode…';
+ try{
+  const data=await callBilling({action,plan});
+  if(action==='status'){state.textContent='Test subscription: '+data.status+' (no live Plus access)';msg.textContent='Sandbox status refreshed.';return}
+  const url=new URL(data.url||'');
+  if(url.protocol!=='https:'||!['checkout.stripe.com','billing.stripe.com'].includes(url.hostname)){
+   throw new Error('Unexpected Stripe destination');
+  }
+  location.assign(url.toString());
+ }catch(e){msg.textContent=e.message||'Test billing unavailable';}
+ finally{busy=false;buttons.forEach(x=>x.disabled=false);}
+}
+controls.addEventListener('click',event=>{const b=event.target.closest('button[data-action]');if(b)action(b.dataset.action,b.dataset.plan)});
+refresh();
+</script></body></html>

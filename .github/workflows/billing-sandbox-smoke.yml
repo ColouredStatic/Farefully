@@ -1,0 +1,43 @@
+name: Farefully Stripe sandbox contract
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'supabase/functions/farefully-billing-test/**'
+      - 'supabase/functions/farefully-stripe-test-webhook/**'
+      - 'supabase/migrations/20261011143000_billing_test_only.sql'
+      - 'tests/billing-sandbox-smoke.mjs'
+      - 'app/billing-sandbox.html'
+      - '.github/workflows/billing-sandbox-smoke.yml'
+  pull_request:
+    paths:
+      - 'supabase/functions/farefully-billing-test/**'
+      - 'supabase/functions/farefully-stripe-test-webhook/**'
+      - 'supabase/migrations/20261011143000_billing_test_only.sql'
+      - 'tests/billing-sandbox-smoke.mjs'
+      - 'app/billing-sandbox.html'
+      - '.github/workflows/billing-sandbox-smoke.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  sandbox-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Confirm production billing is untouchable from sandbox code
+        run: node tests/billing-sandbox-smoke.mjs
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Typecheck sandbox Checkout
+        run: deno check supabase/functions/farefully-billing-test/index.ts
+      - name: Typecheck signed sandbox webhook
+        run: deno check supabase/functions/farefully-stripe-test-webhook/index.ts
