@@ -12,6 +12,7 @@ on:
       - 'tests/plus-shopping-tools-smoke.mjs'
       - 'tests/basket-layout-smoke.mjs'
       - 'tests/early-access-copy-smoke.mjs'
+      - 'tests/design-polish-smoke.mjs'
       - 'tests/planner-startup-smoke.mjs'
       - 'tests/household-fit-smoke.mjs'
       - 'tests/basket-quantity-variety-smoke.mjs'
@@ -27,6 +28,7 @@ on:
       - 'tests/plus-shopping-tools-smoke.mjs'
       - 'tests/basket-layout-smoke.mjs'
       - 'tests/early-access-copy-smoke.mjs'
+      - 'tests/design-polish-smoke.mjs'
       - 'tests/planner-startup-smoke.mjs'
       - 'tests/household-fit-smoke.mjs'
       - 'tests/basket-quantity-variety-smoke.mjs'
@@ -51,6 +53,8 @@ jobs:
         run: node --check app/app.js
       - name: Validate Plus basket and homepage plans
         run: node tests/plus-basket-smoke.mjs
+      - name: Verify shared design styling and accessible navigation
+        run: node tests/design-polish-smoke.mjs
       - name: Verify Early Access copy and safety notices
         run: node tests/early-access-copy-smoke.mjs
       - name: Test refined Basket layout and header
