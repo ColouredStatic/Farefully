@@ -5,6 +5,11 @@ import Stripe from "npm:stripe@18.5.0";
 import { createClient } from "npm:@supabase/supabase-js@2.57.0";
 
 const env = (name: string) => Deno.env.get(name)?.trim() ?? "";
+// Sandbox identifiers only. Live prices must never be accepted here.
+const TEST_PRICE = Object.freeze({
+  monthly: "price_1UPOGJIls1DIXPlbzChS3dll",
+  annual: "price_1UPOHHIls1DIXPlber1baXmE",
+});
 const respond = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), {
     status, headers: { "Content-Type": "application/json", "Cache-Control": "no-store" },
@@ -114,7 +119,7 @@ Deno.serve(async (request) => {
     }
     const item = subscription.items.data[0];
     const itemPriceId = item?.price?.id ?? null;
-    const allowedPrices = [env("STRIPE_TEST_PRICE_MONTHLY"), env("STRIPE_TEST_PRICE_ANNUAL")];
+    const allowedPrices: string[] = [TEST_PRICE.monthly, TEST_PRICE.annual];
     if (!allowedPrices.includes(itemPriceId ?? "") || !itemPriceId) {
       return respond({ received: true, ignored: true });
     }
