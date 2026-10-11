@@ -35,6 +35,7 @@ const lunches=JSON.parse(run('JSON.stringify(lunch.filter(m=>m.i?.lettuce).map(m
 for(const {n,q} of lunches){
   assert.ok(q>0&&q<=0.4,'Lettuce is too high for one family lunch: '+n+'='+q);
 }
+run('state=def()');
 const variety=run('new Set(Array.from({length:14},(_,i)=>slotFor(lunch,i)?.n)).size');
 assert.equal(variety,14,'A default fortnight should rotate through distinct lunch options');
 
