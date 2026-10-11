@@ -8,6 +8,7 @@ on:
       - 'supabase/functions/farefully-stripe-test-webhook/**'
       - 'supabase/migrations/20261011143000_billing_test_only.sql'
       - 'tests/billing-sandbox-smoke.mjs'
+      - 'app/billing-sandbox.html'
       - '.github/workflows/billing-sandbox-smoke.yml'
   pull_request:
     paths:
@@ -15,6 +16,7 @@ on:
       - 'supabase/functions/farefully-stripe-test-webhook/**'
       - 'supabase/migrations/20261011143000_billing_test_only.sql'
       - 'tests/billing-sandbox-smoke.mjs'
+      - 'app/billing-sandbox.html'
       - '.github/workflows/billing-sandbox-smoke.yml'
   workflow_dispatch:
 
