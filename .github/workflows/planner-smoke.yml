@@ -16,6 +16,10 @@ on:
       - 'tests/palette-contrast-smoke.mjs'
       - 'tests/planner-startup-smoke.mjs'
       - 'tests/plus-plan-access-smoke.mjs'
+      - 'tests/launch-readiness-smoke.mjs'
+      - 'app/manifest.webmanifest'
+      - 'app/install.html'
+      - 'app/icons/**'
       - 'tests/household-fit-smoke.mjs'
       - 'tests/basket-quantity-variety-smoke.mjs'
       - 'tests/recipe-photography-smoke.mjs'
@@ -34,6 +38,10 @@ on:
       - 'tests/palette-contrast-smoke.mjs'
       - 'tests/planner-startup-smoke.mjs'
       - 'tests/plus-plan-access-smoke.mjs'
+      - 'tests/launch-readiness-smoke.mjs'
+      - 'app/manifest.webmanifest'
+      - 'app/install.html'
+      - 'app/icons/**'
       - 'tests/household-fit-smoke.mjs'
       - 'tests/basket-quantity-variety-smoke.mjs'
       - 'tests/recipe-photography-smoke.mjs'
@@ -71,6 +79,8 @@ jobs:
         run: node tests/basket-layout-smoke.mjs
       - name: Test Plus two-trip shopping, aisle settings and actual spend
         run: node tests/plus-shopping-tools-smoke.mjs
+      - name: Validate mobile installation and recipe catalogue
+        run: node tests/launch-readiness-smoke.mjs
       - name: Verify Free and Plus plan generation entitlements
         run: node tests/plus-plan-access-smoke.mjs
       - name: Test logged-in planner, basket and reset flow
