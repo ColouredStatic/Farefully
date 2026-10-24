@@ -11,7 +11,7 @@ assert.ok(page.includes('id="plusBasketReviewButton"'));
 assert.ok(page.includes('id="plusBasketResult"'));
 assert.match(page,/app\.js\?v=\d+/, 'App must serve a versioned JavaScript asset');
 assert.ok(home.includes('id="plans"') && home.includes('Free covers the week.'));
-assert.ok(home.includes('Paid checkout is not open'));
+assert.ok(home.includes('Plus offers fourteen-day plans'));
 assert.ok(home.includes('Unlimited seven-day meal plans'));
 assert.ok(home.includes('Pack and waste review')||home.includes('basket pack and waste review'));
 assert.ok(app.includes("CLOUD_CLIENT.rpc('farefully_plus_pack_review'"));
