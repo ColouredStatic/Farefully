@@ -85,7 +85,9 @@ async function run({reset=false,corrupt=false}={}){
        })})})})};
      throw new Error('Unexpected data request: '+table);
    },
-   rpc:async()=>({data:{active:true,gift_lifetime:true},error:null})
+   rpc:async(name)=>({data:name==='farefully_feature_access'
+     ?{plus:true,may_generate_14_day:true,paid_plan_limits_live:true}
+     :{active:true,gift_lifetime:true},error:null})
  };
  const window={supabase:{createClient:()=>client},
    addEventListener(){},confirm(){return true},location:{reload(){}}};
