@@ -14,7 +14,7 @@ assert.match(site,/\.plans-card-plus:before/);
 assert.match(app,/--ff-leaf:#176B55/);
 assert.match(site,/--green:var\(--ff-leaf\)/);
 assert.match(landing,/Early access/i);
-assert.match(landing,/Paid checkout is not open/);
+assert.match(landing,/Plus offers fourteen-day plans/);
 assert.match(app,/id="farefullyPlusBadge"/);
 assert.match(app,/id="basketTotal"/);
 function luminance(hex){
