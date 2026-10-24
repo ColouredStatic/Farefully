@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#176b55">
+<meta name="description" content="Put Farefully on your phone's home screen and open your family meal planner like an app.">
+<meta name="robots" content="index,follow">
+<meta name="apple-mobile-web-app-title" content="Farefully">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="/app/manifest.webmanifest">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="apple-touch-icon" href="/app/icons/icon-192.png">
+<title>Install Farefully on your phone | Farefully</title>
+<style>
+:root{font:16px/1.6 system-ui,-apple-system,"Segoe UI",sans-serif;color:#193b31;background:#f7f3ed}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh}
+header{padding:16px max(20px,calc((100vw - 900px)/2));background:#fffdf8;border-bottom:1px solid #dce7de}
+header a{font-weight:850;font-size:23px;letter-spacing:-.04em;color:#176b55;text-decoration:none;display:inline-flex;gap:12px;align-items:center}
+header img{width:40px;height:40px}
+main{max-width:920px;margin:auto;padding:30px 20px 70px}
+.hero{display:grid;grid-template-columns:1fr auto;gap:36px;align-items:center;background:linear-gradient(135deg,#fffdf8,#eef5ef);border:1px solid #dce7de;border-radius:24px;padding:clamp(24px,5vw,48px)}
+.eyebrow{text-transform:uppercase;letter-spacing:.14em;color:#436e59;font-size:12px;font-weight:850}
+h1{font:700 clamp(30px,6vw,47px)/1.09 Georgia,serif;letter-spacing:-.035em;margin:12px 0 17px}
+h2{font:700 25px/1.2 Georgia,serif;margin:0 0 13px}
+p{margin:0 0 15px;color:#436158}
+.hero p{max-width:540px}
+.icon{width:142px;height:142px;border-radius:32px;box-shadow:0 16px 30px #10271a20}
+.button{display:inline-flex;justify-content:center;align-items:center;gap:8px;padding:14px 21px;border:0;border-radius:13px;background:#176b55;color:#fff;font-size:15px;font-weight:800;text-decoration:none;cursor:pointer}
+.button:hover,.button:focus-visible{background:#104c3a}
+.button.secondary{background:#e6f1e7;color:#164b39}
+.actions{display:flex;gap:11px;flex-wrap:wrap;margin-top:19px}
+.guides{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:22px}
+.card{background:#fff;border:1px solid #dce7de;border-radius:18px;padding:25px}
+.steps{margin:0;padding-left:20px}.steps li{padding-left:3px;margin-bottom:10px}
+.note{padding:17px 20px;margin-top:23px;border:1px solid #dce7de;background:#fffdf8;border-radius:14px;font-size:14px}
+#installStatus{font-size:14px;margin-top:10px;min-height:22px}
+footer{margin-top:27px;font-size:13px;color:#567267}
+footer a{color:#176b55}
+@media(max-width:650px){.hero{grid-template-columns:1fr;gap:12px}.icon{order:-1;width:83px;height:83px;border-radius:20px}.guides{grid-template-columns:1fr}.actions .button{width:100%}main{padding-top:18px}}
+@media(display-mode:standalone){#installButton,.installGuide{display:none!important}}
+</style>
+</head>
+<body>
+<header><a href="/"><img src="/app/icons/icon-192.png" alt="">Farefully</a></header>
+<main>
+<section class="hero" aria-labelledby="installTitle">
+<div>
+<div class="eyebrow">Your meals, one tap away</div>
+<h1 id="installTitle">Give Farefully a home on your phone.</h1>
+<p>Open your household meal plan and shopping list straight from your home screen. No app-store account or additional purchase needed. Your existing Farefully login and Plus membership work here too.</p>
+<div class="actions"><button class="button" id="installButton" type="button">Install Farefully</button><a class="button secondary" href="/app/">Open my meal planner</a></div>
+<p id="installStatus" role="status" aria-live="polite">Choose Install, or follow the instructions for your phone below.</p>
+</div>
+<img class="icon" src="/app/icons/icon-192.png" alt="Farefully green F app icon" width="142" height="142">
+</section>
+<div class="guides installGuide" aria-label="Phone installation instructions">
+<section class="card"><h2>iPhone or iPad</h2><ol class="steps"><li>Open this page in Safari.</li><li>Tap <strong>Share</strong> (the square with the upward arrow).</li><li>Choose <strong>Add to Home Screen</strong>, then tap <strong>Add</strong>.</li><li>Open Farefully from your Home Screen and sign in.</li></ol><p>On some iOS versions, choose <strong>Open as Web App</strong> when prompted.</p></section>
+<section class="card"><h2>Android</h2><ol class="steps"><li>Open this page in Chrome or Samsung Internet.</li><li>Tap <strong>Install Farefully</strong> above if your browser offers it.</li><li>Otherwise open the browser menu <strong>⋮</strong> and choose <strong>Install app</strong> or <strong>Add to Home screen</strong>.</li><li>Accept the prompt and launch Farefully from your apps.</li></ol></section>
+</div>
+<p class="note"><strong>Worth knowing:</strong> Farefully still needs an internet connection to sign in, sync your family plans and refresh supermarket information. Installing it doesn't grant offline meal planning or change your membership.</p>
+<footer><a href="/help/">Help and feedback</a> · <a href="/privacy/">Privacy</a> · <a href="/app/account.html">My account</a></footer>
+</main>
+<script>
+(() => {
+ let deferred=null;
+ const button=document.getElementById('installButton');
+ const status=document.getElementById('installStatus');
+ const installed=window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true;
+ if(installed){if(button)button.hidden=true;status.textContent='Farefully is already installed on this device.';return;}
+ window.addEventListener('beforeinstallprompt',event=>{event.preventDefault();deferred=event;status.textContent='Your browser is ready to install Farefully.';});
+ window.addEventListener('appinstalled',()=>{deferred=null;button.hidden=true;status.textContent='Farefully has been installed. Find it on your home screen or in your apps.';});
+ button.addEventListener('click',async()=>{
+   if(!deferred){
+     status.textContent='Use your browser menu to add Farefully to your home screen. iPhone users: Share → Add to Home Screen.';
+     document.querySelector('.guides')?.scrollIntoView({behavior:'smooth',block:'start'});return;
+   }
+   const prompt=deferred;deferred=null;
+   try{await prompt.prompt();const result=await prompt.userChoice;status.textContent=result?.outcome==='accepted'?'Installation accepted. Open Farefully from your apps.':'No problem. You can install Farefully whenever you like.';}
+   catch(_){status.textContent='Please use your browser menu to install Farefully.';}
+ });
+})();
+</script>
+</body></html>
