@@ -14,7 +14,10 @@ Farefully is a family meal planner and shopping-list application.
 - **Regression checks:** `node tests/planner-startup-smoke.mjs` tests a saved 14-day basket render, malformed local cache handling and account reset recovery. `.github/workflows/planner-smoke.yml` runs the checks on relevant pushes and pull requests.
 - **Previous beta profiles:** Remain stored under legacy `farefully_profiles_1`, `farefully_active_1` and `farefully_state_*` keys, but are deliberately **not migrated** to the new account. Customers start a new household.
 - **Gifts:** Lifetime and 12-month gift entitlements are prepared but redemption remains locked until the Plus launch.
-- **Stripe:** Existing product and prices are created, but checkout/webhooks and paid access are **not live**.
+- **Stripe:** Live Farefully Plus prices (£3.99/month, £34.99/year), Checkout Edge Function, signed subscription webhooks and Stripe customer portal are configured. The Edge Functions require protected live Stripe credentials and `FAREFULLY_LIVE_BILLING_ENABLED=true`. No customer card data belongs in GitHub or the browser. **The live paid-to-entitlement flow has not been independently verified by a completed real subscription in this release.**
+- **Free / Plus:** New Free households default to seven-day plans. New fourteen-day plans use the Supabase `farefully_feature_access` decision (paid-plan limits enabled 24 October 2026); existing saved fourteen-day households are preserved until replaced. Plus-only shopping RPCs independently enforce membership on the server.
+- **Membership management:** `/app/account.html` provides checkout and customer portal links when live billing is enabled; cancellation can take effect at the end of the billing period.
+- **Current limitation:** Dinner-plan generation runs in browser JavaScript. While the normal app respects the verified Supabase access response, it is not a server-authorised generator and a modified browser could bypass this UI gating. Do not describe the fourteen-day paywall as tamper-proof. Server-managed Plus basket operations are entitlement checked.
 
 ## Household Fit explanations
 
@@ -33,12 +36,13 @@ Regression checks: `node tests/household-fit-smoke.mjs`. The GitHub Actions plan
 Before shipping any planner change, run `node tests/planner-startup-smoke.mjs` and check the GitHub Actions planner smoke workflow. A working browser login is not proof that the meal plan or basket rendered successfully.
 
 1. Validate syntax for `/app/app.js` and the account page scripts.
-2. Confirm the GitHub Pages version displays the authentication gate for signed-out visitors.
+2. Confirm the GitHub Pages version displays the authentication gate for signed-out visitors, and the live app loads the versioned `app.js` containing Free/Plus gating.
 3. Register and verify an account, save a new household, sign in on a second device and check the restored plan, preferences, basket and custom recipes.
 4. Disconnect the network after making a change; confirm a pending-write warning appears and the change uploads after reconnecting.
 5. Confirm one account cannot read or modify another account's household.
 6. Verify concurrent editing on mobile and desktop: a stale session must show conflict choices rather than overwrite a newer cloud revision. Finish account deletion/export before full paid launch.
-7. Do not enable paid checkout or gift redemption until the subscription backend and end-to-end tests pass.
+7. Confirm an actual live Stripe subscription is written by the signed webhook to `billing_accounts` and the account gains Plus; verify portal cancellation and renewal behavior before promotion. Do not enable gift redemption until its separate launch tests pass.
+8. Run `node tests/plus-plan-access-smoke.mjs` to confirm Free/Plus generation, legacy preservation, hard exclusions and fail-closed behavior.
 
 Support: support@farefully.co.uk  
 General: hello@farefully.co.uk
