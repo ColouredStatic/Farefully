@@ -375,7 +375,7 @@ function migrateLegacyStorage(){
 migrateLegacyStorage();
 let profiles=JSON.parse(store.get(PK)||'[]'),active=store.get(AK),state=null;
 function def(){return{
-  adults:2,children:3,days:14,budget:200,avoid:[],pantry:{},plan:[],basket:{},need:{},total:0,checked:{},
+  adults:2,children:3,days:7,budget:200,avoid:[],pantry:{},plan:[],basket:{},need:{},total:0,checked:{},
   supermarket:'',autoRetailer:'Aldi',loyaltyPricing:true,useWeeklyOffers:true,taste:{proteins:{},styles:{},ingredients:{}},maxTime:45,vegFrequency:'some',fishFrequency:'some',
   novelty:'balanced',priority:'balance',ratings:{},tasteComplete:false,planGeneration:0,recentPlans:[],
   dietPattern:'omnivore',avoidGroups:[],allergens:[],dietComplete:false,setupComplete:false,customRecipes:[],shoppingExtras:[]
@@ -390,7 +390,7 @@ function def(){return{
   if(!Array.isArray(state.avoid))state.avoid=[];
   if(!Number.isFinite(state.adults)||state.adults<1)state.adults=2;
   if(!Number.isFinite(state.children)||state.children<0)state.children=0;
-  if(![7,14].includes(state.days))state.days=14;
+  if(![7,14].includes(state.days))state.days=7;
   if(!Number.isFinite(state.budget)||state.budget<0)state.budget=200;
   if(typeof state.setupComplete!=='boolean')state.setupComplete=false;
   if(typeof state.supermarket!=='string')state.supermarket='';
@@ -779,6 +779,10 @@ function archiveCurrentPlan(){
   state.recentPlans.unshift(prev.slice());state.recentPlans=state.recentPlans.slice(0,4)
 }
 function build(){
+  if(state.days===14&&!farefullyMayPlanFortnight()){
+    state.days=7;
+    showToast('A new fourteen-day plan requires Farefully Plus. Your seven-day plan is still free.');
+  }
   archiveCurrentPlan();state.plan=[];state.planGeneration=(state.planGeneration||0)+1;
   const allowed=allDinners().filter(m=>!hardBlocked(m)),pool=allowed;
   if(!pool.length){state.plan=[];state.basket={};state.need={};state.total=0;save();showToast('No meals match every current dietary filter. Try adjusting the profile.');return}
@@ -877,6 +881,8 @@ function renderUnsafe(){
   document.getElementById('remain').textContent=(rem>=0?money(rem)+' left':money(Math.abs(rem))+' over');
   document.getElementById('ring').style.setProperty('--p',Math.min(100,Math.round(state.total/state.budget*100)));
   const planTitle=document.getElementById('planTitle');if(planTitle)planTitle.textContent=state.days+'-day plan';
+  const legacyNotice=document.getElementById('savedFortnightNote');
+  if(legacyNotice){legacyNotice.hidden=!(state.plan?.length===14&&!farefullyMayPlanFortnight());}
   const savedPrefs=document.getElementById('planFilterSummary');if(savedPrefs){const values=Object.values(state.taste?.ingredients||{});const strict=values.filter(v=>v===-2).length;const soft=values.filter(v=>v===-1).length;savedPrefs.textContent='Saved ingredient preferences: '+strict+' Never suggest, '+soft+' Not keen';}
 
   const hero=document.getElementById('hero'),heroAction=document.getElementById('heroAction'),m0=hasPlan?meal(0):null;
@@ -1020,13 +1026,21 @@ function loadTasteUI(){
 }
 function setupNext(step){if(step===3){const shop=document.getElementById('supermarket')?.value||'';if(!shop){showToast('Choose a supermarket or No preference');return}}[1,2,3,4,5,6].forEach(i=>{document.getElementById('setupStep'+i).classList.toggle('show',i===step);document.getElementById('setupDot'+i).classList.toggle('on',i<=step)})}
 function openSetup(){
-  document.getElementById('adults').value=state.adults;document.getElementById('children').value=state.children;document.getElementById('planDays').value=state.days;document.getElementById('budget').value=state.budget;document.getElementById('supermarket').value=state.supermarket||'';document.getElementById('loyaltyPricing').checked=state.loyaltyPricing!==false;document.getElementById('weeklyOffersPlanning').checked=state.useWeeklyOffers!==false;document.getElementById('avoid').value=(state.avoid||[]).join(', ');
+  const planLength=document.getElementById('planDays');
+  if(planLength){
+    const fortnight=planLength.querySelector('option[value="14"]');
+    if(fortnight){fortnight.disabled=!farefullyMayPlanFortnight();fortnight.textContent=farefullyMayPlanFortnight()?'14 days':'14 days · Plus required';}
+    planLength.value=state.days===14&&farefullyMayPlanFortnight()?'14':'7';
+  }
+  const note=document.getElementById('planAccessNote');
+  if(note)note.textContent=farefullyMayPlanFortnight()?'You can build a seven- or fourteen-day plan.':'Seven-day planning is always free. Plus unlocks new fourteen-day plans. Saved plans are kept until you choose to replace them.';
+  document.getElementById('adults').value=state.adults;document.getElementById('children').value=state.children;document.getElementById('budget').value=state.budget;document.getElementById('supermarket').value=state.supermarket||'';document.getElementById('loyaltyPricing').checked=state.loyaltyPricing!==false;document.getElementById('weeklyOffersPlanning').checked=state.useWeeklyOffers!==false;document.getElementById('avoid').value=(state.avoid||[]).join(', ');
   loadTasteUI();setupNext(state.setupComplete&&(!state.tasteComplete||!state.dietComplete)?3:1);document.getElementById('setup').classList.add('show');focusDialog('setup')
 }
 function closeSetup(){document.getElementById('setup').classList.remove('show')}
 function saveSetup(){
   const a=document.getElementById('adults'),c=document.getElementById('children'),d=document.getElementById('planDays'),b=document.getElementById('budget'),shop=document.getElementById('supermarket'),av=document.getElementById('avoid');
-  state.adults=Math.max(1,+a.value||2);state.children=Math.max(0,+c.value||0);state.days=[7,14].includes(+d.value)?+d.value:14;state.budget=Math.max(40,+b.value||200);state.supermarket=shop.value||'No preference';state.loyaltyPricing=document.getElementById('loyaltyPricing').checked;state.useWeeklyOffers=document.getElementById('weeklyOffersPlanning').checked;state.avoid=av.value.split(',').map(x=>x.trim()).filter(Boolean);
+  state.adults=Math.max(1,+a.value||2);state.children=Math.max(0,+c.value||0);state.days=(+d.value===14&&farefullyMayPlanFortnight())?14:7;state.budget=Math.max(40,+b.value||200);state.supermarket=shop.value||'No preference';state.loyaltyPricing=document.getElementById('loyaltyPricing').checked;state.useWeeklyOffers=document.getElementById('weeklyOffersPlanning').checked;state.avoid=av.value.split(',').map(x=>x.trim()).filter(Boolean);
   state.taste={proteins:{},styles:{},ingredients:{}};document.querySelectorAll('.tastebtn').forEach(el=>{const g=tasteBucket(el.dataset.group);state.taste[g][el.dataset.key]=+el.dataset.value||0});
   state.maxTime=+document.getElementById('maxTime').value||45;state.vegFrequency=document.getElementById('vegFrequency').value;state.fishFrequency=document.getElementById('fishFrequency').value;state.novelty=document.getElementById('novelty').value;
   state.dietPattern=document.getElementById('dietPattern').value||'omnivore';state.avoidGroups=[...document.querySelectorAll('[data-avoid].on')].map(b=>b.dataset.avoid);state.allergens=[...document.querySelectorAll('[data-allergen].on')].map(b=>b.dataset.allergen);
@@ -1834,6 +1848,39 @@ async function cloudResolveConflict(keepLocal){
    cloudMarkConflict(id);
  }
 }
+
+// Access decisions are returned by Supabase from verified membership state, not localStorage.
+// If this lookup is temporarily unavailable, seven-day planning works but paid functions stay locked.
+let FAREFULLY_FEATURES={plus:false,may_generate_14_day:false,paid_plan_limits_live:true,available:false};
+function farefullyMayPlanFortnight(){return FAREFULLY_FEATURES.available&&FAREFULLY_FEATURES.may_generate_14_day===true;}
+async function cloudRefreshFeatureAccess(){
+  try{
+    const {data,error}=await CLOUD_CLIENT.rpc('farefully_feature_access');
+    if(error||!data||typeof data!=='object')throw(error||Error('Membership check unavailable'));
+    FAREFULLY_FEATURES={
+      plus:data.plus===true,
+      may_generate_14_day:data.may_generate_14_day===true,
+      paid_plan_limits_live:data.paid_plan_limits_live===true,
+      available:true
+    };
+  }catch(err){
+    FAREFULLY_FEATURES={plus:false,may_generate_14_day:false,paid_plan_limits_live:true,available:false};
+    console.warn('Farefully Plus eligibility check unavailable. Premium features remain locked.',err);
+  }
+  farefullyUpdatePaidControls();
+}
+function farefullyUpdatePaidControls(){
+  const panel=document.getElementById('plusBasketPanel');
+  const note=document.getElementById('plusBasketUpsell');
+  if(panel){
+    const isPlus=FAREFULLY_FEATURES.plus;
+    panel.querySelectorAll('button').forEach(b=>b.disabled=!isPlus);
+    const label=panel.querySelector('.plusbasket-tag');
+    if(label)label.textContent=isPlus?'★ FAREFULLY PLUS · ACTIVE':'★ FAREFULLY PLUS';
+    if(note)note.hidden=isPlus;
+  }
+}
+
 async function cloudRefreshPlusBadge(){
   const badge=document.getElementById('farefullyPlusBadge');
   if(!badge||!CLOUD_CLIENT)return;
@@ -1939,6 +1986,7 @@ async function cloudStart(){
    if(nextActive)store.set(AK,nextActive);
    else store.del(AK);
    CLOUD_READY=true;
+   await cloudRefreshFeatureAccess();
    cloudStatus(Object.keys(CLOUD_OUTBOX).length?'Restoring pending changes…':'Cloud connected');
    cloudHideGate();
    cloudRefreshPlusBadge();
