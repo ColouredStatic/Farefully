@@ -25,6 +25,8 @@ const context=vm.createContext({
 });
 vm.runInContext(stripped,context);
 const run=code=>vm.runInContext(code,context,{timeout:15000});
+// The fortnight stress test models an authenticated Plus member.
+run('FAREFULLY_FEATURES={plus:true,may_generate_14_day:true,paid_plan_limits_live:true,available:true}');
 
 const dinners=JSON.parse(run('JSON.stringify(D.filter(m=>m.i?.lettuce).map(m=>({id:m.id,q:m.i.lettuce})))'));
 assert.ok(dinners.length>=20,'Expected the known lettuce-containing dinner recipes');
