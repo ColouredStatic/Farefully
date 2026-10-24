@@ -27,7 +27,7 @@ for(const fragment of ['data-tab="home"','data-tab="plan"','data-tab="basket"',
   assert.ok(appHtml.includes(fragment),'App markup contract changed: '+fragment);
 }
 assert.ok(homeHtml.includes('id="plans"'),'Plans comparison must remain visible');
-assert.ok(homeHtml.includes('Paid checkout is not open'),'No accidental live charging message');
+assert.ok(homeHtml.includes('Plus offers fourteen-day plans'),'Website must describe live Plus plans accurately');
 assert.ok(appJs.includes("farefully_plus_shopping_tools"),'Premium basket services must remain available');
 assert.ok(appJs.includes("bootstrapFarefully();"),'Planner bootstrap must remain intact');
 console.log('Farefully design checks passed: shared UI, mobile nav, focus/reduced motion, Free/Plus and app markup.');
