@@ -15,6 +15,7 @@ on:
       - 'tests/design-polish-smoke.mjs'
       - 'tests/palette-contrast-smoke.mjs'
       - 'tests/planner-startup-smoke.mjs'
+      - 'tests/plus-plan-access-smoke.mjs'
       - 'tests/household-fit-smoke.mjs'
       - 'tests/basket-quantity-variety-smoke.mjs'
       - 'tests/recipe-photography-smoke.mjs'
@@ -32,6 +33,7 @@ on:
       - 'tests/design-polish-smoke.mjs'
       - 'tests/palette-contrast-smoke.mjs'
       - 'tests/planner-startup-smoke.mjs'
+      - 'tests/plus-plan-access-smoke.mjs'
       - 'tests/household-fit-smoke.mjs'
       - 'tests/basket-quantity-variety-smoke.mjs'
       - 'tests/recipe-photography-smoke.mjs'
@@ -65,6 +67,8 @@ jobs:
         run: node tests/basket-layout-smoke.mjs
       - name: Test Plus two-trip shopping, aisle settings and actual spend
         run: node tests/plus-shopping-tools-smoke.mjs
+      - name: Verify Free and Plus plan generation entitlements
+        run: node tests/plus-plan-access-smoke.mjs
       - name: Test logged-in planner, basket and reset flow
         run: node tests/planner-startup-smoke.mjs
       - name: Test household fit labels and explanations
