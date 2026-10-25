@@ -6,7 +6,7 @@ const app=readFileSync(new URL('../app/app.js',import.meta.url),'utf8');
 const data=readFileSync(new URL('../app/nutrition-data.js',import.meta.url),'utf8');
 const page=readFileSync(new URL('../app/index.html',import.meta.url),'utf8');
 new vm.Script(data);new vm.Script(app);
-assert.match(page,/nutrition-data\.js\?v=1/);
+assert.match(page,/nutrition-data\.js\?v=\d+/);
 assert.match(page,/id="plusNutritionPanel"/);
 assert.match(page,/id="recipeNutritionEstimate"/);
 assert.match(page,/id="plusNutritionDay"/);
