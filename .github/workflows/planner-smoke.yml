@@ -17,6 +17,8 @@ on:
       - 'tests/planner-startup-smoke.mjs'
       - 'tests/plus-plan-access-smoke.mjs'
       - 'tests/launch-readiness-smoke.mjs'
+      - 'tests/nutrition-smoke.mjs'
+      - 'app/nutrition-data.js'
       - 'app/manifest.webmanifest'
       - 'app/install.html'
       - 'app/icons/**'
@@ -39,6 +41,8 @@ on:
       - 'tests/planner-startup-smoke.mjs'
       - 'tests/plus-plan-access-smoke.mjs'
       - 'tests/launch-readiness-smoke.mjs'
+      - 'tests/nutrition-smoke.mjs'
+      - 'app/nutrition-data.js'
       - 'app/manifest.webmanifest'
       - 'app/install.html'
       - 'app/icons/**'
@@ -79,6 +83,8 @@ jobs:
         run: node tests/basket-layout-smoke.mjs
       - name: Test Plus two-trip shopping, aisle settings and actual spend
         run: node tests/plus-shopping-tools-smoke.mjs
+      - name: Validate nutrition estimates and Plus feature access
+        run: node tests/nutrition-smoke.mjs
       - name: Validate mobile installation and recipe catalogue
         run: node tests/launch-readiness-smoke.mjs
       - name: Verify Free and Plus plan generation entitlements
