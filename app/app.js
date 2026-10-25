@@ -492,6 +492,9 @@ const snacks=[
 // CoFID-matched food estimates are deliberately withheld if any ingredient lacks data.
 const FAREFULLY_NUTRITION=window.FAREFULLY_NUTRITION||{};
 let nutritionSelectedDay=0;
+// Sensitive adult calorie references deliberately remain in memory only, never in the household cloud payload.
+let nutritionOptedIn=false;
+let nutritionAdultDailyReference=null;
 function farefullyEstimatedCalories(m){
   if(!m||!m.i||typeof m.i!=='object')return null;
   const quantities=effectiveIngredients(m.i);
@@ -544,6 +547,80 @@ function farefullyRenderDailyNutrition(){
   out.innerHTML=lines+(complete
     ?'<p style="margin:12px 0 0;font-weight:850;color:#185641">Estimated planned day: '+rows.reduce((sum,row)=>sum+row.estimate.kcalAdult,0)+' kcal per adult-equivalent serving pattern</p>'
     :'<p class="small" style="margin:11px 0 0">No daily total is displayed because one or more meals lack complete ingredient data. Available meal estimates are shown separately.</p>');
+  farefullyRenderNutritionPreferences(rows,complete,day);
+}
+
+
+function farefullyNutritionSuggestions(day){
+  if(!(FAREFULLY_FEATURES.available&&FAREFULLY_FEATURES.plus===true&&nutritionOptedIn))return[];
+  const current=meal(day), currentEnergy=farefullyEstimatedCalories(current);
+  if(!current||!currentEnergy?.complete||!Number.isFinite(currentEnergy.kcalAdult))return[];
+  const existing=new Set(state.plan);
+  return allDinners()
+    .filter(m=>m?.id&&!existing.has(m.id)&&!hardBlocked(m)&&!excessiveRepeat(m,day)
+      &&Number(m.t)<=(Number(state.maxTime)||45))
+    .map(m=>({m,energy:farefullyEstimatedCalories(m),fit:fitScore(m)}))
+    .filter(row=>row.energy?.complete&&row.energy.kcalAdult>=400
+      &&row.energy.kcalAdult<=currentEnergy.kcalAdult-60)
+    .sort((a,b)=>b.fit-a.fit||b.energy.kcalAdult-a.energy.kcalAdult||a.m.n.localeCompare(b.m.n))
+    .slice(0,3);
+}
+function farefullyRenderNutritionPreferences(rows,complete,day){
+  const controls=document.getElementById('plusNutritionGoalControls');
+  const toggle=document.getElementById('plusNutritionOptIn');
+  const refInput=document.getElementById('plusNutritionAdultReference');
+  const comparison=document.getElementById('plusNutritionAdultGoalMessage');
+  const ideas=document.getElementById('plusNutritionIdeas');
+  if(!controls||!toggle||!refInput||!comparison||!ideas)return;
+  const permitted=FAREFULLY_FEATURES.available&&FAREFULLY_FEATURES.plus===true;
+  toggle.checked=permitted&&nutritionOptedIn;
+  controls.hidden=!permitted||!nutritionOptedIn;
+  if(!permitted||!nutritionOptedIn)return;
+  const value=refInput.value.trim();
+  if(!value){
+    nutritionAdultDailyReference=null;
+    comparison.textContent='No daily reference entered. This is completely optional.';
+  }else{
+    const n=Number(value);
+    if(!Number.isInteger(n)||n<1600||n>3500){
+      nutritionAdultDailyReference=null;
+      comparison.textContent='Please enter a whole-number adult reference between 1,600 and 3,500 kcal, or leave this blank.';
+    }else{
+      nutritionAdultDailyReference=n;
+      comparison.textContent=complete
+        ?'Your entered daily reference: '+n+' kcal. Approximate listed meals for this adult: '
+          +rows.reduce((total,row)=>total+row.estimate.kcalAdult,0)
+          +' kcal. This is a comparison only, not a calorie allowance or full record of everything eaten.'
+        :'Your entered daily reference: '+n+' kcal. A reliable day comparison is unavailable because one or more planned meals lack nutrition information.';
+    }
+  }
+  const dinner=meal(day),energy=farefullyEstimatedCalories(dinner);
+  if(!energy?.complete){
+    ideas.textContent='Dinner suggestions are unavailable today because the current recipe lacks complete calorie information.';
+    return;
+  }
+  const suggestions=farefullyNutritionSuggestions(day);
+  if(!suggestions.length){
+    ideas.textContent='No different dinner currently meets all household rules, available nutrition data and your normal cooking-time preference. Your existing dinner is unchanged.';
+    return;
+  }
+  ideas.innerHTML=suggestions.map(({m,energy:estimate})=>
+    '<div style="border-top:1px solid #d7e5db;padding:10px 0;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">'
+    +'<div><strong>'+esc(m.n)+'</strong><div class="small">About '+estimate.kcalAdult
+    +' kcal per adult-equivalent portion · '+Number(m.t)+' min · '+esc(householdFit(m).label)
+    +'</div></div><button class="soft" type="button" data-nutrition-swap="'+esc(m.id)+'">Choose this dinner</button></div>'
+  ).join('');
+}
+function farefullyChooseNutritionSuggestion(id){
+  if(!(FAREFULLY_FEATURES.available&&FAREFULLY_FEATURES.plus===true&&nutritionOptedIn))return false;
+  const day=nutritionSelectedDay;
+  const choice=farefullyNutritionSuggestions(day).find(x=>x.m.id===id);
+  if(!choice||day<0||day>=state.plan.length)return false;
+  // A swap affects the shared family meal, not an individual child calorie allowance.
+  state.plan[day]=choice.m.id;
+  calc();save();render();
+  showToast('Dinner replaced with '+choice.m.n+' for your household');
+  return true;
 }
 
 function pf(){return(state.adults+state.children*.7)/5}function add(a,b,f=1){for(const[k,v]of Object.entries(b))a[k]=(a[k]||0)+v*f}function allDinners(){return D.concat((state&&Array.isArray(state.customRecipes))?state.customRecipes:[])}function meal(i){return allDinners().find(x=>x.id===state.plan[i])}
@@ -2073,6 +2150,25 @@ async function cloudStart(){
 
 const nutritionPicker=document.getElementById('plusNutritionDay');
 if(nutritionPicker)nutritionPicker.addEventListener('change',()=>{nutritionSelectedDay=Number(nutritionPicker.value)||0;farefullyRenderDailyNutrition()});
+const nutritionPreferenceToggle=document.getElementById('plusNutritionOptIn');
+if(nutritionPreferenceToggle)nutritionPreferenceToggle.addEventListener('change',()=>{
+  const permitted=FAREFULLY_FEATURES.available&&FAREFULLY_FEATURES.plus===true;
+  nutritionOptedIn=permitted&&nutritionPreferenceToggle.checked;
+  if(!nutritionOptedIn){
+    nutritionAdultDailyReference=null;
+    const input=document.getElementById('plusNutritionAdultReference');
+    if(input)input.value='';
+  }
+  farefullyRenderDailyNutrition();
+});
+const nutritionReferenceInput=document.getElementById('plusNutritionAdultReference');
+if(nutritionReferenceInput)nutritionReferenceInput.addEventListener('input',()=>farefullyRenderDailyNutrition());
+const nutritionIdeas=document.getElementById('plusNutritionIdeas');
+if(nutritionIdeas)nutritionIdeas.addEventListener('click',e=>{
+  const target=e.target.closest('button[data-nutrition-swap]');
+  if(target)farefullyChooseNutritionSuggestion(target.dataset.nutritionSwap);
+});
+
 const cloudRetryButton=document.getElementById('cloudRetry');
 if(cloudRetryButton)cloudRetryButton.addEventListener('click',()=>window.location.reload());
 const cloudKeepLocal=document.getElementById('cloudKeepLocal');
