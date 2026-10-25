@@ -92,7 +92,7 @@ assert.equal(run("farefullyChooseNutritionSuggestion("+JSON.stringify(sampleId)+
 run("farefullyRenderDailyNutrition()");
 assert.equal(el('plusNutritionGoalControls').hidden,true,'Revoke the premium goal UI when access is unavailable');
 // Only user confirmation changes a dinner; no children's portion edits or goal values enter shared state.
-run("FAREFULLY_FEATURES={plus:true,available:true};state.ratings={};");
+run("FAREFULLY_FEATURES={plus:true,available:true};state.ratings={};nutritionOptedIn=true;");
 run("calc=()=>{};save=()=>{};render=()=>{};showToast=()=>{};");
 const peopleBefore=JSON.parse(run("JSON.stringify([state.adults,state.children])"));
 assert.equal(run("farefullyChooseNutritionSuggestion("+JSON.stringify(sampleId)+")"),true);
