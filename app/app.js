@@ -545,7 +545,7 @@ function farefullyRenderDailyNutrition(){
   const options=Array.from({length:size},(_,day)=>'<option value="'+day+'">Day '+(day+1)+'</option>').join('');
   if(select.innerHTML!==options)select.innerHTML=options;
   select.value=String(nutritionSelectedDay);
-  if(!size){out.textContent='Build a meal plan to see available nutrition estimates.';return;}
+  if(!size){out.textContent='Build a meal plan to see available nutrition estimates.';farefullyRenderNutritionPreferences([],false,0);return;}
   const day=nutritionSelectedDay;
   const items=[
     ['Breakfast',slotFor(breakfast,day)],['Lunch',slotFor(lunch,day)],
@@ -604,6 +604,7 @@ function farefullyRenderNutritionPreferences(rows,complete,day){
         :'Your entered daily reference: '+n+' kcal. A reliable day comparison is unavailable because one or more planned meals lack nutrition information.';
     }
   }
+  if(!state.plan?.length){ideas.textContent='Build a meal plan to see suitable dinner alternatives.';return;}
   const dinner=meal(day),energy=farefullyEstimatedCalories(dinner);
   if(!energy?.complete){
     ideas.textContent='Dinner suggestions are unavailable today because the current recipe lacks complete calorie information.';
