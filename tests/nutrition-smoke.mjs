@@ -42,6 +42,17 @@ assert.equal(example.complete,true);
 assert.ok(example.kcalAdult>=350&&example.kcalAdult<=450,'Dry rice and chicken estimate is implausible');
 const notKnown=JSON.parse(run("JSON.stringify(farefullyEstimatedCalories({i:{rice:350,curry:500}}))"));
 assert.equal(notKnown.complete,false,'Cannot give falsely precise calories for unmapped sauce');
+const implausible=JSON.parse(run("JSON.stringify(farefullyEstimatedCalories({i:{pineapple:400}}))"));
+assert.equal(implausible.complete,false,'Never mistake 400 grams for 400 whole pineapples');
+const realFruit=JSON.parse(run("JSON.stringify(farefullyEstimatedCalories(D.find(m=>m.id==='gammonpineapplerice')))"));
+assert.equal(realFruit.complete,true,'Corrected gammon and pineapple recipe should be estimable');
+assert.ok(realFruit.kcalAdult>250&&realFruit.kcalAdult<1200,'Gammon and pineapple serving should be plausible');
+const cubes=JSON.parse(run("JSON.stringify(farefullyEstimatedCalories({i:{rice:300,stock:2}}))"));
+assert.equal(cubes.complete,false,'Stock cube nutrition must not be invented from missing source values');
+const builtIn=JSON.parse(run("JSON.stringify(D.map(m=>({id:m.id,info:farefullyEstimatedCalories(m)})))"));
+assert.ok(builtIn.every(row=>!row.info?.complete||(row.info.kcalAdult>=50&&row.info.kcalAdult<=1500)),
+  'Every published dinner estimate must be in a plausible adult-serving range');
+
 run("state.plan=['curry'];FAREFULLY_FEATURES={plus:false,available:true};farefullyRenderDailyNutrition()");
 assert.equal(el('plusNutritionFree').hidden,false,'Free users see upgrade copy');
 assert.equal(el('plusNutritionMember').hidden,true,'Free users cannot see daily Plus overview');
