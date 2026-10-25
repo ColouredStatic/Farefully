@@ -63,4 +63,45 @@ assert.match(el('plusNutritionResult').innerHTML,/Not available/,'Do not invent 
 assert.doesNotMatch(el('plusNutritionResult').innerHTML,/Estimated planned day:/,'Incomplete daily nutrition should not be summed');
 run("farefullyRenderRecipeNutrition({i:{rice:350,chicken:500}})");
 assert.match(el('recipeNutritionEstimate').textContent,/kcal per adult-equivalent/);
+
+// Adult goal comparison is opt-in, ephemeral and only available when Plus access is verified.
+assert.match(page,/id="plusNutritionOptIn"/);
+assert.match(page,/id="plusNutritionAdultReference"/);
+assert.match(page,/id="plusNutritionIdeas"/);
+run("state=def();state.plan=['burgers'];state.supermarket='Aldi';state.useWeeklyOffers=false;nutritionSelectedDay=0;nutritionOptedIn=true;");
+el('plusNutritionAdultReference').value='1100';
+run("farefullyRenderDailyNutrition()");
+assert.equal(el('plusNutritionGoalControls').hidden,false,'Plus opt-in must show preference controls');
+assert.match(el('plusNutritionAdultGoalMessage').textContent,/between 1,600 and 3,500/,'Reject extreme daily calorie references');
+assert.equal(run('nutritionAdultDailyReference'),null,'Unsafe reference must not be accepted');
+el('plusNutritionAdultReference').value='2000';
+run("farefullyRenderDailyNutrition()");
+assert.equal(run('nutritionAdultDailyReference'),2000);
+assert.match(el('plusNutritionAdultGoalMessage').textContent,/2,000|2000/,'User-chosen daily reference should display');
+const ideas=JSON.parse(run("JSON.stringify(farefullyNutritionSuggestions(0).map(x=>({id:x.m.id,kcal:x.energy.kcalAdult,hard:hardBlocked(x.m)})))"));
+assert.ok(ideas.length>0,'Expected some suitable alternative dinners for beef burgers');
+assert.ok(ideas.every(x=>!x.hard&&x.kcal>=400),'Never include blocked or excessively low-calorie suggestions');
+assert.equal(run("state.plan[0]"),'burgers','Suggestions must not alter the family plan automatically');
+const sampleId=ideas[0].id;
+run("state.ratings["+JSON.stringify(sampleId)+"]='never'");
+const blocked=JSON.parse(run("JSON.stringify(farefullyNutritionSuggestions(0).map(x=>x.m.id))"));
+assert.ok(!blocked.includes(sampleId),'Respect Do not suggest ratings');
+run("state.ratings={};FAREFULLY_FEATURES={plus:false,available:true};");
+assert.equal(JSON.parse(run("JSON.stringify(farefullyNutritionSuggestions(0))")).length,0,'Free users cannot request Plus dinner ideas');
+assert.equal(run("farefullyChooseNutritionSuggestion("+JSON.stringify(sampleId)+")"),false,'Free users cannot swap via premium feature');
+run("farefullyRenderDailyNutrition()");
+assert.equal(el('plusNutritionGoalControls').hidden,true,'Revoke the premium goal UI when access is unavailable');
+// Only user confirmation changes a dinner; no children's portion edits or goal values enter shared state.
+run("FAREFULLY_FEATURES={plus:true,available:true};state.ratings={};");
+run("calc=()=>{};save=()=>{};render=()=>{};showToast=()=>{};");
+const peopleBefore=JSON.parse(run("JSON.stringify([state.adults,state.children])"));
+assert.equal(run("farefullyChooseNutritionSuggestion("+JSON.stringify(sampleId)+")"),true);
+assert.equal(run("state.plan[0]"),sampleId);
+assert.deepEqual(JSON.parse(run("JSON.stringify([state.adults,state.children])")),peopleBefore,
+  'Adult ideas must not alter household size or children portions');
+assert.equal(run("Object.prototype.hasOwnProperty.call(state,'nutritionAdultDailyReference')"),false,
+  'Private adult reference must not enter cloud-synced household state');
+run("FAREFULLY_FEATURES={plus:false,available:false};");
+assert.equal(run("farefullyChooseNutritionSuggestion("+JSON.stringify(sampleId)+")"),false,'Fail closed on entitlement lookup failure');
+
 console.log('Nutrition smoke test passed: sourced ingredients, approximate serving, missing-data fail closed, Plus gate, no guessed day totals.');
