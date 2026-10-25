@@ -487,6 +487,65 @@ const snacks=[
 {n:'Crackers & hummus',i:{crackers:150,hummus:160}},{n:'Rice cakes & peanut butter',i:{ricecakes:130,peanutbutter:100}}
 ];
 
+
+// Calorie awareness is optional, adult-only information. Never a child food target.
+// CoFID-matched food estimates are deliberately withheld if any ingredient lacks data.
+const FAREFULLY_NUTRITION=window.FAREFULLY_NUTRITION||{};
+let nutritionSelectedDay=0;
+function farefullyEstimatedCalories(m){
+  if(!m||!m.i||typeof m.i!=='object')return null;
+  const quantities=effectiveIngredients(m.i);
+  const entries=Object.entries(quantities);
+  if(!entries.length)return null;
+  let kcal=0,unknown=[];
+  for(const [id,amount] of entries){
+    const food=FAREFULLY_NUTRITION[id],unit=P[id]?.u;
+    if(!food||!Number.isFinite(food.k)||!Number.isFinite(amount)||amount<0||!unit){unknown.push(id);continue;}
+    const grams=(unit==='g'?amount:unit==='ml'?amount:unit==='each'||unit==='slice'?
+        (Number.isFinite(food.w)?amount*food.w:null):null);
+    if(grams===null||!Number.isFinite(grams)||grams<0){unknown.push(id);continue;}
+    const edible=Number.isFinite(food.f)?food.f:1;
+    kcal+=(grams*edible/100)*food.k;
+  }
+  if(unknown.length)return{complete:false,unknown};
+  // Farefully's recipe ingredient baseline is five adult-equivalent portions;
+  // children use a separate 0.7 basket scaling factor, not a calorie target.
+  return{complete:true,kcalAdult:Math.round((kcal/5)/10)*10,kcalRecipe:Math.round(kcal/10)*10};
+}
+function farefullyRenderRecipeNutrition(m){
+  const out=document.getElementById('recipeNutritionEstimate');
+  if(!out)return;
+  const estimate=farefullyEstimatedCalories(m);
+  out.textContent=estimate?.complete
+   ?'Approximately '+estimate.kcalAdult+' kcal per adult-equivalent serving (rough estimate)'
+   :'Estimate unavailable: complete food-composition information is not yet available for every ingredient in this recipe.';
+}
+function farefullyRenderDailyNutrition(){
+  const free=document.getElementById('plusNutritionFree'),member=document.getElementById('plusNutritionMember');
+  const select=document.getElementById('plusNutritionDay'),out=document.getElementById('plusNutritionResult');
+  if(!free||!member||!select||!out)return;
+  const isPlus=FAREFULLY_FEATURES.available&&FAREFULLY_FEATURES.plus===true;
+  free.hidden=isPlus;member.hidden=!isPlus;
+  if(!isPlus)return;
+  const size=state.plan?.length||0;
+  if(nutritionSelectedDay>=size)nutritionSelectedDay=0;
+  const options=Array.from({length:size},(_,day)=>'<option value="'+day+'">Day '+(day+1)+'</option>').join('');
+  if(select.innerHTML!==options)select.innerHTML=options;
+  select.value=String(nutritionSelectedDay);
+  if(!size){out.textContent='Build a meal plan to see available nutrition estimates.';return;}
+  const day=nutritionSelectedDay;
+  const items=[
+    ['Breakfast',slotFor(breakfast,day)],['Lunch',slotFor(lunch,day)],
+    ['Dinner',meal(day)],['Planned snack',slotFor(snacks,day)]
+  ];
+  const rows=items.map(([label,dish])=>({label,estimate:farefullyEstimatedCalories(dish)}));
+  const complete=rows.every(row=>row.estimate?.complete);
+  const lines=rows.map(row=>'<div style="display:flex;justify-content:space-between;gap:12px;border-bottom:1px solid #e4ede5;padding:9px 0"><span>'+esc(row.label)+'</span><b>'+(row.estimate?.complete?row.estimate.kcalAdult+' kcal':'Not available')+'</b></div>').join('');
+  out.innerHTML=lines+(complete
+    ?'<p style="margin:12px 0 0;font-weight:850;color:#185641">Estimated planned day: '+rows.reduce((sum,row)=>sum+row.estimate.kcalAdult,0)+' kcal per adult-equivalent serving pattern</p>'
+    :'<p class="small" style="margin:11px 0 0">No daily total is displayed because one or more meals lack complete ingredient data. Available meal estimates are shown separately.</p>');
+}
+
 function pf(){return(state.adults+state.children*.7)/5}function add(a,b,f=1){for(const[k,v]of Object.entries(b))a[k]=(a[k]||0)+v*f}function allDinners(){return D.concat((state&&Array.isArray(state.customRecipes))?state.customRecipes:[])}function meal(i){return allDinners().find(x=>x.id===state.plan[i])}
 
 function hasAvoid(k){return(state.avoidGroups||[]).includes(k)}
@@ -881,6 +940,7 @@ function renderUnsafe(){
   document.getElementById('remain').textContent=(rem>=0?money(rem)+' left':money(Math.abs(rem))+' over');
   document.getElementById('ring').style.setProperty('--p',Math.min(100,Math.round(state.total/state.budget*100)));
   const planTitle=document.getElementById('planTitle');if(planTitle)planTitle.textContent=state.days+'-day plan';
+  farefullyRenderDailyNutrition();
   const legacyNotice=document.getElementById('savedFortnightNote');
   if(legacyNotice){legacyNotice.hidden=!(state.plan?.length===14&&!farefullyMayPlanFortnight());}
   const savedPrefs=document.getElementById('planFilterSummary');if(savedPrefs){const values=Object.values(state.taste?.ingredients||{});const strict=values.filter(v=>v===-2).length;const soft=values.filter(v=>v===-1).length;savedPrefs.textContent='Saved ingredient preferences: '+strict+' Never suggest, '+soft+' Not keen';}
@@ -1605,6 +1665,7 @@ function openRecipe(i){
   }
   document.getElementById('recipeTitle').textContent=m.n;
   document.getElementById('recipeDesc').innerHTML=esc(m.d)+(m.custom?'<span class="yourrecipe">YOUR RECIPE</span>':'');
+  farefullyRenderRecipeNutrition(m);
   document.getElementById('recipeTime').textContent=m.t+' min';
   document.getElementById('recipePeople').textContent=(state.adults+state.children)+' people';
   document.getElementById('recipeCost').textContent=money(cost(m)/(state.adults+state.children))+' per person';document.getElementById('recipeMatch').textContent=householdFit(m).icon+' '+householdFit(m).label;
@@ -2010,6 +2071,8 @@ async function cloudStart(){
  }
 }
 
+const nutritionPicker=document.getElementById('plusNutritionDay');
+if(nutritionPicker)nutritionPicker.addEventListener('change',()=>{nutritionSelectedDay=Number(nutritionPicker.value)||0;farefullyRenderDailyNutrition()});
 const cloudRetryButton=document.getElementById('cloudRetry');
 if(cloudRetryButton)cloudRetryButton.addEventListener('click',()=>window.location.reload());
 const cloudKeepLocal=document.getElementById('cloudKeepLocal');
