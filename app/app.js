@@ -529,7 +529,17 @@ function farefullyRenderDailyNutrition(){
   if(!free||!member||!select||!out)return;
   const isPlus=FAREFULLY_FEATURES.available&&FAREFULLY_FEATURES.plus===true;
   free.hidden=isPlus;member.hidden=!isPlus;
-  if(!isPlus)return;
+  if(!isPlus){
+    const prefs=document.getElementById('plusNutritionGoalControls');
+    const toggle=document.getElementById('plusNutritionOptIn');
+    if(prefs)prefs.hidden=true;
+    if(toggle)toggle.checked=false;
+    nutritionOptedIn=false;
+    nutritionAdultDailyReference=null;
+    const input=document.getElementById('plusNutritionAdultReference');
+    if(input)input.value='';
+    return;
+  }
   const size=state.plan?.length||0;
   if(nutritionSelectedDay>=size)nutritionSelectedDay=0;
   const options=Array.from({length:size},(_,day)=>'<option value="'+day+'">Day '+(day+1)+'</option>').join('');
