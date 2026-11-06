@@ -1,0 +1,431 @@
+{
+  "status": "draft-for-editorial-and-food-safety-review",
+  "recipes": [
+    {
+      "id": "lemonchickpeacouscous",
+      "n": "Lemon chickpea couscous",
+      "cat": "Vegetarian",
+      "e": "🍋",
+      "t": 15,
+      "d": "Lemony couscous with chickpeas and crunchy cucumber",
+      "i": {
+        "couscous": 450,
+        "chickpeas": 800,
+        "cucumber": 1,
+        "cherrytomatoes": 300,
+        "lemons": 2,
+        "oliveoil": 25
+      },
+      "steps": [
+        "Put the couscous in a bowl, add the packet-recommended volume of boiling water, cover and leave until tender.",
+        "Drain and rinse the chickpeas, then finely chop the cucumber and halve the tomatoes.",
+        "Fluff the couscous with a fork and combine with the chickpeas and vegetables.",
+        "Squeeze over the lemon juice, stir in olive oil and serve straight away."
+      ]
+    },
+    {
+      "id": "chickenspinachquesadillas",
+      "n": "Chicken & spinach quesadillas",
+      "cat": "Chicken",
+      "e": "🌯",
+      "t": 25,
+      "d": "Crisp tortilla parcels with chicken, greens and cheese",
+      "i": {
+        "chicken": 650,
+        "wraps": 8,
+        "spinach": 160,
+        "cheese": 220,
+        "peppers": 2
+      },
+      "steps": [
+        "Dice the chicken into small pieces and cook in a pan until no pink remains and it is thoroughly cooked.",
+        "Add finely sliced peppers and spinach and cook until softened.",
+        "Divide the hot filling and grated cheese between the wraps, then fold each wrap in half.",
+        "Toast on both sides in a dry pan until golden and the cheese melts; serve piping hot."
+      ]
+    },
+    {
+      "id": "pestotunafusilli",
+      "n": "Pesto tuna fusilli",
+      "cat": "Fish",
+      "e": "🍝",
+      "t": 20,
+      "d": "Quick tuna pasta with peas and pesto",
+      "i": {
+        "fusilli": 500,
+        "tuna": 290,
+        "peas": 250,
+        "pesto": 180,
+        "lemons": 1
+      },
+      "steps": [
+        "Cook the fusilli in boiling water according to the packet instructions.",
+        "Add the peas for the final few minutes and drain well, reserving a splash of cooking water.",
+        "Drain the tuna and fold it into the hot pasta with the pesto.",
+        "Loosen with cooking water, finish with lemon juice and serve hot."
+      ]
+    },
+    {
+      "id": "garlicmushroomgnocchi",
+      "n": "Garlic butter mushroom gnocchi",
+      "cat": "Vegetarian",
+      "e": "🍄",
+      "t": 15,
+      "d": "Pan-fried gnocchi with garlic mushrooms",
+      "i": {
+        "gnocchi": 1000,
+        "mushrooms": 400,
+        "garlic": 15,
+        "butter": 45,
+        "spinach": 150
+      },
+      "steps": [
+        "Cook the gnocchi in boiling water as directed on the packet and drain.",
+        "Slice the mushrooms and fry in butter until golden and the liquid has evaporated.",
+        "Add chopped garlic and spinach, stirring until the spinach is wilted.",
+        "Toss through the gnocchi, heat briefly and serve immediately."
+      ]
+    },
+    {
+      "id": "eggvegnoodlebowls",
+      "n": "Egg & vegetable noodle bowls",
+      "cat": "Vegetarian",
+      "e": "🥚",
+      "t": 20,
+      "d": "Noodles, scrambled egg and colourful vegetables",
+      "i": {
+        "eggnoodles": 350,
+        "eggs": 6,
+        "mixed": 500,
+        "soy": 40,
+        "springonions": 80
+      },
+      "steps": [
+        "Cook the noodles as directed and drain.",
+        "Stir-fry the mixed vegetables until thoroughly hot and tender, then push them to one side.",
+        "Scramble the beaten eggs in the empty side of the pan until fully set.",
+        "Toss in the noodles and soy sauce, heat through and top with sliced spring onions."
+      ]
+    },
+    {
+      "id": "paprikabutterbeanrice",
+      "n": "Paprika butter bean rice",
+      "cat": "Vegetarian",
+      "e": "🫘",
+      "t": 20,
+      "d": "A smoky tomato and bean rice supper",
+      "i": {
+        "rice": 400,
+        "butterbeans": 800,
+        "passata": 400,
+        "smokedpaprika": 8,
+        "onions": 120
+      },
+      "steps": [
+        "Cook the rice according to its packet instructions.",
+        "Finely chop the onion and soften in a little oil, then stir in the smoked paprika.",
+        "Drain the beans, add them with the passata and simmer for 8 minutes until hot.",
+        "Spoon the beans over the rice and serve straight away."
+      ]
+    },
+    {
+      "id": "hamleekcheesetoasties",
+      "n": "Ham, leek & cheese toasties",
+      "cat": "Pork & sausage",
+      "e": "🥪",
+      "t": 20,
+      "d": "Golden sandwiches packed with warm ham, leek and cheddar",
+      "i": {
+        "bread": 10,
+        "ham": 250,
+        "leeks": 250,
+        "cheese": 180,
+        "butter": 40
+      },
+      "steps": [
+        "Thinly slice and wash the leeks, then soften in a pan with a little butter.",
+        "Layer bread with ham, cooked leeks and grated cheese and top with another slice.",
+        "Lightly butter the outsides and toast in a pan or sandwich press.",
+        "Cook until golden, the cheese has melted and the filling is hot throughout."
+      ]
+    },
+    {
+      "id": "peanutsesametofunoodles",
+      "n": "Peanut & sesame tofu noodles",
+      "cat": "Vegetarian",
+      "e": "🍜",
+      "t": 20,
+      "d": "Tofu and noodles with a creamy nut sauce",
+      "i": {
+        "tofu": 600,
+        "noodles": 400,
+        "peanutbutter": 100,
+        "soy": 40,
+        "sesameoil": 15,
+        "broccoli": 1
+      },
+      "steps": [
+        "Cook the noodles according to their packet instructions, adding small broccoli florets near the end.",
+        "Dice the tofu and fry in a little oil until golden and hot.",
+        "Stir peanut butter, soy sauce and a little warm water into a smooth sauce.",
+        "Toss the drained noodles, broccoli and tofu with the sauce and sesame oil before serving."
+      ]
+    },
+    {
+      "id": "chorizobutterbeanskillet",
+      "n": "Chorizo & butter bean skillet",
+      "cat": "Pork & sausage",
+      "e": "🍅",
+      "t": 20,
+      "d": "Smoky chorizo and beans in a tomato sauce",
+      "i": {
+        "chorizo": 225,
+        "butterbeans": 800,
+        "choppedtom": 800,
+        "spinach": 120,
+        "garlic": 10
+      },
+      "steps": [
+        "Slice the chorizo and fry until it releases its oil.",
+        "Stir in chopped garlic and cook briefly without burning it.",
+        "Drain the beans and add them with the tomatoes; simmer for 10 minutes.",
+        "Stir in spinach until wilted and serve when everything is piping hot."
+      ]
+    },
+    {
+      "id": "herbysalmonpittas",
+      "n": "Herby salmon pitta pockets",
+      "cat": "Fish",
+      "e": "🥙",
+      "t": 25,
+      "d": "Flaked cooked salmon, yoghurt and salad in warm pittas",
+      "i": {
+        "salmon": 480,
+        "pitta": 6,
+        "plainyoghurt": 180,
+        "cucumber": 1,
+        "lemons": 1
+      },
+      "steps": [
+        "Cook the salmon in a pan or oven until opaque and flaking easily; check it is cooked through.",
+        "Mix yoghurt with lemon juice and thinly sliced cucumber.",
+        "Warm the pittas, split them carefully and remove any salmon skin or bones.",
+        "Flake the fish into the pockets with the yoghurt mixture and serve immediately."
+      ]
+    },
+    {
+      "id": "smokyblackbeanquesadillas",
+      "n": "Smoky black bean quesadillas",
+      "cat": "Vegetarian",
+      "e": "🌮",
+      "t": 20,
+      "d": "Crisp bean and pepper quesadillas",
+      "i": {
+        "blackbeans": 800,
+        "wraps": 8,
+        "cheese": 200,
+        "peppers": 2,
+        "smokedpaprika": 6
+      },
+      "steps": [
+        "Drain the beans and mash lightly with smoked paprika.",
+        "Dice the peppers small, then briefly cook in a pan until beginning to soften.",
+        "Spread the beans, peppers and cheese over half of each wrap and fold closed.",
+        "Toast each side in a dry pan until the filling is hot and the cheese has melted."
+      ]
+    },
+    {
+      "id": "turkeymincetacowraps",
+      "n": "Turkey mince taco wraps",
+      "cat": "Pork & sausage",
+      "e": "🌮",
+      "t": 25,
+      "d": "Lean turkey mince with lettuce and tomato in soft wraps",
+      "i": {
+        "turkeymince": 650,
+        "wraps": 8,
+        "tomatoes": 300,
+        "lettuce": 0.5,
+        "passata": 250,
+        "cumin": 5
+      },
+      "steps": [
+        "Fry the turkey mince, breaking up any lumps, until it is fully cooked.",
+        "Stir in the cumin and passata and simmer until the sauce has thickened.",
+        "Wash and chop the lettuce and tomatoes while the mince cooks.",
+        "Warm the wraps, fill with hot mince and add fresh salad just before serving."
+      ]
+    },
+    {
+      "id": "fetale monorzo",
+      "n": "Lemon feta orzo salad",
+      "cat": "Vegetarian",
+      "e": "🍋",
+      "t": 20,
+      "d": "Herby orzo, feta and cucumber with lemon",
+      "i": {
+        "orzo": 450,
+        "feta": 200,
+        "cucumber": 1,
+        "lemons": 2,
+        "cherrytomatoes": 300,
+        "oliveoil": 25
+      },
+      "steps": [
+        "Cook the orzo in boiling water as directed and drain; cool it promptly under cold water.",
+        "Chop the cucumber and tomatoes and crumble the feta.",
+        "Combine the orzo and vegetables with lemon juice and olive oil.",
+        "Scatter over the feta and serve immediately or refrigerate promptly."
+      ]
+    },
+    {
+      "id": "sweetcornpeafritters",
+      "n": "Sweetcorn & pea fritters",
+      "cat": "Vegetarian",
+      "e": "🌽",
+      "t": 25,
+      "d": "Golden pan-fried vegetable fritters",
+      "i": {
+        "sweetcorn": 350,
+        "peas": 250,
+        "eggs": 3,
+        "flour": 160,
+        "milk": 200,
+        "plainyoghurt": 150
+      },
+      "steps": [
+        "Cook the peas until hot, drain and cool slightly.",
+        "Beat the eggs with milk and flour to make a thick batter, then fold in peas and sweetcorn.",
+        "Spoon small portions into a lightly oiled pan and cook on both sides until golden and fully set in the centre.",
+        "Serve hot with plain yoghurt as a dip."
+      ]
+    },
+    {
+      "id": "courgettecheddarfrittata",
+      "n": "Courgette & cheddar frittata",
+      "cat": "Vegetarian",
+      "e": "🥚",
+      "t": 25,
+      "d": "A family-sized frittata with courgette and cheese",
+      "i": {
+        "eggs": 8,
+        "courgettes": 2,
+        "cheese": 180,
+        "milk": 100,
+        "onions": 120
+      },
+      "steps": [
+        "Heat the grill to medium and soften finely chopped onion and grated courgette in an oven-safe pan.",
+        "Beat the eggs with milk and grated cheese, then pour over the vegetables.",
+        "Cook gently on the hob until the edges set, then finish under the grill.",
+        "Check the centre is fully set before slicing and serving."
+      ]
+    },
+    {
+      "id": "sardinetomatotoasts",
+      "n": "Sardine & tomato toasts",
+      "cat": "Fish",
+      "e": "🐟",
+      "t": 15,
+      "d": "Fresh tomato and sardines on crisp toast",
+      "i": {
+        "sardines": 360,
+        "bread": 10,
+        "tomatoes": 350,
+        "lemons": 1,
+        "oliveoil": 20
+      },
+      "steps": [
+        "Toast the bread until golden.",
+        "Drain the sardines and check for any large bones that need removing.",
+        "Dice the tomatoes and toss with lemon juice and olive oil.",
+        "Top the toast with tomato and sardines and serve immediately."
+      ]
+    },
+    {
+      "id": "broccolihummusjackets",
+      "n": "Broccoli & hummus jacket potatoes",
+      "cat": "Vegetarian",
+      "e": "🥔",
+      "t": 25,
+      "d": "Soft jacket potatoes topped with broccoli and hummus",
+      "i": {
+        "potatoes": 1600,
+        "broccoli": 2,
+        "hummus": 300,
+        "cheese": 120
+      },
+      "steps": [
+        "Prick the potatoes and microwave in batches until fully tender throughout.",
+        "Cut the broccoli into small florets and steam until soft.",
+        "Split and fluff the potatoes, then spoon over hummus.",
+        "Add hot broccoli and grated cheese and return briefly to the microwave to warm the topping."
+      ]
+    },
+    {
+      "id": "chickenavocadorice",
+      "n": "Chicken & avocado rice bowls",
+      "cat": "Chicken",
+      "e": "🥑",
+      "t": 25,
+      "d": "Chicken and rice bowls with creamy avocado",
+      "i": {
+        "chicken": 650,
+        "rice": 400,
+        "avocado": 2,
+        "cucumber": 1,
+        "limes": 2
+      },
+      "steps": [
+        "Cook the rice according to packet directions.",
+        "Dice the chicken and cook in a pan until thoroughly cooked with no pink remaining.",
+        "Dice the cucumber and avocado, and squeeze lime juice over the avocado to reduce browning.",
+        "Divide rice and hot chicken between bowls, then top with the fresh vegetables and serve."
+      ]
+    },
+    {
+      "id": "vegteriyakiudon",
+      "n": "Vegetable teriyaki udon",
+      "cat": "Vegetarian",
+      "e": "🍜",
+      "t": 20,
+      "d": "Thick udon noodles and vegetables in teriyaki sauce",
+      "i": {
+        "udon": 600,
+        "broccoli": 1,
+        "carrots": 250,
+        "peppers": 2,
+        "teriyaki": 100
+      },
+      "steps": [
+        "Prepare the udon noodles according to the packet instructions.",
+        "Cut the broccoli into small florets and slice the carrots and peppers thinly.",
+        "Stir-fry the vegetables with a splash of water until tender.",
+        "Add udon and teriyaki sauce, toss until piping hot and serve."
+      ]
+    },
+    {
+      "id": "lentillemontomatosoup",
+      "n": "Lentil, lemon & tomato soup",
+      "cat": "Vegetarian",
+      "e": "🥣",
+      "t": 30,
+      "d": "A comforting budget-friendly soup with bread",
+      "i": {
+        "lentils": 280,
+        "choppedtom": 800,
+        "carrots": 300,
+        "onions": 150,
+        "stock": 2,
+        "lemons": 1,
+        "bread": 8
+      },
+      "steps": [
+        "Finely dice the onions and carrots and soften them in a large saucepan.",
+        "Add rinsed red lentils, chopped tomatoes, stock and enough water to cover, then simmer until lentils are completely soft.",
+        "Stir regularly and add a little more water if the mixture becomes too thick.",
+        "Finish with lemon juice and serve hot with bread."
+      ]
+    }
+  ]
+}
