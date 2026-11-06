@@ -1,0 +1,444 @@
+{
+  "status": "draft-for-editorial-and-food-safety-review",
+  "recipes": [
+    {
+      "id": "smokylentilpotatosoup",
+      "n": "Smoky lentil & potato soup",
+      "cat": "Vegetarian",
+      "e": "🥣",
+      "t": 35,
+      "d": "Chunky soup with paprika",
+      "i": {
+        "lentils": 300,
+        "potatoes": 700,
+        "carrots": 300,
+        "onions": 180,
+        "smokedpaprika": 8,
+        "stock": 2
+      },
+      "steps": [
+        "Dice the potatoes, carrots and onion.",
+        "Soften the onion in oil, stir in paprika, then add the other vegetables.",
+        "Add rinsed lentils, stock and enough water to cover; simmer until soft.",
+        "Serve hot, adjusting the amount of water as needed."
+      ]
+    },
+    {
+      "id": "spanishchickpearice",
+      "n": "Spanish-style chickpea rice",
+      "cat": "Vegetarian",
+      "e": "🍚",
+      "t": 30,
+      "d": "Tomato rice with chickpeas and peppers",
+      "i": {
+        "rice": 450,
+        "chickpeas": 800,
+        "choppedtom": 800,
+        "peppers": 2,
+        "onions": 150,
+        "smokedpaprika": 8
+      },
+      "steps": [
+        "Finely chop the onion and peppers and soften in a deep pan.",
+        "Stir in rice, paprika and chopped tomatoes.",
+        "Add enough water to cook the rice and simmer until tender, topping up as needed.",
+        "Add drained chickpeas for the final 5 minutes and serve piping hot."
+      ]
+    },
+    {
+      "id": "cauliflowerbutterbeanbake",
+      "n": "Cheesy cauliflower & butter bean bake",
+      "cat": "Vegetarian",
+      "e": "🧀",
+      "t": 40,
+      "d": "Tender cauliflower and beans with a cheesy crust",
+      "i": {
+        "cauliflower": 1,
+        "butterbeans": 800,
+        "milk": 400,
+        "cheese": 250,
+        "flour": 35,
+        "butter": 35
+      },
+      "steps": [
+        "Heat the oven to 200°C (180°C fan) and steam the cauliflower until nearly tender.",
+        "Melt butter, stir in flour and gradually whisk in milk until the sauce thickens.",
+        "Mix the cauliflower, drained butter beans and sauce in a baking dish; top with cheese.",
+        "Bake for 15–20 minutes until golden and bubbling."
+      ]
+    },
+    {
+      "id": "mushroomleekrisotto",
+      "n": "Mushroom & leek risotto",
+      "cat": "Vegetarian",
+      "e": "🍄",
+      "t": 40,
+      "d": "Creamy risotto with leeks and parmesan",
+      "i": {
+        "arborio": 450,
+        "mushrooms": 400,
+        "leeks": 250,
+        "stock": 3,
+        "parmesan": 100,
+        "butter": 35
+      },
+      "steps": [
+        "Slice and wash the leeks and mushrooms, then soften in butter.",
+        "Stir in risotto rice for one minute and add a ladle of prepared hot stock.",
+        "Keep stirring and adding stock gradually until the rice is creamy and cooked, around 20–25 minutes.",
+        "Stir through parmesan and serve immediately."
+      ]
+    },
+    {
+      "id": "tunacannellinisalad",
+      "n": "Tuna & cannellini bean salad",
+      "cat": "Fish",
+      "e": "🥗",
+      "t": 15,
+      "d": "No-cook tuna and bean salad",
+      "i": {
+        "tuna": 290,
+        "cannellini": 800,
+        "cucumber": 1,
+        "cherrytomatoes": 300,
+        "lemons": 1,
+        "oliveoil": 25
+      },
+      "steps": [
+        "Drain the tuna and rinse the beans.",
+        "Wash and dice cucumber and halve the tomatoes.",
+        "Mix lemon juice and olive oil as a dressing.",
+        "Toss all ingredients together and serve immediately."
+      ]
+    },
+    {
+      "id": "salmonsweetpotatofishcakes",
+      "n": "Salmon & sweet potato fishcakes",
+      "cat": "Fish",
+      "e": "🐟",
+      "t": 40,
+      "d": "Golden fishcakes with soft sweet potato",
+      "i": {
+        "salmon": 480,
+        "sweetpotatoes": 900,
+        "eggs": 2,
+        "breadcrumbs": 150,
+        "peas": 300,
+        "lemons": 1
+      },
+      "steps": [
+        "Peel and boil the sweet potatoes until tender; drain well and mash.",
+        "Cook the salmon through, remove any bones and mix the flaked fish with mash and lemon juice.",
+        "Shape into patties, dip in beaten egg and coat in breadcrumbs.",
+        "Pan-fry until golden and piping hot; serve with cooked peas."
+      ]
+    },
+    {
+      "id": "chickenbroccolinoodlesoup",
+      "n": "Chicken & broccoli noodle soup",
+      "cat": "Chicken",
+      "e": "🍜",
+      "t": 30,
+      "d": "Chicken, noodles and broccoli in broth",
+      "i": {
+        "chicken": 600,
+        "broccoli": 1,
+        "eggnoodles": 300,
+        "carrots": 250,
+        "stock": 3,
+        "ginger": 15
+      },
+      "steps": [
+        "Dice the chicken, slice the carrots and chop the broccoli.",
+        "Bring prepared stock and ginger to a simmer; add chicken and carrots until the chicken is thoroughly cooked.",
+        "Add broccoli and noodles and simmer until tender following packet directions.",
+        "Serve immediately, checking everything is piping hot."
+      ]
+    },
+    {
+      "id": "potatoleekcheddarbake",
+      "n": "Potato, leek & cheddar bake",
+      "cat": "Vegetarian",
+      "e": "🥔",
+      "t": 55,
+      "d": "Soft potato and leek layers under cheddar",
+      "i": {
+        "potatoes": 1500,
+        "leeks": 350,
+        "milk": 350,
+        "cheese": 250,
+        "butter": 35
+      },
+      "steps": [
+        "Heat the oven to 200°C (180°C fan); thinly slice the potatoes and washed leeks.",
+        "Soften leeks in butter and warm the milk in a pan.",
+        "Layer potato, leeks and some cheese in a baking dish; pour over milk.",
+        "Cover and bake until potatoes are soft, then uncover, add remaining cheese and brown the top."
+      ]
+    },
+    {
+      "id": "lentilcarrotpastryparcels",
+      "n": "Lentil & carrot pastry parcels",
+      "cat": "Vegetarian",
+      "e": "🥟",
+      "t": 45,
+      "d": "Savoury lentil and carrot pastry pockets",
+      "i": {
+        "pastry": 750,
+        "greenlentils": 800,
+        "carrots": 300,
+        "onions": 180,
+        "eggs": 1,
+        "cumin": 5
+      },
+      "steps": [
+        "Heat the oven to 200°C (180°C fan); soften diced carrots and onions.",
+        "Stir through drained cooked lentils and cumin and heat until the filling is fairly dry.",
+        "Cut the pastry into rectangles, add cooled filling and fold and seal the edges.",
+        "Brush with beaten egg and bake until golden, cooked through and hot inside."
+      ]
+    },
+    {
+      "id": "lemonbulgurchickpeas",
+      "n": "Lemon bulgur & chickpeas",
+      "cat": "Vegetarian",
+      "e": "🌿",
+      "t": 25,
+      "d": "Fresh bulgur with chickpeas and lemon",
+      "i": {
+        "bulgur": 450,
+        "chickpeas": 800,
+        "cucumber": 1,
+        "lemons": 2,
+        "oliveoil": 25
+      },
+      "steps": [
+        "Cook bulgur according to the packet and drain any excess water.",
+        "Drain and rinse chickpeas and dice the cucumber.",
+        "Mix the bulgur with chickpeas, cucumber, lemon juice and olive oil.",
+        "Serve warm or chill promptly for a cold salad."
+      ]
+    },
+    {
+      "id": "sausagelentiltraybake",
+      "n": "Sausage & lentil traybake",
+      "cat": "Pork & sausage",
+      "e": "🍲",
+      "t": 45,
+      "d": "Sausages and vegetables with lentils",
+      "i": {
+        "sausages": 10,
+        "greenlentils": 800,
+        "carrots": 450,
+        "onions": 250,
+        "peppers": 2,
+        "smokedpaprika": 6
+      },
+      "steps": [
+        "Heat the oven to 200°C (180°C fan) and cut the vegetables into even pieces.",
+        "Toss vegetables with paprika and a little oil, and arrange sausages on top.",
+        "Roast until sausages are fully cooked and vegetables tender, turning halfway.",
+        "Add drained cooked lentils, heat through and serve."
+      ]
+    },
+    {
+      "id": "chickenchillijackets",
+      "n": "Chicken chilli jacket potatoes",
+      "cat": "Chicken",
+      "e": "🥔",
+      "t": 35,
+      "d": "Jacket potatoes with mild chicken chilli",
+      "i": {
+        "potatoes": 1500,
+        "chickenmince": 600,
+        "kidney": 400,
+        "passata": 500,
+        "onions": 120,
+        "cumin": 5
+      },
+      "steps": [
+        "Prick and microwave potatoes in batches until tender all the way through.",
+        "Soften the onion and brown chicken mince in a pan until thoroughly cooked.",
+        "Add cumin, drained kidney beans and passata, then simmer until thick.",
+        "Split potatoes, top with hot chilli and serve."
+      ]
+    },
+    {
+      "id": "veggiechillistuffedwraps",
+      "n": "Vegetable chilli stuffed wraps",
+      "cat": "Vegetarian",
+      "e": "🌯",
+      "t": 30,
+      "d": "Warm wraps packed with beans and vegetables",
+      "i": {
+        "wraps": 8,
+        "blackbeans": 400,
+        "kidney": 400,
+        "choppedtom": 400,
+        "peppers": 2,
+        "cheese": 160,
+        "cumin": 5
+      },
+      "steps": [
+        "Soften chopped peppers and cumin in a pan.",
+        "Add drained beans and tomatoes and simmer until the chilli thickens.",
+        "Spoon filling and cheese onto wraps, then fold closed.",
+        "Toast in a dry pan until the cheese has melted and serve hot."
+      ]
+    },
+    {
+      "id": "whitebeankalepasta",
+      "n": "Creamy white bean & kale pasta",
+      "cat": "Vegetarian",
+      "e": "🍝",
+      "t": 30,
+      "d": "Pasta with creamy beans and kale",
+      "i": {
+        "pasta": 500,
+        "cannellini": 800,
+        "kale": 180,
+        "creamcheese": 180,
+        "garlic": 12,
+        "lemons": 1
+      },
+      "steps": [
+        "Boil pasta as directed, reserving some cooking water.",
+        "Remove tough kale stems, chop leaves and cook until tender.",
+        "Warm drained beans with garlic and cream cheese, loosening with pasta water.",
+        "Stir in pasta and kale, finish with lemon and serve hot."
+      ]
+    },
+    {
+      "id": "cabbageeggfriedrice",
+      "n": "Cabbage & egg fried rice",
+      "cat": "Vegetarian",
+      "e": "🍚",
+      "t": 25,
+      "d": "Rice with shredded cabbage and egg",
+      "i": {
+        "rice": 400,
+        "cabbage": 500,
+        "eggs": 6,
+        "carrots": 180,
+        "soy": 50,
+        "springonions": 80
+      },
+      "steps": [
+        "Cook rice and use promptly while hot, or chill rapidly before reheating.",
+        "Finely shred cabbage and carrots and stir-fry until tender.",
+        "Push vegetables aside and scramble eggs until completely set.",
+        "Add rice and soy sauce; stir-fry until piping hot and garnish with spring onions."
+      ]
+    },
+    {
+      "id": "butternutredlentilsoup",
+      "n": "Butternut squash & red lentil soup",
+      "cat": "Vegetarian",
+      "e": "🎃",
+      "t": 40,
+      "d": "Golden squash and lentil soup",
+      "i": {
+        "butternut": 1000,
+        "lentils": 250,
+        "carrots": 250,
+        "onions": 180,
+        "stock": 3,
+        "cumin": 6
+      },
+      "steps": [
+        "Dice peeled squash, carrots and onions; rinse lentils.",
+        "Soften onions, then add cumin and the other vegetables.",
+        "Add lentils, stock and enough water to cover; simmer until everything is tender.",
+        "Blend carefully if desired and serve hot."
+      ]
+    },
+    {
+      "id": "porkcabbagenoodlestirfry",
+      "n": "Pork & cabbage noodle stir-fry",
+      "cat": "Pork & sausage",
+      "e": "🍜",
+      "t": 25,
+      "d": "Pork strips with noodles and cabbage",
+      "i": {
+        "porkloin": 600,
+        "cabbage": 400,
+        "eggnoodles": 350,
+        "soy": 50,
+        "ginger": 15,
+        "carrots": 200
+      },
+      "steps": [
+        "Cook noodles following their packet instructions.",
+        "Slice pork thinly and shred cabbage and carrots.",
+        "Stir-fry pork with ginger until cooked through, then add vegetables until tender.",
+        "Toss in noodles and soy sauce and heat until piping hot."
+      ]
+    },
+    {
+      "id": "tomatobeangnocchibake",
+      "n": "Tomato bean gnocchi bake",
+      "cat": "Vegetarian",
+      "e": "🍅",
+      "t": 35,
+      "d": "Oven-baked tomato gnocchi and beans",
+      "i": {
+        "gnocchi": 900,
+        "cannellini": 800,
+        "passata": 600,
+        "mozzarella": 200,
+        "spinach": 120
+      },
+      "steps": [
+        "Heat oven to 200°C (180°C fan) and prepare gnocchi according to the packet.",
+        "Combine gnocchi, drained beans, passata and spinach in a baking dish.",
+        "Scatter mozzarella over the top and cover for the first part of baking.",
+        "Bake until bubbling and thoroughly hot in the centre."
+      ]
+    },
+    {
+      "id": "roastveghummusbowls",
+      "n": "Roasted vegetable & hummus bowls",
+      "cat": "Vegetarian",
+      "e": "🥕",
+      "t": 40,
+      "d": "Vegetables, hummus and couscous bowls",
+      "i": {
+        "butternut": 600,
+        "courgettes": 2,
+        "peppers": 2,
+        "hummus": 300,
+        "couscous": 350,
+        "lemons": 1
+      },
+      "steps": [
+        "Heat oven to 210°C (190°C fan) and chop squash, courgettes and peppers evenly.",
+        "Toss in oil and roast until tender and lightly browned.",
+        "Prepare couscous according to its packet and fluff with a fork.",
+        "Spoon hummus into bowls, add couscous and vegetables and finish with lemon."
+      ]
+    },
+    {
+      "id": "herbytunapotatobake",
+      "n": "Herby tuna & potato bake",
+      "cat": "Fish",
+      "e": "🥔",
+      "t": 45,
+      "d": "Potatoes and tuna beneath a golden cheese crust",
+      "i": {
+        "potatoes": 1400,
+        "tuna": 290,
+        "peas": 250,
+        "milk": 350,
+        "cheese": 200,
+        "flour": 30,
+        "butter": 30
+      },
+      "steps": [
+        "Heat oven to 200°C (180°C fan); thinly slice and parboil potatoes until nearly tender.",
+        "Melt butter, stir in flour and gradually whisk in milk to thicken.",
+        "Layer potatoes with tuna and cooked peas, then pour over sauce and top with cheese.",
+        "Bake until bubbling and potatoes are tender throughout."
+      ]
+    }
+  ]
+}
