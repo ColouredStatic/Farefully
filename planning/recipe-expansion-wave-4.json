@@ -1,0 +1,444 @@
+{
+  "status": "draft-for-editorial-and-food-safety-review",
+  "recipes": [
+    {
+      "id": "coconuttofusweetpotatostew",
+      "n": "Coconut tofu & sweet potato stew",
+      "cat": "Vegetarian",
+      "e": "🥥",
+      "t": 35,
+      "d": "Gentle coconut stew with tofu and sweet potato",
+      "i": {
+        "tofu": 600,
+        "sweetpotatoes": 900,
+        "coconutmilk": 400,
+        "spinach": 150,
+        "currypowder": 10,
+        "onions": 150
+      },
+      "steps": [
+        "Peel and dice the sweet potatoes into small even pieces.",
+        "Soften chopped onion and curry powder in a saucepan, then add the sweet potatoes and coconut milk with a little water.",
+        "Simmer until the potatoes are tender, adding cubed tofu for the last 8 minutes.",
+        "Stir in spinach until wilted and serve piping hot."
+      ]
+    },
+    {
+      "id": "lemonsalmonquinoasalad",
+      "n": "Lemon salmon & quinoa salad",
+      "cat": "Fish",
+      "e": "🍋",
+      "t": 30,
+      "d": "Flaked salmon with lemony quinoa and cucumber",
+      "i": {
+        "salmon": 480,
+        "quinoa": 400,
+        "cucumber": 1,
+        "cherrytomatoes": 250,
+        "lemons": 2,
+        "oliveoil": 20
+      },
+      "steps": [
+        "Cook the quinoa according to the packet instructions and drain.",
+        "Cook the salmon until opaque, hot and flaking; remove skin and check for bones.",
+        "Chop cucumber and tomatoes, then combine with quinoa, lemon juice and olive oil.",
+        "Add the cooked salmon, toss gently and serve warm."
+      ]
+    },
+    {
+      "id": "roastedcauliflowertacos",
+      "n": "Roasted cauliflower tacos",
+      "cat": "Vegetarian",
+      "e": "🌮",
+      "t": 35,
+      "d": "Spiced cauliflower in warm tortillas with yoghurt",
+      "i": {
+        "cauliflower": 1,
+        "wraps": 8,
+        "plainyoghurt": 200,
+        "smokedpaprika": 8,
+        "lettuce": 0.5,
+        "limes": 1
+      },
+      "steps": [
+        "Heat oven to 220°C (200°C fan) and chop the cauliflower into bite-sized pieces.",
+        "Coat cauliflower lightly with oil and paprika; roast until tender and browned.",
+        "Mix yoghurt with lime juice while warming the wraps.",
+        "Fill wraps with cauliflower and chopped lettuce and finish with yoghurt dressing."
+      ]
+    },
+    {
+      "id": "beefaubergineragu",
+      "n": "Beef & aubergine ragu",
+      "cat": "Beef",
+      "e": "🍝",
+      "t": 40,
+      "d": "Rich mince and aubergine tomato sauce with pasta",
+      "i": {
+        "beef": 600,
+        "aubergine": 1,
+        "passata": 650,
+        "onions": 180,
+        "garlic": 15,
+        "penne": 500
+      },
+      "steps": [
+        "Cook the penne according to the packet instructions.",
+        "Dice aubergine and onion and cook in a deep pan until the vegetables begin to soften.",
+        "Add mince and cook thoroughly, then add garlic and passata and simmer for 15 minutes.",
+        "Toss the cooked pasta through the hot sauce and serve."
+      ]
+    },
+    {
+      "id": "creamychickenleekorzo",
+      "n": "Creamy chicken & leek orzo",
+      "cat": "Chicken",
+      "e": "🍲",
+      "t": 35,
+      "d": "Tender chicken, leeks and orzo in a creamy sauce",
+      "i": {
+        "chicken": 650,
+        "orzo": 450,
+        "leeks": 300,
+        "creamcheese": 180,
+        "stock": 2,
+        "peas": 200
+      },
+      "steps": [
+        "Wash and slice the leeks, then soften them in a wide pan.",
+        "Add diced chicken and cook until thoroughly cooked with no pink remaining.",
+        "Add orzo, prepared stock and enough water to simmer until the orzo is tender; stir often.",
+        "Fold in peas and cream cheese, heat until piping hot and serve."
+      ]
+    },
+    {
+      "id": "crispchickpeacucumberwraps",
+      "n": "Crispy chickpea & cucumber wraps",
+      "cat": "Vegetarian",
+      "e": "🌯",
+      "t": 25,
+      "d": "Spiced pan-fried chickpeas with fresh salad",
+      "i": {
+        "chickpeas": 800,
+        "wraps": 8,
+        "cucumber": 1,
+        "plainyoghurt": 180,
+        "smokedpaprika": 6,
+        "lettuce": 0.5
+      },
+      "steps": [
+        "Drain and dry the chickpeas, then fry with paprika and a little oil until lightly crisp and hot.",
+        "Chop cucumber and lettuce while the chickpeas cook.",
+        "Warm the wraps and spread a spoonful of yoghurt over each.",
+        "Fill with chickpeas and fresh vegetables, then roll and serve."
+      ]
+    },
+    {
+      "id": "rosemarybutterbeanmashbowls",
+      "n": "Rosemary butter bean mash bowls",
+      "cat": "Vegetarian",
+      "e": "🫘",
+      "t": 30,
+      "d": "Creamy bean mash with roasted tomatoes and greens",
+      "i": {
+        "butterbeans": 800,
+        "cherrytomatoes": 400,
+        "spinach": 180,
+        "rosemary": 6,
+        "garlic": 12,
+        "oliveoil": 25
+      },
+      "steps": [
+        "Roast cherry tomatoes with a little oil at 210°C (190°C fan) until softened.",
+        "Drain butter beans and warm with chopped garlic, rosemary and a splash of water.",
+        "Mash the beans with a fork or masher until creamy; add a little olive oil.",
+        "Wilt spinach in a pan and serve alongside the mash and roasted tomatoes."
+      ]
+    },
+    {
+      "id": "gingertofumushroombroth",
+      "n": "Ginger tofu & mushroom broth",
+      "cat": "Vegetarian",
+      "e": "🍜",
+      "t": 25,
+      "d": "Light, warming soup with tofu and mushrooms",
+      "i": {
+        "tofu": 600,
+        "mushrooms": 350,
+        "ricenoodles": 300,
+        "ginger": 20,
+        "stock": 3,
+        "soy": 40
+      },
+      "steps": [
+        "Slice the mushrooms and cube tofu into bite-sized pieces.",
+        "Bring prepared stock with grated ginger to a simmer and add mushrooms and tofu.",
+        "Cook the rice noodles according to packet instructions, adding them to the broth when suitable.",
+        "Stir in soy sauce, simmer until everything is hot and serve."
+      ]
+    },
+    {
+      "id": "chickenmincecourgettespaghetti",
+      "n": "Chicken mince & courgette spaghetti",
+      "cat": "Chicken",
+      "e": "🍝",
+      "t": 30,
+      "d": "Lean mince in a tomato and courgette pasta sauce",
+      "i": {
+        "chickenmince": 650,
+        "courgettes": 2,
+        "spaghetti": 500,
+        "passata": 650,
+        "onions": 120,
+        "basil": 6
+      },
+      "steps": [
+        "Cook spaghetti following the packet instructions.",
+        "Soften chopped onion and diced courgette in a pan.",
+        "Add chicken mince and cook completely, breaking it up, then add passata and basil and simmer for 10 minutes.",
+        "Drain spaghetti and toss with the piping-hot sauce."
+      ]
+    },
+    {
+      "id": "prawnmangoricesalad",
+      "n": "Prawn & mango rice salad",
+      "cat": "Fish",
+      "e": "🥭",
+      "t": 25,
+      "d": "Warm prawn rice with fresh mango and cucumber",
+      "i": {
+        "prawns": 500,
+        "rice": 400,
+        "mango": 1,
+        "cucumber": 1,
+        "limes": 2,
+        "springonions": 80
+      },
+      "steps": [
+        "Cook rice according to the packet instructions and use while still hot.",
+        "Ensure the cooked prawns are heated through in a pan, then remove from the heat.",
+        "Dice mango and cucumber and thinly slice spring onions.",
+        "Toss rice and prawns with mango, vegetables and lime juice; serve promptly."
+      ]
+    },
+    {
+      "id": "chickenpineapplestirfry",
+      "n": "Chicken & pineapple stir-fry",
+      "cat": "Chicken",
+      "e": "🍍",
+      "t": 25,
+      "d": "Sweet and savoury chicken, pepper and pineapple",
+      "i": {
+        "chicken": 650,
+        "pineapple": 500,
+        "peppers": 2,
+        "rice": 400,
+        "soy": 50,
+        "ginger": 15
+      },
+      "steps": [
+        "Cook rice according to the packet directions.",
+        "Dice chicken and stir-fry with grated ginger until thoroughly cooked.",
+        "Add sliced peppers and chopped pineapple and cook until the peppers soften.",
+        "Stir through soy sauce and serve over the hot rice."
+      ]
+    },
+    {
+      "id": "lentilmushroomcourgettes",
+      "n": "Lentil & mushroom stuffed courgettes",
+      "cat": "Vegetarian",
+      "e": "🥒",
+      "t": 45,
+      "d": "Baked courgettes with savoury lentil filling",
+      "i": {
+        "courgettes": 4,
+        "greenlentils": 800,
+        "mushrooms": 350,
+        "passata": 300,
+        "cheese": 150,
+        "onions": 120
+      },
+      "steps": [
+        "Heat oven to 200°C (180°C fan) and halve the courgettes lengthways, scooping out a little of each centre.",
+        "Dice the scooped flesh and cook with mushrooms and onion until softened.",
+        "Stir through drained cooked lentils and passata, then spoon into the courgette halves.",
+        "Top with cheese and bake until the courgettes are tender and the filling thoroughly hot."
+      ]
+    },
+    {
+      "id": "halloumibeetrootcouscous",
+      "n": "Halloumi & beetroot couscous",
+      "cat": "Vegetarian",
+      "e": "🧀",
+      "t": 30,
+      "d": "Warm halloumi with roasted beetroot and couscous",
+      "i": {
+        "halloumi": 450,
+        "beetroot": 550,
+        "couscous": 400,
+        "spinach": 150,
+        "lemons": 1
+      },
+      "steps": [
+        "Heat oven to 210°C (190°C fan), chop the beetroot small and roast until tender.",
+        "Prepare couscous according to the packet instructions and fluff with a fork.",
+        "Slice halloumi and fry on both sides until golden and hot.",
+        "Toss couscous with spinach and lemon, then top with roasted beetroot and halloumi."
+      ]
+    },
+    {
+      "id": "sesametofuedamamerice",
+      "n": "Sesame tofu & edamame rice",
+      "cat": "Vegetarian",
+      "e": "🍚",
+      "t": 30,
+      "d": "Crisp tofu, green edamame and sesame rice",
+      "i": {
+        "tofu": 600,
+        "edamame": 350,
+        "rice": 400,
+        "soy": 45,
+        "sesameoil": 18,
+        "carrots": 180
+      },
+      "steps": [
+        "Cook rice according to the packet and cook the edamame thoroughly according to its pack.",
+        "Dice and pat dry the tofu, then fry until golden.",
+        "Slice carrots finely and cook until tender; add soy sauce and edamame to the tofu pan.",
+        "Serve over the rice and drizzle with sesame oil."
+      ]
+    },
+    {
+      "id": "codtomatochickpeabake",
+      "n": "Cod, tomato & chickpea bake",
+      "cat": "Fish",
+      "e": "🐟",
+      "t": 35,
+      "d": "Oven-baked cod in a tomato and chickpea sauce",
+      "i": {
+        "cod": 650,
+        "chickpeas": 800,
+        "choppedtom": 800,
+        "peppers": 2,
+        "garlic": 12,
+        "oliveoil": 25
+      },
+      "steps": [
+        "Heat oven to 200°C (180°C fan) and place chopped peppers, garlic, tomatoes and drained chickpeas in a baking dish.",
+        "Bake the vegetables for 15 minutes until starting to soften.",
+        "Nestle the cod fillets in the hot mixture and return to the oven until fish is opaque, fully cooked and flakes easily.",
+        "Serve hot, checking for any bones."
+      ]
+    },
+    {
+      "id": "lemonchickenspinachgnocchi",
+      "n": "Lemon chicken & spinach gnocchi",
+      "cat": "Chicken",
+      "e": "🍋",
+      "t": 30,
+      "d": "One-pan creamy chicken gnocchi with lemon",
+      "i": {
+        "chicken": 650,
+        "gnocchi": 900,
+        "spinach": 200,
+        "creamcheese": 180,
+        "lemons": 1,
+        "garlic": 12
+      },
+      "steps": [
+        "Dice and pan-fry chicken with chopped garlic until completely cooked through.",
+        "Cook gnocchi according to packet instructions and reserve a little cooking water.",
+        "Add spinach to the chicken and stir until wilted, then fold in gnocchi and cream cheese.",
+        "Loosen with cooking water, finish with lemon juice and serve piping hot."
+      ]
+    },
+    {
+      "id": "sweetpotatobeanenchiladabake",
+      "n": "Sweet potato & black bean enchilada bake",
+      "cat": "Vegetarian",
+      "e": "🌯",
+      "t": 50,
+      "d": "Baked wraps with sweet potato, beans and tomato",
+      "i": {
+        "sweetpotatoes": 900,
+        "blackbeans": 800,
+        "wraps": 8,
+        "passata": 650,
+        "cheese": 220,
+        "cumin": 6
+      },
+      "steps": [
+        "Heat oven to 200°C (180°C fan), cube sweet potatoes and roast until soft.",
+        "Drain black beans and combine with cooked sweet potato and cumin.",
+        "Fill the wraps, roll tightly and arrange in a baking dish seam-side down.",
+        "Pour passata over the wraps, sprinkle with cheese and bake until bubbling and hot through."
+      ]
+    },
+    {
+      "id": "porkmincelettucecups",
+      "n": "Pork mince lettuce cups",
+      "cat": "Pork & sausage",
+      "e": "🥬",
+      "t": 25,
+      "d": "Savoury pork mince tucked into crunchy lettuce",
+      "i": {
+        "pork": 650,
+        "lettuce": 1,
+        "carrots": 220,
+        "soy": 50,
+        "ginger": 15,
+        "ricenoodles": 250
+      },
+      "steps": [
+        "Cook rice noodles as directed and set aside warm.",
+        "Fry pork mince with grated ginger until fully cooked, breaking it into small pieces.",
+        "Add finely grated carrot and soy sauce and cook until tender.",
+        "Spoon mince and noodles into washed, dried lettuce leaves and serve promptly."
+      ]
+    },
+    {
+      "id": "mackerelcucumberricesalad",
+      "n": "Mackerel & cucumber rice salad",
+      "cat": "Fish",
+      "e": "🥗",
+      "t": 30,
+      "d": "Cooked mackerel with rice, cucumber and lemon",
+      "i": {
+        "mackerel": 600,
+        "rice": 400,
+        "cucumber": 1,
+        "cherrytomatoes": 250,
+        "lemons": 1,
+        "oliveoil": 25
+      },
+      "steps": [
+        "Cook the rice as instructed and keep it warm.",
+        "Cook the mackerel fillets until opaque, fully cooked and flaking easily, then remove any bones.",
+        "Chop the cucumber and tomatoes, then mix with rice, lemon and olive oil.",
+        "Add flaked mackerel and serve immediately."
+      ]
+    },
+    {
+      "id": "tofumushroomricenoodles",
+      "n": "Tofu & mushroom rice noodles",
+      "cat": "Vegetarian",
+      "e": "🍜",
+      "t": 25,
+      "d": "Stir-fried rice noodles with tofu and mushrooms",
+      "i": {
+        "tofu": 600,
+        "mushrooms": 400,
+        "ricenoodles": 350,
+        "soy": 55,
+        "springonions": 100,
+        "garlic": 12
+      },
+      "steps": [
+        "Cook rice noodles according to their packet instructions and drain.",
+        "Cube the tofu and fry until lightly golden, then set aside.",
+        "Slice mushrooms and spring onions and stir-fry with garlic until tender.",
+        "Return tofu to the pan with noodles and soy sauce and heat thoroughly before serving."
+      ]
+    }
+  ]
+}

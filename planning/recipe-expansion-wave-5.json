@@ -1,0 +1,460 @@
+{
+  "status": "draft-for-editorial-and-food-safety-review",
+  "recipes": [
+    {
+      "id": "slowbeefmushroomcasserole",
+      "n": "Slow beef & mushroom casserole",
+      "cat": "Beef",
+      "e": "🍲",
+      "t": 90,
+      "d": "Tender beef and mushrooms in rich gravy",
+      "i": {
+        "dicedbeef": 850,
+        "mushrooms": 400,
+        "carrots": 450,
+        "onions": 200,
+        "stock": 3,
+        "tomatopuree": 60,
+        "potatoes": 1200
+      },
+      "steps": [
+        "Brown the diced beef in batches in a casserole pan.",
+        "Soften chopped onion, carrots and mushrooms, then stir in tomato purée.",
+        "Return beef to pan with stock and simmer gently with a lid for around 75 minutes or until tender.",
+        "Boil potatoes, mash and serve with the piping-hot casserole."
+      ]
+    },
+    {
+      "id": "chickenpepperpotpie",
+      "n": "Chicken & pepper pot pie",
+      "cat": "Chicken",
+      "e": "🥧",
+      "t": 60,
+      "d": "Chicken and peppers under golden pastry",
+      "i": {
+        "chicken": 750,
+        "peppers": 3,
+        "leeks": 200,
+        "pastry": 500,
+        "milk": 300,
+        "flour": 35,
+        "butter": 35
+      },
+      "steps": [
+        "Heat oven to 200°C (180°C fan) and cook diced chicken thoroughly.",
+        "Add sliced leeks and peppers until soft; melt in butter, stir in flour and gradually add milk to make a thick filling.",
+        "Put filling in a baking dish and cover with pastry, cutting a steam hole in the centre.",
+        "Bake until the pastry is fully cooked and centre of the pie piping hot."
+      ]
+    },
+    {
+      "id": "chickenbeanbatchchilli",
+      "n": "Chicken & three-bean batch chilli",
+      "cat": "Chicken",
+      "e": "🍛",
+      "t": 45,
+      "d": "A large pan of mild chicken and bean chilli",
+      "i": {
+        "chickenmince": 750,
+        "mixedbeans": 800,
+        "kidney": 400,
+        "passata": 800,
+        "onions": 250,
+        "peppers": 2,
+        "smokedpaprika": 10,
+        "rice": 500
+      },
+      "steps": [
+        "Cook rice following the packet directions.",
+        "Soften chopped onion and peppers in a large saucepan.",
+        "Add chicken mince and cook completely, then stir in paprika, drained beans and passata.",
+        "Simmer until thick and piping hot; serve with rice."
+      ]
+    },
+    {
+      "id": "roastvegetablelasagne",
+      "n": "Roasted vegetable lasagne",
+      "cat": "Vegetarian",
+      "e": "🍝",
+      "t": 65,
+      "d": "Vegetable lasagne with creamy white sauce",
+      "i": {
+        "lasagne": 500,
+        "aubergine": 1,
+        "courgettes": 2,
+        "peppers": 3,
+        "passata": 900,
+        "cheese": 280,
+        "milk": 450,
+        "flour": 40,
+        "butter": 40
+      },
+      "steps": [
+        "Heat oven to 200°C (180°C fan) and roast diced aubergine, courgette and peppers until soft.",
+        "Melt butter, stir in flour and gradually whisk in milk to make white sauce.",
+        "Layer passata, vegetables, lasagne sheets and white sauce in a baking dish and finish with cheese.",
+        "Bake until the sheets are tender and the top golden and bubbling."
+      ]
+    },
+    {
+      "id": "creamychickenvegcasserole",
+      "n": "Creamy chicken & vegetable casserole",
+      "cat": "Chicken",
+      "e": "🍲",
+      "t": 50,
+      "d": "Chicken, carrots and peas in creamy sauce",
+      "i": {
+        "chickenthigh": 850,
+        "carrots": 450,
+        "peas": 350,
+        "leeks": 250,
+        "stock": 2,
+        "cremefraiche": 250,
+        "potatoes": 1000
+      },
+      "steps": [
+        "Boil diced potatoes until soft while preparing the casserole.",
+        "Brown chicken thighs in a deep pan and add chopped leeks and carrots.",
+        "Pour in stock and simmer until vegetables are tender and chicken thoroughly cooked.",
+        "Stir in peas and crème fraîche, heat until piping hot and serve with potatoes."
+      ]
+    },
+    {
+      "id": "sweetpotatobeefcottagepie",
+      "n": "Sweet potato beef cottage pie",
+      "cat": "Beef",
+      "e": "🥧",
+      "t": 55,
+      "d": "Beef mince beneath sweet potato mash",
+      "i": {
+        "beef": 700,
+        "sweetpotatoes": 1300,
+        "carrots": 350,
+        "onions": 180,
+        "peas": 200,
+        "stock": 2,
+        "tomatopuree": 40
+      },
+      "steps": [
+        "Heat oven to 200°C (180°C fan); boil peeled sweet potatoes until soft and mash.",
+        "Brown mince completely with onions, then add grated carrot and tomato purée.",
+        "Add stock and peas and simmer until thickened and thoroughly hot.",
+        "Transfer to a baking dish, spread mash on top and bake until bubbling and browned."
+      ]
+    },
+    {
+      "id": "sausagebutternutbake",
+      "n": "Sausage & butternut bake",
+      "cat": "Pork & sausage",
+      "e": "🎃",
+      "t": 50,
+      "d": "Roasted sausages with squash and onion",
+      "i": {
+        "sausages": 10,
+        "butternut": 1000,
+        "onions": 350,
+        "peppers": 2,
+        "rosemary": 7,
+        "stock": 1
+      },
+      "steps": [
+        "Heat oven to 200°C (180°C fan), peel and dice butternut.",
+        "Slice onions and peppers and toss with squash, rosemary and oil in a roasting tray.",
+        "Place sausages on top, add a splash of prepared stock and roast, turning once.",
+        "Serve when squash is soft and sausages cooked completely through."
+      ]
+    },
+    {
+      "id": "familychickennoodlebake",
+      "n": "Family chicken & noodle bake",
+      "cat": "Chicken",
+      "e": "🍜",
+      "t": 50,
+      "d": "Cheesy baked chicken and broccoli noodles",
+      "i": {
+        "chicken": 750,
+        "eggnoodles": 400,
+        "broccoli": 1,
+        "cheese": 220,
+        "milk": 450,
+        "flour": 40,
+        "butter": 40
+      },
+      "steps": [
+        "Heat oven to 200°C (180°C fan); cook noodles and broccoli until just tender.",
+        "Dice chicken and cook thoroughly in a pan.",
+        "Make sauce by melting butter, stirring in flour, then gradually whisking in milk.",
+        "Combine chicken, noodles, broccoli and sauce, add cheese and bake until golden and piping hot."
+      ]
+    },
+    {
+      "id": "sausagebutterbeanstew",
+      "n": "Sausage & butter bean tomato stew",
+      "cat": "Pork & sausage",
+      "e": "🫘",
+      "t": 40,
+      "d": "Hearty sausage and white bean stew",
+      "i": {
+        "sausages": 10,
+        "butterbeans": 800,
+        "choppedtom": 800,
+        "onions": 200,
+        "carrots": 300,
+        "thyme": 6
+      },
+      "steps": [
+        "Brown sausages until cooked through, then remove and slice.",
+        "Soften diced onion and carrots in the same pan.",
+        "Add tomatoes, drained beans and thyme and simmer until carrots are tender.",
+        "Return sausage pieces and heat everything until piping hot."
+      ]
+    },
+    {
+      "id": "smokybeefbeanpasta",
+      "n": "Smoky beef & bean pasta",
+      "cat": "Beef",
+      "e": "🍝",
+      "t": 40,
+      "d": "Paprika beef pasta with kidney beans",
+      "i": {
+        "beef": 650,
+        "kidney": 800,
+        "penne": 500,
+        "passata": 650,
+        "onions": 160,
+        "smokedpaprika": 10
+      },
+      "steps": [
+        "Boil penne according to the packet.",
+        "Cook chopped onion and beef mince until beef is thoroughly cooked.",
+        "Stir through paprika, drained beans and passata and simmer until thick.",
+        "Toss hot pasta through the sauce and serve."
+      ]
+    },
+    {
+      "id": "porkappletrayroast",
+      "n": "Pork & apple tray roast",
+      "cat": "Pork & sausage",
+      "e": "🍎",
+      "t": 60,
+      "d": "Pork chops roasted with apples and roots",
+      "i": {
+        "porkchops": 900,
+        "apples": 3,
+        "parsnips": 450,
+        "carrots": 400,
+        "onions": 200,
+        "thyme": 6
+      },
+      "steps": [
+        "Heat oven to 200°C (180°C fan); roast evenly cut parsnips and carrots with a little oil for 15 minutes.",
+        "Add apple and onion wedges to the tray.",
+        "Nestle pork chops among the vegetables with thyme and roast, turning as needed.",
+        "Serve once pork is thoroughly cooked and vegetables tender."
+      ]
+    },
+    {
+      "id": "lemonfishpotatogratin",
+      "n": "Lemon fish & potato gratin",
+      "cat": "Fish",
+      "e": "🐟",
+      "t": 55,
+      "d": "Baked white fish and potato slices",
+      "i": {
+        "whitefish": 700,
+        "potatoes": 1500,
+        "leeks": 250,
+        "milk": 450,
+        "cheese": 180,
+        "lemons": 1,
+        "flour": 35,
+        "butter": 35
+      },
+      "steps": [
+        "Heat oven to 200°C (180°C fan); thinly slice and parboil potatoes.",
+        "Soften leeks in butter, stir in flour and gradually whisk in milk to make sauce.",
+        "Layer potatoes, fish and sauce in a dish, finishing with lemon and cheese.",
+        "Bake until potatoes are soft, fish fully cooked and top bubbling."
+      ]
+    },
+    {
+      "id": "chickensweetcornchowder",
+      "n": "Chicken & sweetcorn chowder",
+      "cat": "Chicken",
+      "e": "🥣",
+      "t": 40,
+      "d": "Creamy chicken, potato and sweetcorn soup",
+      "i": {
+        "chicken": 650,
+        "potatoes": 650,
+        "sweetcorn": 350,
+        "onions": 170,
+        "milk": 500,
+        "stock": 2,
+        "leeks": 180
+      },
+      "steps": [
+        "Dice chicken and potatoes, slice leeks and onion.",
+        "Soften onion and leeks, then add chicken and cook until browned and no pink remains.",
+        "Add potatoes and stock and simmer until potatoes tender and chicken thoroughly cooked.",
+        "Add milk and sweetcorn, heat gently and serve piping hot."
+      ]
+    },
+    {
+      "id": "pepperlentillasagne",
+      "n": "Roasted pepper & lentil lasagne",
+      "cat": "Vegetarian",
+      "e": "🍝",
+      "t": 65,
+      "d": "Lentil lasagne with sweet roasted peppers",
+      "i": {
+        "lasagne": 500,
+        "greenlentils": 800,
+        "peppers": 4,
+        "passata": 900,
+        "cheese": 250,
+        "milk": 450,
+        "flour": 40,
+        "butter": 40
+      },
+      "steps": [
+        "Heat oven to 200°C (180°C fan) and roast sliced peppers until tender.",
+        "Combine cooked drained lentils with passata and roasted peppers.",
+        "Whisk white sauce from butter, flour and milk; layer with lentil sauce and lasagne in a dish.",
+        "Finish with cheese and bake until pasta sheets are tender and top golden."
+      ]
+    },
+    {
+      "id": "beefbroccoliricebake",
+      "n": "Beef & broccoli rice bake",
+      "cat": "Beef",
+      "e": "🥦",
+      "t": 50,
+      "d": "Cheesy oven rice with beef and broccoli",
+      "i": {
+        "beef": 650,
+        "rice": 450,
+        "broccoli": 2,
+        "cheese": 220,
+        "passata": 500,
+        "onions": 150
+      },
+      "steps": [
+        "Heat oven to 200°C (180°C fan) and cook rice following packet directions.",
+        "Cut broccoli into small florets and steam until just tender.",
+        "Brown beef completely with onion, then mix with passata, cooked rice and broccoli.",
+        "Transfer to a baking dish, add cheese and bake until bubbling and hot throughout."
+      ]
+    },
+    {
+      "id": "chickpeaspinachpie",
+      "n": "Chickpea & spinach pie",
+      "cat": "Vegetarian",
+      "e": "🥧",
+      "t": 50,
+      "d": "Golden chickpea and spinach pastry pie",
+      "i": {
+        "chickpeas": 800,
+        "spinach": 300,
+        "passata": 400,
+        "onions": 180,
+        "pastry": 500,
+        "eggs": 1,
+        "cumin": 6
+      },
+      "steps": [
+        "Heat oven to 200°C (180°C fan) and soften chopped onion.",
+        "Add drained chickpeas, passata and cumin; simmer until thick and stir in spinach.",
+        "Transfer to a pie dish, cool slightly, cover with pastry and brush with beaten egg.",
+        "Bake until pastry golden and cooked through and filling thoroughly hot."
+      ]
+    },
+    {
+      "id": "chickenleekpastabake",
+      "n": "Chicken & leek pasta bake",
+      "cat": "Chicken",
+      "e": "🧀",
+      "t": 50,
+      "d": "Cheesy family pasta bake with chicken and leeks",
+      "i": {
+        "chicken": 700,
+        "penne": 500,
+        "leeks": 350,
+        "creamcheese": 200,
+        "milk": 300,
+        "cheese": 180
+      },
+      "steps": [
+        "Heat oven to 200°C (180°C fan); boil pasta until just tender.",
+        "Dice chicken and cook until thoroughly done, adding washed leeks until soft.",
+        "Stir through cream cheese and milk and combine with pasta in a dish.",
+        "Top with cheddar and bake until golden and piping hot."
+      ]
+    },
+    {
+      "id": "pestochickenpotatotray",
+      "n": "Pesto chicken & potato traybake",
+      "cat": "Chicken",
+      "e": "🥔",
+      "t": 50,
+      "d": "Herby chicken and vegetables roasted together",
+      "i": {
+        "chickenthigh": 850,
+        "potatoes": 1200,
+        "greenpesto": 180,
+        "carrots": 450,
+        "onions": 280
+      },
+      "steps": [
+        "Heat oven to 210°C (190°C fan), dice potatoes and carrots and slice onion.",
+        "Coat vegetables and chicken with pesto in a large roasting tray.",
+        "Roast, turning once, until vegetables are tender and chicken thoroughly cooked.",
+        "Serve hot with tray juices."
+      ]
+    },
+    {
+      "id": "mediterraneancodtray",
+      "n": "Mediterranean cod & vegetable tray",
+      "cat": "Fish",
+      "e": "🐟",
+      "t": 40,
+      "d": "Baked cod with peppers, tomatoes and courgette",
+      "i": {
+        "cod": 700,
+        "courgettes": 2,
+        "peppers": 3,
+        "cherrytomatoes": 350,
+        "oliveoil": 30,
+        "lemons": 1
+      },
+      "steps": [
+        "Heat oven to 210°C (190°C fan), chop courgettes and peppers into even chunks.",
+        "Toss vegetables and tomatoes with olive oil and roast until starting to soften.",
+        "Lay cod on top and squeeze over lemon; return to oven until the fish is opaque and flakes easily.",
+        "Check fish is fully cooked and serve with roasted vegetables."
+      ]
+    },
+    {
+      "id": "rootveglentilcottagepie",
+      "n": "Root vegetable & lentil cottage-style pie",
+      "cat": "Vegetarian",
+      "e": "🥧",
+      "t": 55,
+      "d": "Lentils and root vegetables beneath mash",
+      "i": {
+        "greenlentils": 800,
+        "potatoes": 1400,
+        "carrots": 450,
+        "parsnips": 350,
+        "onions": 180,
+        "stock": 2
+      },
+      "steps": [
+        "Heat oven to 200°C (180°C fan); boil potatoes until tender and mash.",
+        "Dice carrots, parsnips and onion and soften in a large pan.",
+        "Add drained cooked lentils and stock and simmer until vegetables tender and mixture thick.",
+        "Spoon into a dish, top with mash and bake until hot and golden."
+      ]
+    }
+  ]
+}

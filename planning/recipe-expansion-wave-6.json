@@ -1,0 +1,457 @@
+{
+  "status": "draft-for-editorial-and-food-safety-review",
+  "recipes": [
+    {
+      "id": "chickensweetpotatowraps",
+      "n": "Chicken & sweet potato wraps",
+      "cat": "Chicken",
+      "e": "🌯",
+      "t": 35,
+      "d": "Soft wraps with spiced chicken and sweet potato",
+      "i": {
+        "chicken": 650,
+        "sweetpotatoes": 750,
+        "wraps": 8,
+        "lettuce": 0.5,
+        "plainyoghurt": 200,
+        "smokedpaprika": 6
+      },
+      "steps": [
+        "Peel and cut sweet potatoes into small cubes and roast at 210°C (190°C fan) until tender.",
+        "Dice chicken and fry with paprika until thoroughly cooked.",
+        "Warm the wraps and wash and shred the lettuce.",
+        "Fill wraps with chicken, sweet potatoes, lettuce and a little yoghurt."
+      ]
+    },
+    {
+      "id": "hammushroomomelette",
+      "n": "Ham & mushroom folded omelette",
+      "cat": "Pork & sausage",
+      "e": "🍳",
+      "t": 20,
+      "d": "A filling ham, mushroom and cheddar omelette",
+      "i": {
+        "eggs": 8,
+        "ham": 220,
+        "mushrooms": 300,
+        "cheese": 150,
+        "milk": 80
+      },
+      "steps": [
+        "Slice mushrooms and fry until soft and their moisture has evaporated.",
+        "Beat eggs with milk, then pour half into a non-stick pan over medium-low heat.",
+        "Add half the ham, mushrooms and grated cheese, then fold once the egg has set.",
+        "Repeat with the remaining mixture and cook until the eggs are completely set."
+      ]
+    },
+    {
+      "id": "lemonpeapasta",
+      "n": "Lemon & pea pasta",
+      "cat": "Vegetarian",
+      "e": "🍋",
+      "t": 15,
+      "d": "A simple buttery pea pasta with lemon",
+      "i": {
+        "penne": 500,
+        "peas": 350,
+        "lemons": 2,
+        "butter": 50,
+        "parmesan": 100
+      },
+      "steps": [
+        "Cook pasta in boiling water following packet instructions.",
+        "Add peas during the final few minutes of cooking, then drain and reserve a little pasta water.",
+        "Stir butter, lemon juice and grated parmesan through the hot pasta.",
+        "Loosen with pasta water if needed and serve immediately."
+      ]
+    },
+    {
+      "id": "tomatofetariceskillet",
+      "n": "Tomato & feta rice skillet",
+      "cat": "Vegetarian",
+      "e": "🍅",
+      "t": 25,
+      "d": "One-pan tomato rice with crumbled feta",
+      "i": {
+        "rice": 450,
+        "choppedtom": 800,
+        "feta": 200,
+        "spinach": 150,
+        "onions": 150
+      },
+      "steps": [
+        "Finely chop the onion and soften in a wide pan.",
+        "Stir through rice and chopped tomatoes and add enough water to cook rice according to its packet.",
+        "Simmer, stirring and topping up with water until rice is tender, then stir in spinach until wilted.",
+        "Crumble over feta and serve hot."
+      ]
+    },
+    {
+      "id": "chickenburgersaladbowl",
+      "n": "Chicken burger salad bowls",
+      "cat": "Chicken",
+      "e": "🥗",
+      "t": 30,
+      "d": "Homemade chicken patties with crunchy salad and potatoes",
+      "i": {
+        "chickenmince": 700,
+        "potatoes": 950,
+        "lettuce": 0.5,
+        "cucumber": 1,
+        "tomatoes": 250,
+        "garlicgranules": 6
+      },
+      "steps": [
+        "Heat oven to 210°C (190°C fan), cut potatoes into wedges and roast until tender and browned.",
+        "Mix chicken mince with garlic granules and shape into small, even patties.",
+        "Fry the patties until completely cooked through and no pink remains.",
+        "Serve with washed lettuce, cucumber, tomatoes and the wedges."
+      ]
+    },
+    {
+      "id": "creamysalmonleeknoodles",
+      "n": "Creamy salmon & leek noodles",
+      "cat": "Fish",
+      "e": "🍜",
+      "t": 30,
+      "d": "Flaked salmon with leeks and noodles in a light sauce",
+      "i": {
+        "salmon": 480,
+        "eggnoodles": 350,
+        "leeks": 250,
+        "creamcheese": 180,
+        "milk": 180
+      },
+      "steps": [
+        "Cook noodles according to the packet directions and drain.",
+        "Pan-cook salmon until fully cooked and flaking, then check for bones and remove skin.",
+        "Soften sliced leeks, stir in cream cheese and milk to form sauce.",
+        "Flake salmon into the sauce, add noodles and warm through gently."
+      ]
+    },
+    {
+      "id": "chickpearedpestopittas",
+      "n": "Chickpea & red pesto pittas",
+      "cat": "Vegetarian",
+      "e": "🥙",
+      "t": 15,
+      "d": "Warm pittas filled with chickpeas and tomato pesto",
+      "i": {
+        "chickpeas": 800,
+        "pitta": 6,
+        "redpesto": 160,
+        "cucumber": 1,
+        "spinach": 100
+      },
+      "steps": [
+        "Drain and rinse chickpeas and warm gently in a saucepan.",
+        "Stir through red pesto, checking the chickpeas are piping hot.",
+        "Warm the pittas and chop the cucumber and spinach.",
+        "Fill the pittas with chickpeas and fresh vegetables and serve."
+      ]
+    },
+    {
+      "id": "lentiltomatoeggskillet",
+      "n": "Lentil & tomato egg skillet",
+      "cat": "Vegetarian",
+      "e": "🍳",
+      "t": 25,
+      "d": "Poached eggs in a thick lentil tomato sauce",
+      "i": {
+        "greenlentils": 800,
+        "eggs": 8,
+        "passata": 600,
+        "onions": 150,
+        "smokedpaprika": 6
+      },
+      "steps": [
+        "Soften chopped onion with smoked paprika in a wide pan.",
+        "Add drained cooked lentils and passata and simmer until thick and hot.",
+        "Make eight hollows, crack an egg into each and cover the pan.",
+        "Cook until whites are completely set, then serve; fully cook yolks where needed."
+      ]
+    },
+    {
+      "id": "bbqtofuvegwraps",
+      "n": "BBQ tofu & vegetable wraps",
+      "cat": "Vegetarian",
+      "e": "🌯",
+      "t": 25,
+      "d": "Warm BBQ tofu with peppers and salad",
+      "i": {
+        "tofu": 650,
+        "wraps": 8,
+        "bbq": 150,
+        "peppers": 2,
+        "lettuce": 0.5,
+        "carrots": 180
+      },
+      "steps": [
+        "Dice tofu into small cubes and fry until golden.",
+        "Add sliced peppers and grated carrot and cook until tender.",
+        "Stir through BBQ sauce and heat until the tofu and vegetables are piping hot.",
+        "Warm the wraps and fill with tofu mixture and washed lettuce."
+      ]
+    },
+    {
+      "id": "warmpotatotunasalad",
+      "n": "Warm potato & tuna salad",
+      "cat": "Fish",
+      "e": "🥔",
+      "t": 25,
+      "d": "New-style potato and tuna salad with green beans",
+      "i": {
+        "potatoes": 1200,
+        "tuna": 290,
+        "greenbeans": 300,
+        "lemons": 1,
+        "oliveoil": 25,
+        "springonions": 100
+      },
+      "steps": [
+        "Cut potatoes into even pieces and boil until tender.",
+        "Trim green beans and cook thoroughly until tender.",
+        "Drain tuna and slice spring onions, then whisk lemon juice with olive oil.",
+        "Toss the warm potatoes and beans with tuna and dressing and serve."
+      ]
+    },
+    {
+      "id": "crispyblackbeantortillas",
+      "n": "Crisp black bean & sweetcorn tortillas",
+      "cat": "Vegetarian",
+      "e": "🌮",
+      "t": 25,
+      "d": "Baked crisp tortilla rounds with bean topping",
+      "i": {
+        "wraps": 8,
+        "blackbeans": 800,
+        "sweetcorn": 300,
+        "passata": 180,
+        "cheese": 180,
+        "peppers": 2
+      },
+      "steps": [
+        "Heat oven to 200°C (180°C fan) and cut small rounds or wedges from wraps.",
+        "Bake tortilla pieces until crisp and lightly golden, watching closely.",
+        "Mash drained beans with passata and warm with sweetcorn and chopped peppers until piping hot.",
+        "Spoon onto crisp tortillas, top with cheese and warm briefly to melt."
+      ]
+    },
+    {
+      "id": "chickencucumbernoodlesalad",
+      "n": "Chicken & cucumber noodle salad",
+      "cat": "Chicken",
+      "e": "🥒",
+      "t": 30,
+      "d": "Warm chicken noodles with crisp cucumber and lime",
+      "i": {
+        "chicken": 700,
+        "ricenoodles": 350,
+        "cucumber": 1,
+        "carrots": 200,
+        "limes": 2,
+        "soy": 45
+      },
+      "steps": [
+        "Cook rice noodles as directed, drain and keep warm.",
+        "Dice chicken and stir-fry until completely cooked throughout.",
+        "Grate carrots and cut cucumber into thin strips.",
+        "Toss warm noodles and chicken with vegetables, lime juice and soy and serve immediately."
+      ]
+    },
+    {
+      "id": "beefcabbagefriedrice",
+      "n": "Beef & cabbage fried rice",
+      "cat": "Beef",
+      "e": "🍚",
+      "t": 30,
+      "d": "Beef mince, cabbage and rice in one pan",
+      "i": {
+        "beef": 650,
+        "rice": 450,
+        "cabbage": 350,
+        "carrots": 180,
+        "soy": 50,
+        "ginger": 15
+      },
+      "steps": [
+        "Cook rice as directed and use promptly while hot, or cool rapidly if preparing ahead.",
+        "Brown beef mince completely with grated ginger.",
+        "Add shredded cabbage and carrots and stir-fry until tender.",
+        "Add rice and soy sauce, cook until piping hot and serve."
+      ]
+    },
+    {
+      "id": "spinachmozzarellapasta",
+      "n": "Spinach & mozzarella pasta",
+      "cat": "Vegetarian",
+      "e": "🧀",
+      "t": 20,
+      "d": "Quick tomato pasta with spinach and melted mozzarella",
+      "i": {
+        "fusilli": 500,
+        "spinach": 220,
+        "mozzarella": 250,
+        "passata": 500,
+        "garlic": 10
+      },
+      "steps": [
+        "Boil fusilli according to the packet instructions.",
+        "Warm passata and chopped garlic in a saucepan until gently bubbling.",
+        "Stir in spinach until wilted, then toss in drained pasta.",
+        "Tear mozzarella over the pasta and stir until slightly melted; serve hot."
+      ]
+    },
+    {
+      "id": "sausagepestoorzo",
+      "n": "Sausage pesto orzo skillet",
+      "cat": "Pork & sausage",
+      "e": "🍲",
+      "t": 30,
+      "d": "One-pan orzo with sausages and green pesto",
+      "i": {
+        "sausages": 10,
+        "orzo": 450,
+        "greenpesto": 180,
+        "peas": 250,
+        "onions": 120
+      },
+      "steps": [
+        "Remove sausage meat from skins if necessary, break into small pieces and cook until thoroughly done.",
+        "Add chopped onions and soften briefly.",
+        "Add orzo and enough water to cook until tender, stirring and topping up as required.",
+        "Fold in peas and pesto and heat until piping hot."
+      ]
+    },
+    {
+      "id": "fetacourgetteflatbreadpizzas",
+      "n": "Feta & courgette flatbread pizzas",
+      "cat": "Vegetarian",
+      "e": "🍕",
+      "t": 20,
+      "d": "Crispy flatbread pizzas with feta and courgette",
+      "i": {
+        "flatbreads": 6,
+        "courgettes": 2,
+        "feta": 220,
+        "passata": 250,
+        "mozzarella": 150
+      },
+      "steps": [
+        "Heat oven to 220°C (200°C fan) and thinly slice courgettes.",
+        "Spread passata over flatbreads and add courgette slices.",
+        "Scatter over crumbled feta and torn mozzarella.",
+        "Bake until the courgette is tender, the cheese golden and flatbreads crisp."
+      ]
+    },
+    {
+      "id": "haddockpeacouscous",
+      "n": "Haddock & pea couscous",
+      "cat": "Fish",
+      "e": "🐟",
+      "t": 25,
+      "d": "Flaked haddock on lemony pea couscous",
+      "i": {
+        "haddock": 650,
+        "couscous": 400,
+        "peas": 300,
+        "lemons": 1,
+        "oliveoil": 20
+      },
+      "steps": [
+        "Cook haddock until opaque and flaking easily, checking for bones.",
+        "Cook peas until hot and prepare couscous following its packet instructions.",
+        "Fluff couscous with a fork and stir through peas, lemon juice and olive oil.",
+        "Top with flaked haddock and serve warm."
+      ]
+    },
+    {
+      "id": "blackbeanavocadorice",
+      "n": "Black bean & avocado rice bowls",
+      "cat": "Vegetarian",
+      "e": "🥑",
+      "t": 25,
+      "d": "Black beans and rice with cool avocado and salsa",
+      "i": {
+        "blackbeans": 800,
+        "rice": 450,
+        "avocado": 2,
+        "salsa": 220,
+        "lettuce": 0.5,
+        "limes": 1
+      },
+      "steps": [
+        "Cook rice following packet directions.",
+        "Drain and rinse black beans, then warm thoroughly with salsa.",
+        "Slice avocado and chop lettuce, squeezing lime over avocado.",
+        "Fill bowls with rice and hot beans, then top with avocado and lettuce."
+      ]
+    },
+    {
+      "id": "coconutredlentildhal",
+      "n": "Coconut red lentil dhal",
+      "cat": "Vegetarian",
+      "e": "🥥",
+      "t": 35,
+      "d": "Mild creamy lentil dhal with rice",
+      "i": {
+        "lentils": 350,
+        "coconutmilk": 400,
+        "rice": 450,
+        "onions": 180,
+        "currypowder": 12,
+        "spinach": 150
+      },
+      "steps": [
+        "Cook rice according to the packet.",
+        "Soften chopped onion with curry powder in a saucepan.",
+        "Add rinsed lentils, coconut milk and enough water to cover; simmer until lentils are completely soft, stirring often.",
+        "Fold in spinach until wilted and serve the piping-hot dhal with rice."
+      ]
+    },
+    {
+      "id": "porkpineapplepepperskillet",
+      "n": "Pork & pineapple pepper skillet",
+      "cat": "Pork & sausage",
+      "e": "🍍",
+      "t": 30,
+      "d": "Sweet-and-savoury pork with peppers and rice",
+      "i": {
+        "porkloin": 700,
+        "pineapple": 450,
+        "peppers": 3,
+        "rice": 450,
+        "soy": 55,
+        "ginger": 15
+      },
+      "steps": [
+        "Cook rice according to packet instructions.",
+        "Cut pork into small strips and stir-fry with grated ginger until thoroughly cooked.",
+        "Add sliced peppers and pineapple and stir-fry until peppers are tender.",
+        "Stir in soy sauce and serve immediately over rice."
+      ]
+    },
+    {
+      "id": "creamymushroomquinoabowls",
+      "n": "Creamy mushroom quinoa bowls",
+      "cat": "Vegetarian",
+      "e": "🍄",
+      "t": 30,
+      "d": "Warm quinoa topped with creamy mushrooms",
+      "i": {
+        "quinoa": 450,
+        "mushrooms": 450,
+        "creamcheese": 180,
+        "spinach": 160,
+        "onions": 150,
+        "garlic": 12
+      },
+      "steps": [
+        "Cook quinoa following its packet instructions and drain.",
+        "Soften chopped onions and sliced mushrooms in a pan until the mushroom liquid evaporates.",
+        "Add chopped garlic, spinach and cream cheese with a splash of water, stirring until creamy and hot.",
+        "Spoon over quinoa and serve immediately."
+      ]
+    }
+  ]
+}
