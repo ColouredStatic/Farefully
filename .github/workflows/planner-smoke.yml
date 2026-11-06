@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - 'app/app.js'
+      - 'app/recipes-expansion.js'
       - 'app/index.html'
       - 'index.html'
       - 'assets/styles.css'
@@ -25,10 +26,12 @@ on:
       - 'tests/household-fit-smoke.mjs'
       - 'tests/basket-quantity-variety-smoke.mjs'
       - 'tests/recipe-photography-smoke.mjs'
+      - 'tests/recipe-expansion-smoke.mjs'
       - '.github/workflows/planner-smoke.yml'
   pull_request:
     paths:
       - 'app/app.js'
+      - 'app/recipes-expansion.js'
       - 'app/index.html'
       - 'index.html'
       - 'assets/styles.css'
@@ -49,6 +52,7 @@ on:
       - 'tests/household-fit-smoke.mjs'
       - 'tests/basket-quantity-variety-smoke.mjs'
       - 'tests/recipe-photography-smoke.mjs'
+      - 'tests/recipe-expansion-smoke.mjs'
       - '.github/workflows/planner-smoke.yml'
   workflow_dispatch:
 
@@ -97,3 +101,5 @@ jobs:
         run: node tests/basket-quantity-variety-smoke.mjs
       - name: Test recipe photo assignment and fallback
         run: node tests/recipe-photography-smoke.mjs
+      - name: Verify 350 recipes and their basket ingredient mappings
+        run: node tests/recipe-expansion-smoke.mjs
