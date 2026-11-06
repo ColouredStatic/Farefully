@@ -235,29 +235,29 @@
       ]
     },
     {
-      "id": "turkeymincetacowraps",
-      "n": "Turkey mince taco wraps",
-      "cat": "Pork & sausage",
+      "id": "chickenmincetacowraps",
+      "n": "Chicken mince taco wraps",
+      "cat": "Chicken",
       "e": "🌮",
       "t": 25,
       "d": "Lean turkey mince with lettuce and tomato in soft wraps",
       "i": {
-        "turkeymince": 650,
         "wraps": 8,
         "tomatoes": 300,
         "lettuce": 0.5,
         "passata": 250,
-        "cumin": 5
+        "cumin": 5,
+        "chickenmince": 650
       },
       "steps": [
-        "Fry the turkey mince, breaking up any lumps, until it is fully cooked.",
+        "Fry the chicken mince, breaking up any lumps, until it is fully cooked and no pink remains.",
         "Stir in the cumin and passata and simmer until the sauce has thickened.",
         "Wash and chop the lettuce and tomatoes while the mince cooks.",
         "Warm the wraps, fill with hot mince and add fresh salad just before serving."
       ]
     },
     {
-      "id": "fetale monorzo",
+      "id": "fetalemonorzo",
       "n": "Lemon feta orzo salad",
       "cat": "Vegetarian",
       "e": "🍋",
