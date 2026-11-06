@@ -1,0 +1,434 @@
+{
+  "status": "draft-for-editorial-and-food-safety-review",
+  "target": "Farefully dinner D and METHODS catalogues, not yet integrated",
+  "created": "2026-11-06",
+  "rules": [
+    "Do not publish or advertise as allergen safe without ingredient and packaged-food review.",
+    "Use verified image licensing/attribution before publication.",
+    "Check true prep and cook times and household serving size.",
+    "Do not claim precise price or calorie amounts without validated retailer/product and nutrition data."
+  ],
+  "recipes": [
+    {
+      "id": "tomatospinachgnocchi",
+      "n": "Tomato & spinach gnocchi",
+      "cat": "Vegetarian",
+      "e": "🍅",
+      "t": 15,
+      "d": "Soft gnocchi in a speedy tomato and spinach sauce",
+      "i": {
+        "gnocchi": 1000,
+        "passata": 500,
+        "spinach": 180,
+        "mozzarella": 150,
+        "onions": 100
+      },
+      "steps": [
+        "Slice the onion finely and soften it in a little oil for 3 minutes.",
+        "Stir in the passata and simmer gently while the gnocchi cooks according to its packet instructions.",
+        "Fold in the spinach until wilted, then drain the gnocchi and stir it through the sauce.",
+        "Scatter over the mozzarella and heat until melted and piping hot before serving."
+      ]
+    },
+    {
+      "id": "pittapizzapeppers",
+      "n": "Pepper & mozzarella pitta pizzas",
+      "cat": "Vegetarian",
+      "e": "🍕",
+      "t": 15,
+      "d": "Quick pitta pizzas for an easy family supper",
+      "i": {
+        "pitta": 6,
+        "passata": 200,
+        "mozzarella": 200,
+        "peppers": 2,
+        "sweetcorn": 120
+      },
+      "steps": [
+        "Heat the oven to 220°C (200°C fan) and arrange the pittas on a tray.",
+        "Spread each pitta with passata and top with chopped peppers, sweetcorn and torn mozzarella.",
+        "Bake for 8–10 minutes until the cheese bubbles and the pittas are crisp at the edges.",
+        "Allow the pizzas to cool slightly, then serve with any extra vegetables."
+      ]
+    },
+    {
+      "id": "tunameltbagels",
+      "n": "Tuna melt bagels",
+      "cat": "Fish",
+      "e": "🥯",
+      "t": 15,
+      "d": "Toasted bagels with warm tuna and cheddar",
+      "i": {
+        "bagels": 5,
+        "tuna": 290,
+        "mayo": 70,
+        "cheese": 180,
+        "sweetcorn": 150
+      },
+      "steps": [
+        "Heat the grill, split the bagels and drain the tuna thoroughly.",
+        "Mix tuna, mayonnaise and sweetcorn, then spoon over the cut bagel halves.",
+        "Top with grated cheese and grill for 3–5 minutes until the cheese is bubbling.",
+        "Serve hot, checking the filling has heated through."
+      ]
+    },
+    {
+      "id": "halloumipittapockets",
+      "n": "Halloumi & pepper pitta pockets",
+      "cat": "Vegetarian",
+      "e": "🥙",
+      "t": 15,
+      "d": "Warm pitta pockets with golden halloumi and crunchy peppers",
+      "i": {
+        "halloumi": 450,
+        "pitta": 6,
+        "peppers": 2,
+        "lettuce": 0.5,
+        "plainyoghurt": 180
+      },
+      "steps": [
+        "Slice the halloumi and peppers into strips and warm the pittas according to their packet instructions.",
+        "Fry the halloumi in a non-stick pan until golden on both sides.",
+        "Mix the yoghurt with a little water to make a spoonable dressing.",
+        "Fill the pittas with lettuce, pepper strips and halloumi, then drizzle with yoghurt."
+      ]
+    },
+    {
+      "id": "creamybutterbeanskillet",
+      "n": "Creamy tomato butter beans",
+      "cat": "Vegetarian",
+      "e": "🫘",
+      "t": 20,
+      "d": "One-pan butter beans in a creamy tomato sauce",
+      "i": {
+        "butterbeans": 800,
+        "passata": 500,
+        "spinach": 160,
+        "creamcheese": 180,
+        "onions": 150,
+        "bread": 6
+      },
+      "steps": [
+        "Finely chop the onion and soften it in a pan with a little oil.",
+        "Drain and rinse the butter beans, then add them with the passata and simmer for 8 minutes.",
+        "Stir in the cream cheese and spinach until the sauce is smooth and the greens have wilted.",
+        "Check the beans are piping hot and serve with toasted bread."
+      ]
+    },
+    {
+      "id": "mushroomcheesewraps",
+      "n": "Mushroom & cheese folded wraps",
+      "cat": "Vegetarian",
+      "e": "🌯",
+      "t": 15,
+      "d": "Crisp toasted wraps filled with mushrooms and melting cheese",
+      "i": {
+        "wraps": 8,
+        "mushrooms": 350,
+        "cheese": 220,
+        "spinach": 100
+      },
+      "steps": [
+        "Slice the mushrooms and cook in a hot pan until their moisture has evaporated.",
+        "Add spinach and stir briefly until wilted, then remove the vegetables from the heat.",
+        "Share the filling and grated cheese between the wraps, folding each into a parcel.",
+        "Toast each parcel in a dry pan on both sides until golden and the cheese is fully melted."
+      ]
+    },
+    {
+      "id": "smokedsalmonwraps",
+      "n": "Smoked salmon & cucumber wraps",
+      "cat": "Fish",
+      "e": "🐟",
+      "t": 10,
+      "d": "Cool, creamy wraps that need no cooking",
+      "i": {
+        "smokedsalmon": 300,
+        "wraps": 8,
+        "creamcheese": 200,
+        "cucumber": 1,
+        "lettuce": 0.5
+      },
+      "steps": [
+        "Wash the cucumber and lettuce, then slice them thinly.",
+        "Spread the wraps with cream cheese, leaving a small border at the edges.",
+        "Layer with smoked salmon, cucumber and lettuce.",
+        "Roll tightly, slice in half and serve immediately; refrigerate any leftovers promptly."
+      ]
+    },
+    {
+      "id": "chickenpestognocchi",
+      "n": "Chicken pesto gnocchi",
+      "cat": "Chicken",
+      "e": "🍗",
+      "t": 25,
+      "d": "A filling one-pan chicken and gnocchi dinner",
+      "i": {
+        "chicken": 650,
+        "gnocchi": 900,
+        "pesto": 170,
+        "spinach": 180,
+        "cheese": 120
+      },
+      "steps": [
+        "Cut the chicken into small, even pieces and fry in a little oil until cooked all the way through.",
+        "Cook the gnocchi according to its packet instructions and reserve a little cooking water.",
+        "Add spinach to the chicken pan until wilted, then stir through the pesto and gnocchi.",
+        "Loosen with a splash of cooking water, scatter over cheese and serve piping hot."
+      ]
+    },
+    {
+      "id": "prawwhitegarlicnoodles",
+      "n": "Garlic prawn noodles",
+      "cat": "Fish",
+      "e": "🍤",
+      "t": 20,
+      "d": "Garlicky noodles with prawns, peppers and greens",
+      "i": {
+        "prawns": 600,
+        "eggnoodles": 350,
+        "peppers": 2,
+        "spinach": 180,
+        "garlic": 15,
+        "soy": 45
+      },
+      "steps": [
+        "Cook the noodles according to their packet instructions and drain.",
+        "Slice the peppers and soften them in a frying pan with the garlic.",
+        "Add the cooked prawns and spinach; stir-fry until the prawns are piping hot and the spinach wilts.",
+        "Toss in the noodles and soy sauce, heat thoroughly and serve immediately."
+      ]
+    },
+    {
+      "id": "chickentomatoflatbreads",
+      "n": "Chicken & tomato flatbread pockets",
+      "cat": "Chicken",
+      "e": "🥙",
+      "t": 25,
+      "d": "Warm filled flatbreads for busy evenings",
+      "i": {
+        "chicken": 700,
+        "flatbreads": 6,
+        "passata": 250,
+        "peppers": 2,
+        "lettuce": 0.5
+      },
+      "steps": [
+        "Cut the chicken into small pieces and slice the peppers.",
+        "Fry the chicken until fully cooked, then add the peppers and cook until tender.",
+        "Stir in the passata and simmer for 4 minutes until the mixture is hot and thickened.",
+        "Warm the flatbreads and fill with the chicken mixture and fresh lettuce."
+      ]
+    },
+    {
+      "id": "quickbeefbroccolinoodles",
+      "n": "Beef & broccoli noodles",
+      "cat": "Beef",
+      "e": "🥦",
+      "t": 25,
+      "d": "A simple family stir-fry with beef and broccoli",
+      "i": {
+        "beefsteak": 600,
+        "broccoli": 2,
+        "eggnoodles": 350,
+        "soy": 50,
+        "onions": 150
+      },
+      "steps": [
+        "Slice the beef thinly across the grain, chop the onion and cut the broccoli into small florets.",
+        "Cook the noodles as directed on the packet and steam the broccoli until just tender.",
+        "Stir-fry the beef and onion in a hot pan until the beef is fully cooked.",
+        "Add broccoli, noodles and soy sauce, toss until piping hot and serve."
+      ]
+    },
+    {
+      "id": "blackbeancheesejackets",
+      "n": "Black bean & cheddar microwave jackets",
+      "cat": "Vegetarian",
+      "e": "🥔",
+      "t": 20,
+      "d": "Quick microwave potatoes with a hearty bean topping",
+      "i": {
+        "potatoes": 1400,
+        "blackbeans": 800,
+        "cheese": 180,
+        "salsa": 180
+      },
+      "steps": [
+        "Prick the potatoes all over and microwave in batches until completely tender, following your microwave's guidance.",
+        "Drain and rinse the black beans, then warm them with the salsa in a saucepan until piping hot.",
+        "Split the cooked potatoes carefully and fluff the centres with a fork.",
+        "Spoon over the hot beans, scatter with cheddar and allow the cheese to melt."
+      ]
+    },
+    {
+      "id": "hamsweetcornpastasalad",
+      "n": "Ham & sweetcorn pasta salad",
+      "cat": "Pork & sausage",
+      "e": "🥗",
+      "t": 20,
+      "d": "Family-friendly pasta with ham, sweetcorn and a light dressing",
+      "i": {
+        "pasta": 500,
+        "ham": 300,
+        "sweetcorn": 250,
+        "plainyoghurt": 180,
+        "cheese": 120
+      },
+      "steps": [
+        "Cook the pasta according to the packet instructions until tender, then drain and cool promptly.",
+        "Cook the sweetcorn until hot and cool it before mixing into the salad.",
+        "Dice the ham and mix with the pasta, sweetcorn, yoghurt and grated cheese.",
+        "Serve freshly made or chill immediately in a covered container until needed."
+      ]
+    },
+    {
+      "id": "porkpepperudon",
+      "n": "Pork & pepper udon",
+      "cat": "Pork & sausage",
+      "e": "🍜",
+      "t": 25,
+      "d": "Tender pork strips and peppers with thick noodles",
+      "i": {
+        "porkloin": 600,
+        "udon": 600,
+        "peppers": 2,
+        "onions": 150,
+        "soy": 50
+      },
+      "steps": [
+        "Slice the pork into thin strips, chop the onion and peppers, and prepare the udon as directed.",
+        "Fry the pork in a hot pan until thoroughly cooked.",
+        "Add the onion and peppers, cooking until tender.",
+        "Toss with the drained udon and soy sauce, heating until everything is piping hot."
+      ]
+    },
+    {
+      "id": "quickeggpeppershakshuka",
+      "n": "Easy eggs in tomato & pepper sauce",
+      "cat": "Vegetarian",
+      "e": "🍳",
+      "t": 25,
+      "d": "An easy pan of poached eggs in spiced tomato sauce",
+      "i": {
+        "eggs": 8,
+        "passata": 700,
+        "peppers": 2,
+        "onions": 180,
+        "bread": 8
+      },
+      "steps": [
+        "Chop the onion and peppers and soften them in a wide pan.",
+        "Add passata and simmer for 8–10 minutes until slightly thickened.",
+        "Make eight small hollows, crack an egg into each and cover the pan until the whites are fully set.",
+        "Serve immediately with toasted bread; cook yolks thoroughly for anyone who needs fully cooked eggs."
+      ]
+    },
+    {
+      "id": "tomatoprawnorzo",
+      "n": "Tomato prawn orzo",
+      "cat": "Fish",
+      "e": "🍅",
+      "t": 25,
+      "d": "One-pot orzo with prawns and a rich tomato sauce",
+      "i": {
+        "orzo": 450,
+        "prawns": 500,
+        "passata": 500,
+        "spinach": 100,
+        "onions": 120,
+        "stock": 2
+      },
+      "steps": [
+        "Finely chop and soften the onion in a little oil.",
+        "Add the orzo, passata, stock and enough water to cover; simmer and stir until the orzo is tender.",
+        "Fold through the cooked prawns and spinach and cook until the prawns are piping hot.",
+        "Check the pasta is cooked and the sauce is not dry, then serve promptly."
+      ]
+    },
+    {
+      "id": "cheesycannellinitoasts",
+      "n": "Cheesy tomato beans on toast",
+      "cat": "Vegetarian",
+      "e": "🍞",
+      "t": 15,
+      "d": "A filling, inexpensive bean supper on toast",
+      "i": {
+        "cannellini": 800,
+        "passata": 400,
+        "cheese": 200,
+        "bread": 8,
+        "onions": 80
+      },
+      "steps": [
+        "Chop the onion finely and soften it in a pan for a few minutes.",
+        "Drain and rinse the beans, add with the passata and simmer until thoroughly hot.",
+        "Toast the bread and arrange it on serving plates.",
+        "Spoon beans onto the toast, top with grated cheese and let it melt before eating."
+      ]
+    },
+    {
+      "id": "tunahotpotatoes",
+      "n": "Tuna, sweetcorn & cheese hot potatoes",
+      "cat": "Fish",
+      "e": "🥔",
+      "t": 20,
+      "d": "Microwave jacket potatoes topped with a warm tuna filling",
+      "i": {
+        "potatoes": 1400,
+        "tuna": 290,
+        "sweetcorn": 250,
+        "cheese": 180,
+        "plainyoghurt": 120
+      },
+      "steps": [
+        "Prick the potatoes and microwave in batches until the centres are soft and fully cooked.",
+        "Drain the tuna and heat the sweetcorn until piping hot.",
+        "Mix tuna, warm sweetcorn and yoghurt in a saucepan, stirring gently until heated through.",
+        "Split the potatoes, add the filling and scatter cheddar over the top."
+      ]
+    },
+    {
+      "id": "sausagepepperwraps",
+      "n": "Sausage & pepper wraps",
+      "cat": "Pork & sausage",
+      "e": "🌯",
+      "t": 25,
+      "d": "Golden sausage pieces with peppers and tomato in wraps",
+      "i": {
+        "sausages": 8,
+        "wraps": 8,
+        "peppers": 2,
+        "passata": 250,
+        "onions": 120
+      },
+      "steps": [
+        "Remove sausage meat from the casings if needed and divide into small pieces.",
+        "Fry the sausage pieces until browned and cooked all the way through.",
+        "Add sliced peppers and onion, then stir through the passata and cook until tender.",
+        "Warm the wraps and fill with the sausage and pepper mixture while hot."
+      ]
+    },
+    {
+      "id": "falafelyoghurtflatbread",
+      "n": "Falafel & yoghurt flatbreads",
+      "cat": "Vegetarian",
+      "e": "🧆",
+      "t": 15,
+      "d": "Warm falafel, crisp salad and creamy yoghurt in flatbreads",
+      "i": {
+        "falafel": 600,
+        "flatbreads": 6,
+        "lettuce": 0.5,
+        "cucumber": 1,
+        "plainyoghurt": 200
+      },
+      "steps": [
+        "Heat the falafel according to the packet directions until piping hot.",
+        "Wash and slice the cucumber and lettuce.",
+        "Warm the flatbreads and spoon a little plain yoghurt over each.",
+        "Fill with hot falafel and crunchy salad, then serve."
+      ]
+    }
+  ]
+}
