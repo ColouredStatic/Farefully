@@ -315,6 +315,9 @@ const RETAILERS={
   'Marks & Spencer':{index:1.3150,loyal:1.3150,bench:false,f:{Meat:1.07,Dairy:1.04,Bakery:1.07,Cupboard:1.01,Produce:1.06,Frozen:1.00,Chilled:1.03,Breakfast:1.03,Snacks:1.04}},
   'Waitrose':{index:1.4041,loyal:1.4041,bench:true,f:{Meat:1.05,Dairy:1.03,Bakery:1.04,Cupboard:.99,Produce:1.04,Frozen:1.01,Chilled:1.05,Breakfast:1.01,Snacks:1.02}}
 };
+function hasFreshRetailerRows(name){
+  return LIVE_ROWS.some(row=>normRetailer(row.retailer)===name&&liveRowFresh(row));
+}
 function selectedRetailer(){
   const s=state.supermarket||'';
   if(RETAILERS[s])return s;
@@ -352,8 +355,8 @@ function renderRetailerComparison(){
   el.innerHTML=rows.map((x,i)=>{
     const useLoyal=state.loyaltyPricing&&((x.name==="Sainsbury's"&&x.r.loyal<x.r.index)||(x.name==='Tesco'&&x.r.loyal<x.r.index));
     const saving=selectedTotal-x.total;
-    const coverage=x.q.liveCapable&&LIVE_ROWS.length?`${x.q.matched}/${x.q.eligible} ingredient lines live-matched`:'Benchmark model';
-    return `<div class="pricerow ${x.name===selected?'selected':''}"><div><div class="pricename">${esc(x.name)}${x.name===selected?(auto?' · current best':' · your shop'):''}</div><div class="pricebadges">${i===0?'<span class="minibadge best">Cheapest estimate</span>':''}${useLoyal?'<span class="minibadge loyal">Loyalty where matched</span>':''}${x.q.liveCapable&&LIVE_ROWS.length?'<span class="minibadge best">Live + fallback</span>':!x.r.bench?'<span class="minibadge model">Provisional model</span>':''}</div><div class="coverage">${coverage}</div></div><div class="pricevalue">${money(x.total)}${saving>0.49?`<div class="pricesave">Save ${money(saving)}</div>`:''}</div></div>`
+    const coverage=x.q.liveCapable&&hasFreshRetailerRows(x.name)?`${x.q.matched}/${x.q.eligible} ingredient lines live-matched`:'Benchmark model';
+    return `<div class="pricerow ${x.name===selected?'selected':''}"><div><div class="pricename">${esc(x.name)}${x.name===selected?(auto?' · lowest model estimate':' · your shop'):''}</div><div class="pricebadges">${i===0?'<span class="minibadge best">Lowest indicative estimate</span>':''}${useLoyal?'<span class="minibadge loyal">Loyalty where matched</span>':''}${x.q.liveCapable&&hasFreshRetailerRows(x.name)?'<span class="minibadge best">Fresh match + model</span>':!x.r.bench?'<span class="minibadge model">Provisional model</span>':''}</div><div class="coverage">${coverage}</div></div><div class="pricevalue">${money(x.total)}${saving>0.49?`<div class="pricesave">Model difference ${money(saving)}</div>`:''}</div></div>`
   }).join('');renderLiveStatus()
 }const store={
   get:k=>{try{return localStorage.getItem(k)}catch(e){return null}},
@@ -760,7 +763,7 @@ function mealStyles(m){
   if(/\b(mash|mashed potatoes)\b/.test(n))a.push('mash');
   if(/\bburgers?\b/.test(n))a.push('burger');
   if(k.some(x=>['pasta','spaghetti','orzo','penne','fusilli','macaroni','lasagne','gfpasta','gfspaghetti'].includes(x)))a.push('pasta');
-  if(k.includes('rice'))a.push('rice');
+  if(k.some(x=>['rice','basmati','longgrain','brownrice','jasminerice','wildrice'].includes(x)))a.push('rice');
   if(k.includes('wraps')||/taco|quesadilla|wrap/.test(n))a.push('wraps');
   if(/curry/.test(n)||k.includes('curry'))a.push('curry');
   if(k.some(x=>['noodles','eggnoodles','ricenoodles','udon','ramen','gfnoodles'].includes(x)))a.push('noodles');
@@ -799,6 +802,43 @@ function excessiveRepeat(m,day,plan=state.plan,lookup=null){
    if(weekly>=perWeek||total>=overall)return true;
  }
  return false;
+}
+
+// Balanced variety is a preference, never an override for food safety or a strict exclusion.
+// Apply soft penalties to repeated staples and proteins within each seven-day window.
+function mealStaple(m){
+  if(!m)return '';
+  const keys=Object.keys(effectiveIngredients(m.i||{})),styles=mealStyles(m);
+  if(styles.includes('noodles'))return 'noodles';
+  if(styles.includes('pasta'))return 'pasta';
+  if(styles.includes('rice'))return 'rice';
+  if(styles.includes('wraps'))return 'wraps';
+  if(styles.some(x=>['wedges','chips','mash'].includes(x))||keys.some(x=>['potatoes','sweetpotatoes','gnocchi'].includes(x)))return 'potatoes';
+  if(keys.some(x=>['bread','buns','pitta','flatbreads','gfbread','rolls'].includes(x)))return 'bread';
+  return '';
+}
+function weeklyVarietyPenalty(m,day,plan=state.plan,lookup=null){
+  if(!m||!Array.isArray(plan))return 0;
+  const meals=lookup||new Map(allDinners().map(x=>[x.id,x]));
+  const week=Math.floor(day/7),start=week*7,end=Math.min(plan.length,start+7);
+  const staple=mealStaple(m),protein=mealProtein(m);
+  const weight=state.priority==='variety'?1.4:state.priority==='family'?0.7:1;
+  let matchingStaples=0,matchingProteins=0,penalty=0;
+  for(let i=start;i<end;i++){
+    if(i===day)continue;
+    const other=meals.get(plan[i]);
+    if(!other)continue;
+    if(staple&&mealStaple(other)===staple)matchingStaples++;
+    if(mealProtein(other)===protein)matchingProteins++;
+    if(Math.abs(i-day)===1){
+      if(staple&&mealStaple(other)===staple)penalty+=12;
+      if(mealProtein(other)===protein)penalty+=8;
+      if(ingredientSimilarity(other,m)>.62)penalty+=8;
+    }
+  }
+  if(staple&&matchingStaples>=2)penalty+=(matchingStaples-1)*7;
+  if(matchingProteins>=3)penalty+=(matchingProteins-2)*8;
+  return penalty*weight;
 }
 function hardBlocked(m){
   if(state.ratings?.[m.id]==='never')return true;
@@ -947,7 +987,7 @@ function build(){
       const protein=mealProtein(m),styles=mealStyles(m),r=state.ratings?.[m.id];let score=fitScore(m);
       score-=(catCount[protein]||0)*(state.priority==='variety'?9:4);
       styles.forEach(k=>score-=(styleCount[k]||0)*(state.priority==='variety'?3:1.5));
-      if(i>0){const prev=meal(i-1);if(prev&&mealProtein(prev)===protein)score-=state.priority==='variety'?15:8;if(prev&&state.priority==='variety')score-=ingredientSimilarity(prev,m)*12}
+      score-=weeklyVarietyPenalty(m,i,state.plan,dishLookup);
       if(protein==='Vegetarian')score+=(catCount['Vegetarian']||0)<vegTarget?9:-5;
       if(protein==='Fish')score+=(catCount['Fish']||0)<fishTarget?9:-5;
       if(i%7===6&&styles.includes('roast'))score+=10;
@@ -976,6 +1016,10 @@ function build(){
         const current=meal(i),before=state.total,currentFit=fitScore(current);let best=null;
         for(const cand of pool){
           if(state.plan.includes(cand.id)||fitScore(cand)<currentFit-14||excessiveRepeat(cand,i,state.plan,dishLookup))continue;
+          // Rescue the estimated budget without turning a whole week into the same dinner.
+          const currentVariety=weeklyVarietyPenalty(current,i,state.plan,dishLookup);
+          const candidateVariety=weeklyVarietyPenalty(cand,i,state.plan,dishLookup);
+          if(candidateVariety>currentVariety+(state.priority==='budget'?14:8))continue;
           if(state.novelty==='adventurous'&&recentExposure(cand.id)>=3)continue;
           const old=state.plan[i];state.plan[i]=cand.id;calc();const saving=before-state.total;state.plan[i]=old;calc();
           if(saving>.25&&(!best||saving>best.saving))best={id:cand.id,saving}
@@ -1025,7 +1069,7 @@ function renderUnsafe(){
   const rem=state.budget-state.total;
   document.getElementById('spend').textContent='£'+Math.round(state.total);
   document.getElementById('target').textContent='/ £'+Math.round(state.budget);
-  document.getElementById('remain').textContent=(rem>=0?money(rem)+' left':money(Math.abs(rem))+' over');
+  document.getElementById('remain').textContent=(rem>=0?'Est. '+money(rem)+' below':'Est. '+money(Math.abs(rem))+' above');
   document.getElementById('ring').style.setProperty('--p',Math.min(100,Math.round(state.total/state.budget*100)));
   const planTitle=document.getElementById('planTitle');if(planTitle)planTitle.textContent=state.days+'-day plan';
   farefullyRenderDailyNutrition();
@@ -1047,7 +1091,7 @@ function renderUnsafe(){
 
   const m1=hasPlan?meal(Math.min(1,state.plan.length-1)):null;
   document.getElementById('tom').innerHTML=m1?`<img class="thumb" src="${image(m1)}" data-ff-photo-id="${esc(m1.id)}" loading="lazy" decoding="async" data-ff-action="open-recipe" data-index="${Math.min(1,state.plan.length-1)}" alt="${esc(m1.n)}"><div><div class="pill">Tomorrow</div><h3 data-ff-action="open-recipe" data-index="${Math.min(1,state.plan.length-1)}">${esc(m1.n)}</h3><div class="small">⏱ ${m1.t} min · ${money(cost(m1)/(state.adults+state.children))} pp</div>${householdFitBadge(m1)}${prepBadges(m1)}${offerBadge(m1)}</div><button class="chev" aria-label="Open tomorrow's recipe" data-ff-action="open-recipe" data-index="${Math.min(1,state.plan.length-1)}">›</button>`:`<div style="grid-column:1/-1;padding:8px"><b>No matching tomorrow meal</b><div class="small">Adjust the dietary profile to rebuild the plan safely.</div></div>`;
-  document.getElementById('forecast').textContent=hasPlan?(rem>=0?'On track':'Needs rescue'):'No plan';
+  document.getElementById('forecast').textContent=hasPlan?(rem>=0?'Within estimate':'Over estimate'):'No plan';
   const lc=document.getElementById('libraryCount');if(lc)lc.textContent=allDinners().length+' family dinners available';updateCustomRecipeSummary();
   const prepMeals=state.plan.map((x,i)=>meal(i)).filter(Boolean),batchCount=prepMeals.filter(m=>prepFlags(m).batch).length,freezeCount=prepMeals.filter(m=>prepFlags(m).freeze).length,prepSummary=document.getElementById('prepSummary');
   if(prepMeals.length&&(batchCount||freezeCount)){prepSummary.style.display='flex';prepSummary.innerHTML=`<div><b>Meal-prep friendly plan</b><div class="prepcounts">${batchCount} batch-cook option${batchCount===1?'':'s'} · ${freezeCount} freezer-friendly option${freezeCount===1?'':'s'}</div></div><div class="prepbadges"><span class="prepbadge batch">🍲 Batch cook</span><span class="prepbadge freeze">❄️ Freezer friendly</span></div>`}else prepSummary.style.display='none';
@@ -1056,7 +1100,7 @@ function renderUnsafe(){
 
   document.getElementById('basketTotal').textContent=money(state.total);
   const basketBudget=document.getElementById('basketRemain');
-  if(basketBudget){basketBudget.textContent=rem>=0?money(rem)+' under budget':money(Math.abs(rem))+' over budget';basketBudget.classList.toggle('over',rem<0)}
+  if(basketBudget){basketBudget.textContent=rem>=0?money(rem)+' below target (estimated)':money(Math.abs(rem))+' above target (estimated)';basketBudget.classList.toggle('over',rem<0)}
   const groups={};for(const[k,v]of Object.entries(state.basket)){const item=P[k];if(!item)continue;(groups[item.c]||=[]).push([k,v])}
   const basketKeys=Object.keys(state.basket).filter(k=>P[k]);
   const extras=validShoppingExtras();
@@ -1088,17 +1132,38 @@ function renderUnsafe(){
   }
   const retailerNote=document.getElementById('retailerNote');
   const basketCoverage=document.getElementById('basketCoverage');
-  const hasCurrentMatches=!!(LIVE_ROWS.length&&LIVE_RETAILERS.has(retailer));
+  const hasCurrentMatches=!!(LIVE_RETAILERS.has(retailer)&&hasFreshRetailerRows(retailer));
   if(retailerNote)retailerNote.textContent=(autoShop?'Suggested shop: ':'')+retailer+'-based estimate';
   if(basketCoverage){
     const matched=Math.max(0,Number(state.liveCoverage?.matched)||0);
     const eligible=Math.max(0,Number(state.liveCoverage?.eligible)||0);
-    basketCoverage.textContent=hasCurrentMatches&&eligible
-      ?matched+' of '+eligible+' ingredient lines matched with current product data. Remaining prices are modelled; not a checkout quote.'
-      :'Benchmark-based estimate. Product prices, packs and final checkout totals may differ.';
+    basketCoverage.textContent=hasCurrentMatches&&eligible&&matched
+      ?matched+' of '+eligible+' ingredient lines matched with recent product data. Remaining prices are modelled; not a checkout quote.'
+      :'Benchmark-based estimate. No current supermarket price matches are available. Actual product prices, packs and checkout totals may differ.';
+  }
+  const budgetInsights=document.getElementById('basketBudgetInsights');
+  if(budgetInsights){
+    if(!hasPlan){budgetInsights.textContent='Build a meal plan to see an indicative basket breakdown. No checkout price is guaranteed.';}
+    else{
+      const basketLines=Object.entries(state.basket).filter(([id])=>P[id]);
+      const modelled=basketLines.length-Math.min(basketLines.length,Math.max(0,Number(state.liveCoverage?.matched)||0));
+      const biggest=basketLines.slice().sort((a,b)=>b[1].line-a[1].line).slice(0,3)
+        .map(([id,row])=>P[id].n+' ('+money(row.line)+')').join(', ');
+      const gap=state.total-state.budget;
+      budgetInsights.textContent=
+        state.plan.length+' planned days · '+basketLines.length+' grocery lines · includes matching breakfast, lunch, dinner and snack ingredients.\n'
+        +'Pack sizes are rounded up and saved pantry amounts are deducted. Everyday extras are not priced.\n'
+        +(hasCurrentMatches&&modelled<basketLines.length
+          ?modelled+' grocery lines use modelled prices. Remaining lines use recent product matches.\n'
+          :'All basket lines use indicative benchmark prices.\n')
+        +(gap>0
+          ?'Currently '+money(gap)+' above your target estimate. Try swapping a dinner in Plan, or review your budget and pantry.\n'
+          :'Currently '+money(Math.abs(gap))+' below your target estimate. Keep a buffer for checkout differences.\n')
+        +(biggest?'Largest estimated basket lines: '+biggest+'.':'');
+    }
   }
   renderPantryPicker();renderPantryHighlights();renderRetailerComparison();renderWeeklyOffers();
-  const shopSummary=autoShop?`No preference → ${retailer} current best estimate`:state.supermarket;
+  const shopSummary=autoShop?`No preference → ${retailer} lowest model estimate`:state.supermarket;
   document.getElementById('householdCard').innerHTML=`<p><b>Adults:</b> ${state.adults}</p><p><b>Children:</b> ${state.children}</p><p><b>Plan:</b> ${state.days} days</p><p><b>Budget:</b> ${money(state.budget)}</p><p><b>Supermarket:</b> ${esc(shopSummary||'Not selected')}</p><p><b>Loyalty pricing:</b> ${state.loyaltyPricing?'On':'Off'}</p><p><b>Weekly offers in planning:</b> ${state.useWeeklyOffers?'On':'Off'}</p><p><b>Diet:</b> ${esc(state.dietPattern==='omnivore'?'No specific diet':state.dietPattern)}</p><p><b>Extra exclusions:</b> ${esc((state.avoidGroups||[]).join(', ')||'None')}</p><p><b>Allergen filters:</b> ${esc((state.allergens||[]).join(', ')||'None')}</p><p><b>Not keen:</b> ${esc(Object.entries(state.taste?.proteins||{}).filter(([k,v])=>v===-1&&k!=='Halloumi & cheese').map(([k])=>k).concat(Object.entries(state.taste?.styles||{}).filter(([,v])=>v===-1).map(([k])=>k),Object.entries(state.taste?.ingredients||{}).filter(([,v])=>v===-1).map(([k])=>k)).join(', ')||'None')}</p><p><b>Never suggest:</b> ${esc(Object.entries(state.taste?.proteins||{}).filter(([k,v])=>v===-2&&k!=='Halloumi & cheese').map(([k])=>k).concat(Object.entries(state.taste?.styles||{}).filter(([,v])=>v===-2).map(([k])=>k),Object.entries(state.taste?.ingredients||{}).filter(([,v])=>v===-2).map(([k])=>k),(state.avoid||[])).join(', ')||'Nothing added')}</p><p><b>Weeknight time:</b> ${state.maxTime>=999?'No limit':state.maxTime+' minutes'}</p><p><b>Priority:</b> ${esc({budget:'Lowest cost',family:'Everyone eats it',quick:'Quick cooking',variety:'More variety',balance:'Balanced'}[state.priority]||'Balanced')}</p><div class="profile-summary"><b>Taste Profile:</b> ${state.tasteComplete?'Active · recommendations ranked for this household':'Not finished yet'}</div><p><b>Profile:</b> ${state.setupComplete&&state.tasteComplete?'Ready':'Setup incomplete'}</p>`;
   applyAccessibility();save()
 }
