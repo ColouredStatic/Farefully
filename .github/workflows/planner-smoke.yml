@@ -9,6 +9,7 @@ on:
       - 'app/onboarding-polish.js'
       - 'app/onboarding-polish.css'
       - 'tests/onboarding-polish-smoke.mjs'
+      - 'tests/launch-variety-budget-smoke.mjs'
       - 'index.html'
       - 'assets/styles.css'
       - 'tests/plus-basket-smoke.mjs'
@@ -36,6 +37,7 @@ on:
       - 'app/onboarding-polish.js'
       - 'app/onboarding-polish.css'
       - 'tests/onboarding-polish-smoke.mjs'
+      - 'tests/launch-variety-budget-smoke.mjs'
       - 'index.html'
       - 'assets/styles.css'
       - 'tests/plus-basket-smoke.mjs'
@@ -105,5 +107,7 @@ jobs:
         run: node tests/household-fit-smoke.mjs
       - name: Test shopping quantities and meal variety
         run: node tests/basket-quantity-variety-smoke.mjs
+      - name: Verify launch menu variety and price transparency
+        run: node tests/launch-variety-budget-smoke.mjs
       - name: Test recipe photo assignment and fallback
         run: node tests/recipe-photography-smoke.mjs
