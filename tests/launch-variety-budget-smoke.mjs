@@ -32,7 +32,7 @@ assert.equal(run("hasFreshRetailerRows('Aldi')"),false,'October product prices c
 const oldSnapshot=JSON.parse(readFileSync(new URL('../app/live-prices.json',import.meta.url),'utf8'));
 assert.ok(oldSnapshot.length>10,'Historical snapshot should be present for an expiry regression');
 assert.ok(oldSnapshot.every(row=>row.fetchedAt?.startsWith('2026-10-08')),'Update the test if the repository refreshes product prices');
-run('LIVE_ROWS='+JSON.stringify(oldSnapshot)+';OFFER_CACHE.key=""');
+run('state=def();LIVE_ROWS='+JSON.stringify(oldSnapshot)+';OFFER_CACHE.key=""');
 assert.equal(run("weeklyOffers('Aldi').length"),0,'Stale October promotional rows must not be advertised as live November offers');
 run("LIVE_ROWS=[];state=def()");
 const local=JSON.parse(run("JSON.stringify({rice:D.find(m=>mealStaple(m)==='rice'&&mealProtein(m)==='Chicken')?.id,alternative:D.find(m=>mealStaple(m)!=='rice'&&mealProtein(m)==='Beef')?.id})"));
