@@ -1,0 +1,64 @@
+/* Farefully mobile onboarding refresh: scoped to existing working planner. */
+#setup{background:rgba(17,34,29,.62);backdrop-filter:blur(10px)}
+#setup .sheet{background:#faf9f5;border:1px solid rgba(255,255,255,.65);border-radius:30px 30px 0 0;padding:15px 18px max(28px,env(safe-area-inset-bottom));box-shadow:0 -22px 70px rgba(9,30,24,.22);max-height:94dvh}
+#setup .handle{background:#d6ddd5;margin:0 auto 14px}
+#setup .ff-setup-eyebrow{font:800 11px/1.4 Inter,system-ui,sans-serif;letter-spacing:.13em;text-transform:uppercase;color:#176b55;margin-bottom:6px}
+#setup .ff-setup-context{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;margin:0 3px 11px}
+#setup .ff-setup-context p{margin:0;color:#577068;font-size:13px;line-height:1.4}
+#setup .ff-setup-context strong{font-size:13px;color:#234537;white-space:nowrap}
+#setup .setupprogress{margin:6px 1px 23px;gap:5px}
+#setup .setupprogress span{height:7px;background:#e5eae4;transition:background .18s ease}
+#setup .setupprogress span.on{background:#218163}
+#setup .setupstep h2{font-family:Georgia,'Times New Roman',serif;color:#1d352c;font-size:clamp(29px,7vw,39px);letter-spacing:-.035em;line-height:1.07;margin-bottom:10px}
+#setup .setupstep h3{font-family:Inter,system-ui,sans-serif;font-weight:850;color:#26483b;font-size:15px;line-height:1.3;margin:18px 0 9px}
+#setup .setupintro{background:#eef5ef;border:1px solid #d7e9dd;border-radius:18px;color:#486357;padding:14px 15px;line-height:1.55;margin:12px 0 18px;font-size:14px}
+#setup .field{margin:15px 0}
+#setup .field label{font-size:13px;font-weight:800;color:#345044;margin-bottom:7px}
+#setup .field input,#setup .field select{background:white;border:1.5px solid #d9e4db;border-radius:16px;padding:15px;min-height:51px;font-size:16px;color:#1c352e;width:100%;box-shadow:0 3px 10px rgba(23,68,49,.025)}
+#setup .field input:focus-visible,#setup .field select:focus-visible,#setup button:focus-visible{outline:3px solid #e5b35e;outline-offset:2px;border-color:#176b55}
+#setup .primary{background:#156c52;min-height:52px;border-radius:16px;font-size:15px;box-shadow:0 7px 16px rgba(21,108,82,.13);transition:background .15s ease}
+#setup .primary:active{background:#11543f}
+#setup .secondarywide{min-height:52px;border-radius:16px;border-color:#d9e4db;background:#fff;color:#2f644f}
+#setup .setupnav{margin:22px 0 7px;gap:10px}
+#setup .setupnav .primary{flex:1.3}
+#setup #ff_evt_65{min-height:44px;margin-top:13px;font-weight:750}
+#setup .tastegrid,#setup .dietgrid,#setup .allergengrid,#setup .choicegrid{gap:10px}
+#setup .tastebtn,#setup .dietbtn,#setup .allergenbtn,#setup .choicebtn{border:1.5px solid #dce5dd;border-radius:18px;background:#fff;min-height:54px;transition:background .13s ease,border-color .13s ease,transform .13s ease}
+#setup .tastebtn{min-height:76px;padding:13px}
+#setup .tastebtn b{font-size:14px}
+#setup .tastebtn[data-value="1"]{background:#e8f5ea;border-color:#6eb48a}
+#setup .tastebtn[data-value="-1"]{background:#fff6e8;border-color:#d6ab64}
+#setup .tastebtn[data-value="-2"]{background:#fff0ed;border-color:#d5857d}
+#setup .choicebtn.on,#setup .dietbtn.on,#setup .allergenbtn.on{background:#176b55;color:#fff;border-color:#176b55}
+#setup .loyaltyrow{border-radius:17px;border-color:#dce5dd;background:white}
+#setup .ff-count-row{display:grid;grid-template-columns:52px minmax(0,1fr) 52px;gap:11px;align-items:center}
+#setup .ff-count-row input{text-align:center;font-size:25px;font-weight:850;font-variant-numeric:tabular-nums;padding:10px}
+#setup .ff-count-row input::-webkit-outer-spin-button,#setup .ff-count-row input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+#setup .ff-count-row input[type=number]{-moz-appearance:textfield;appearance:textfield}
+#setup .ff-count-btn{border:1px solid #cce2d2;border-radius:16px;background:#e7f3e9;color:#175c48;font-size:29px;font-weight:700;min-height:52px;cursor:pointer}
+#setup .ff-live-note{padding:14px 15px;background:#fff4e6;border:1px solid #f1d9b8;border-radius:16px;color:#6a4b2e;margin:16px 0 5px;font-size:14px;line-height:1.5}
+#setup .ff-live-note strong{color:#25483a}
+#setup .ff-budget-glance{display:flex;align-items:center;gap:12px;justify-content:space-between;padding:14px 16px;background:#ebf5ef;border:1px solid #d4e8d9;border-radius:17px;margin:-2px 0 17px;color:#3b5e4c}
+#setup .ff-budget-glance strong{font-size:22px;color:#16694f;white-space:nowrap}
+#setup .ff-budget-glance span{display:block;font-size:12px;line-height:1.5}
+#setup .ff-vibe-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:12px 0 21px}
+#setup .ff-vibe-grid button{min-height:74px;border-radius:17px;border:1.5px solid #dce5dd;background:#fff;text-align:left;padding:12px;color:#254638;cursor:pointer}
+#setup .ff-vibe-grid button strong{display:block;font-size:14px;margin-bottom:3px}
+#setup .ff-vibe-grid button small{display:block;font-size:12px;color:#62796d;line-height:1.3}
+#setup .ff-vibe-grid button[aria-pressed="true"]{background:#e9f5eb;border-color:#4f9e74;box-shadow:inset 0 0 0 1px #4f9e74}
+#setup .ff-vibe-grid button:last-child{grid-column:span 2}
+#setup .ff-section-sub{font-size:13px;line-height:1.5;color:#647b6e;margin:0 0 10px}
+#setup .ff-plan-summary{border:1px solid #d5e4d7;background:#eff5ef;border-radius:19px;padding:16px;margin:18px 0}
+#setup .ff-plan-summary b{display:block;font-size:15px;color:#22523c;margin-bottom:8px}
+#setup .ff-plan-summary p{font-size:13px;color:#405f4e;line-height:1.7;margin:0;white-space:pre-line}
+#setup .ff-small-disclaimer{color:#6d8174;font-size:12px;line-height:1.5;margin:8px 2px}
+#welcome{background:linear-gradient(155deg,#e9f3eb,#fffaf1);padding:18px}
+#welcome .box{border:1px solid #d7e5d9;border-radius:30px;box-shadow:0 25px 70px rgba(24,64,42,.14);padding:clamp(23px,6vw,34px)}
+#welcome .box h1{color:#203c2e;font-size:clamp(32px,8vw,43px);letter-spacing:-.025em}
+#welcome .box .sub{color:#536d5f}
+#welcome .welcomewhy{background:#eff6ed;border:1px solid #d5e9d8;border-radius:16px}
+#welcome .primary{border-radius:16px;min-height:54px;background:#176b55}
+#ready .readybox h2{color:#204932}
+@media(min-width:560px){#setup{align-items:center}#setup .sheet{border-radius:30px;max-height:90dvh}}
+@media(max-width:365px){#setup .sheet{padding-inline:13px}#setup .ff-setup-context{align-items:flex-start}#setup .ff-vibe-grid{gap:7px}#setup .ff-vibe-grid button{padding:10px}#setup .setupstep h2{font-size:29px}}
+@media(prefers-reduced-motion:reduce){#setup *{transition:none!important;animation:none!important}}
