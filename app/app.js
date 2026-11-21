@@ -189,10 +189,10 @@ function offerInfo(row){
 function manualOfferRows(){return Array.isArray(WEEKLY_OFFER_ROWS)?WEEKLY_OFFER_ROWS:[]}
 function offerCacheKey(retailer){return [retailer,state.loyaltyPricing?'1':'0',LIVE_ROWS.length,WEEKLY_OFFER_ROWS.length,latestLiveTimestamp()].join('|')}
 function weeklyOffers(retailer=selectedRetailer()){
-  const key=offerCacheKey(retailer);if(OFFER_CACHE.key===key)return OFFER_CACHE.offers;
+  const key=offerCacheKey(retailer)+'|'+Math.floor(Date.now()/(12*60*60*1000));if(OFFER_CACHE.key===key)return OFFER_CACHE.offers;
   const raw=[...LIVE_ROWS,...manualOfferRows()],out=[];
   for(const row of raw){
-    if(normRetailer(row.retailer)!==retailer||row.inStock===false||row.available===false)continue;
+    if(normRetailer(row.retailer)!==retailer||row.inStock===false||row.available===false||!liveRowFresh(row))continue;
     const ingredient=ingredientForLive(row),info=offerInfo(row);if(!ingredient||!P[ingredient]||!info)continue;
     const p=P[ingredient],qty=parsePackQuantity(row.packSize||row.packQuantity,p.u,liveProductName(row));
     out.push({row,ingredient,retailer,qty,productName:liveProductName(row)||P[ingredient].n,packSize:String(row.packSize||''),url:row.url||row.productUrl||'',imageUrl:row.imageUrl||'',...info})
