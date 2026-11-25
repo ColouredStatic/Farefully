@@ -1152,12 +1152,13 @@ function renderUnsafe(){
       const gap=state.total-state.budget;
       budgetInsights.textContent=
         state.plan.length+' planned days · '+basketLines.length+' grocery lines · includes matching breakfast, lunch, dinner and snack ingredients.\n'
+        +'Average planned grocery cost per day: '+money(state.total/state.plan.length)+' (not per person).\n'
         +'Pack sizes are rounded up and saved pantry amounts are deducted. Everyday extras are not priced.\n'
         +(hasCurrentMatches&&modelled<basketLines.length
           ?modelled+' grocery lines use modelled prices. Remaining lines use recent product matches.\n'
           :'All basket lines use indicative benchmark prices.\n')
         +(gap>0
-          ?'Currently '+money(gap)+' above your target estimate. Try swapping a dinner in Plan, or review your budget and pantry.\n'
+          ?'Currently '+money(gap)+' above your target estimate. Open a dinner swap in Plan to see estimated lower-cost choices first, or review your budget and pantry.\n'
           :'Currently '+money(Math.abs(gap))+' below your target estimate. Keep a buffer for checkout differences.\n')
         +(biggest?'Largest estimated basket lines: '+biggest+'.':'');
     }
@@ -1727,16 +1728,27 @@ function shoppingSetMode(mode){
  shoppingMode=mode==='online'?'online':'store';
  refreshShoppingAssistant();applyShoppingFilters();
 }
-function toggle(k){state.checked[k]=!state.checked[k];render()}function openSwap(i){
-  swapIndex=i;const cur=meal(i);document.getElementById('swapTitle').textContent='Replace '+cur.n;
+function toggle(k){state.checked[k]=!state.checked[k];render()}
+// In Budget priority or above the target, surface estimated basket-reducing swaps first.
+// Hard dietary rules are filtered before ranking and checked again at selection.
+function compareSwapOptions(a,b,preferBudget){
+  if(preferBudget){
+    const aReduces=a.delta<0,bReduces=b.delta<0;
+    if(aReduces!==bReduces)return aReduces?-1:1;
+    if(aReduces&&bReduces)return a.delta-b.delta||b.fit-a.fit;
+  }
+  return b.fit-a.fit||a.delta-b.delta;
+}
+function openSwap(i){
+  const cur=meal(i);if(!cur)return;swapIndex=i;const preferBudget=state.priority==='budget'||state.total>state.budget;document.getElementById('swapTitle').textContent='Replace '+cur.n+(preferBudget?' · lower-cost options first':'');
   const opts=allDinners().filter(x=>x.id!==cur.id&&!state.plan.includes(x.id)&&!hardBlocked(x)).map(m=>{
     const old=state.plan[i],before=state.total;state.plan[i]=m.id;calc();const after=state.total;state.plan[i]=old;calc();
     return{m,delta:+(after-before).toFixed(2),after,fit:fitScore(m)}
-  }).sort((a,b)=>b.fit-a.fit||a.delta-b.delta).slice(0,10);
-  document.getElementById('swapList').innerHTML=opts.map(o=>`<div class="swapopt"><img src="${image(o.m)}" data-ff-photo-id="${esc(o.m.id)}" loading="lazy" decoding="async" alt="${esc(o.m.n)}"><div><b>${o.m.n}</b><div class="small">${o.m.cat} · ${o.m.t} min · ${o.m.d}</div>${householdFitBadge(o.m)}${householdFitExplanation(o.m)}${prepBadges(o.m)}${offerBadge(o.m)}<div style="font-weight:800;color:${o.delta<=0?'var(--green)':'#a36f27'};margin-top:5px">${o.delta<0?'Save '+money(Math.abs(o.delta)):o.delta>0?'+'+money(o.delta):'No basket change'}</div><button class="soft" style="margin-top:7px" data-ff-action="choose-swap" data-meal-id="${esc(o.m.id)}">Use this meal</button></div></div>`).join('');
+  }).sort((a,b)=>compareSwapOptions(a,b,preferBudget)).slice(0,10);
+  document.getElementById('swapList').innerHTML=opts.map(o=>`<div class="swapopt"><img src="${image(o.m)}" data-ff-photo-id="${esc(o.m.id)}" loading="lazy" decoding="async" alt="${esc(o.m.n)}"><div><b>${esc(o.m.n)}</b><div class="small">${esc(o.m.cat)} · ${o.m.t} min · ${esc(o.m.d)}</div>${householdFitBadge(o.m)}${householdFitExplanation(o.m)}${prepBadges(o.m)}${offerBadge(o.m)}<div style="font-weight:800;color:${o.delta<=0?'var(--green)':'#a36f27'};margin-top:5px">${o.delta<0?'Estimated reduction '+money(Math.abs(o.delta)):o.delta>0?'Estimated increase '+money(o.delta):'No estimated basket change'}</div><div class="small">Estimated whole basket: ${money(o.after)} · ${o.after<=state.budget?'within target':'above target'} · not a checkout quote</div><button class="soft" style="margin-top:7px" data-ff-action="choose-swap" data-meal-id="${esc(o.m.id)}">Use this meal</button></div></div>`).join('');
   document.getElementById('swap').classList.add('show');focusDialog('swap')
 }
-function closeSwap(){document.getElementById('swap').classList.remove('show')}function chooseSwap(id){state.plan[swapIndex]=id;calc();save();closeSwap();render();showToast('Meal swapped')}
+function closeSwap(){document.getElementById('swap').classList.remove('show')}function chooseSwap(id){const candidate=allDinners().find(m=>m.id===id);if(!candidate||hardBlocked(candidate)||!Number.isInteger(swapIndex)||swapIndex<0||swapIndex>=state.plan.length||state.plan.includes(id)){showToast('This meal is no longer available for this plan. Choose another.');return}state.plan[swapIndex]=id;calc();save();closeSwap();render();showToast('Meal swapped')}
 function fmtQty(id,q){
   const p=P[id];
   if(!p)return Math.round(q);
