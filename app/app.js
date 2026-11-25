@@ -378,7 +378,7 @@ function migrateLegacyStorage(){
 migrateLegacyStorage();
 let profiles=JSON.parse(store.get(PK)||'[]'),active=store.get(AK),state=null;
 function def(){return{
-  adults:2,children:3,days:7,budget:200,extrasAllowance:0,avoid:[],pantry:{},plan:[],basket:{},need:{},total:0,checked:{},
+  adults:2,children:3,days:7,budget:200,extrasAllowance:0,paydayBackup:null,avoid:[],pantry:{},plan:[],basket:{},need:{},total:0,checked:{},
   supermarket:'',autoRetailer:'Aldi',loyaltyPricing:true,useWeeklyOffers:true,taste:{proteins:{},styles:{},ingredients:{}},maxTime:45,vegFrequency:'some',fishFrequency:'some',
   novelty:'balanced',priority:'balance',ratings:{},tasteComplete:false,planGeneration:0,recentPlans:[],
   dietPattern:'omnivore',avoidGroups:[],allergens:[],dietComplete:false,setupComplete:false,customRecipes:[],shoppingExtras:[]
@@ -393,7 +393,8 @@ function def(){return{
   if(!Array.isArray(state.avoid))state.avoid=[];
   if(!Number.isFinite(state.adults)||state.adults<1)state.adults=2;
   if(!Number.isFinite(state.children)||state.children<0)state.children=0;
-  if(![7,14].includes(state.days))state.days=7;
+  if(!state.paydayBackup||![7,14].includes(state.paydayBackup.days)||!Array.isArray(state.paydayBackup.plan)||!Number.isFinite(state.paydayBackup.budget))state.paydayBackup=null;
+  if(![7,14].includes(state.days)&&!(state.paydayBackup&&Number.isInteger(state.days)&&state.days>=1&&state.days<=6))state.days=7;
   if(!Number.isFinite(state.budget)||state.budget<0)state.budget=200;
   state.extrasAllowance=normaliseExtrasAllowance(state.extrasAllowance);
   if(typeof state.setupComplete!=='boolean')state.setupComplete=false;
@@ -982,14 +983,14 @@ function budgetSlotNeeds(days){
   }
   return need;
 }
-function build(){
+function build({persist=true}={}){
   if(state.days===14&&!farefullyMayPlanFortnight()){
     state.days=7;
     showToast('A new fourteen-day plan requires Farefully Plus. Your seven-day plan is still free.');
   }
   archiveCurrentPlan();state.plan=[];state.planGeneration=(state.planGeneration||0)+1;
   const allowed=allDinners().filter(m=>!hardBlocked(m)),pool=allowed;
-  if(!pool.length){state.plan=[];state.basket={};state.need={};state.total=0;save();showToast('No meals match every current dietary filter. Try adjusting the profile.');return}
+  if(!pool.length){state.plan=[];state.basket={};state.need={};state.total=0;if(persist)save();showToast('No meals match every current dietary filter. Try adjusting the profile.');return}
   const used=new Set(),catCount={},styleCount={},vegTarget=targetCount('veg'),fishTarget=targetCount('fish');
   const dishLookup=new Map(pool.map(m=>[m.id,m]));
   const signature=preferenceSignature(),generation=state.planGeneration;
@@ -1034,7 +1035,7 @@ function build(){
   calc();
   reducePlanCost(pool,dishLookup,false);
   calc();
-  save()
+  if(persist)save()
 }
 // Work on complete basket prices; never relax dietary exclusions or dislike thresholds.
 function reducePlanCost(pool,dishLookup,manual){
@@ -1109,6 +1110,56 @@ function renderBudgetRescue(){
   btn.hidden=!budgetRescuePreview;
   msg.textContent=budgetRescuePreview?'Estimated saving '+money(budgetRescuePreview.before-budgetRescuePreview.after)+' by changing '+budgetRescuePreview.changed+' dinner(s). New food basket: '+money(budgetRescuePreview.after)+'. '+(budgetRescuePreview.after<=mealBudgetTarget()?'Within the meal budget estimate.':'Still '+money(budgetRescuePreview.after-mealBudgetTarget())+' above the meal budget.'):collected?'Shopping is in progress. Reset collected items before changing meals.':gap>0?'Your food basket is '+money(gap)+' above the money available for meals. Check for cheaper suitable swaps without changing your plan.':'Your current food basket estimate fits the available meal budget. Actual prices may differ.';
 }
+let paydayPreview=null;
+function paydayKey(){return JSON.stringify([budgetRescueKey(),state.adults,state.children,state.days,state.customRecipes,state.paydayBackup,state.useWeeklyOffers,state.planGeneration])}
+function paydayCanChange(){return state.setupComplete&&state.tasteComplete&&state.dietComplete&&!Object.values(state.checked||{}).some(Boolean)}
+function paydayBackup(){return state.paydayBackup||{days:state.days,budget:state.budget,extrasAllowance:state.extrasAllowance,priority:state.priority,plan:state.plan.slice()}}
+function createPaydayPreview(days,cash,reserve){
+  if(!paydayCanChange()||!Number.isInteger(days)||days<1||days>6||!Number.isFinite(cash)||cash<0||cash>5000||!Number.isFinite(reserve)||reserve<0||reserve>cash)return null;
+  const original=state,key=paydayKey(),backup=paydayBackup();
+  try{
+    state=JSON.parse(JSON.stringify(original));
+    state.paydayBackup=backup;state.days=days;state.budget=Math.round(cash*100)/100;state.extrasAllowance=normaliseExtrasAllowance(reserve);state.priority='budget';state.checked={};
+    build({persist:false});
+    if(state.plan.length!==days)return null;
+    const missingSlots=[];
+    for(const [name,arr] of [['breakfast',breakfast],['lunch',lunch],['snack',snacks]])if(!slotFor(arr,0))missingSlots.push(name);
+    return {key,days,cash:state.budget,reserve:state.extrasAllowance,plan:state.plan.slice(),names:state.plan.map((_,i)=>meal(i).n),combined:wholeShopBudgetEstimate(state.total,state.extrasAllowance,state.budget).combined,missingSlots};
+  }finally{state=original}
+}
+function previewPayday(){
+  const day=document.getElementById('paydayDays'),cash=document.getElementById('paydayCash'),reserve=document.getElementById('paydayReserve');
+  if(!paydayCanChange()||!cash.value.trim()){showToast('Finish setup, reset collected items and enter available cash.');return}
+  paydayPreview=createPaydayPreview(Number(day.value),Number(cash.value),Number(reserve.value));renderPayday();
+  if(!paydayPreview)showToast('Enter valid cash and a reserve no larger than the budget. A suitable plan may not be available.');
+}
+function applyPaydayPreview(){
+  if(!paydayPreview||paydayPreview.key!==paydayKey()||!paydayCanChange()){paydayPreview=null;renderPayday();showToast('Your household changed. Preview again.');return}
+  const p=paydayPreview,original=state,backup=paydayBackup();
+  if(p.plan.some(id=>{const m=allDinners().find(x=>x.id===id);return !m||hardBlocked(m)})){paydayPreview=null;renderPayday();showToast('Meal preferences changed. Preview again.');return}
+  try{
+    state=JSON.parse(JSON.stringify(original));
+    state.paydayBackup=backup;state.days=p.days;state.budget=p.cash;state.extrasAllowance=p.reserve;state.priority='budget';state.plan=p.plan.slice();state.checked={};calc();
+    if(wholeShopBudgetEstimate(state.total,state.extrasAllowance,state.budget).combined>p.combined+.005){state=original;paydayPreview=null;renderPayday();showToast('The estimate increased. Preview again.');return}
+  }catch(err){state=original;throw err}
+  paydayPreview=null;save();render();go('plan');showToast('Payday plan applied. Your usual plan is saved.');
+}
+function restoreRegularPlan(){
+  if(!state.paydayBackup||!paydayCanChange()){showToast('Reset collected items before returning to your usual plan.');return}
+  const b=state.paydayBackup;
+  if(b.plan.some(id=>{const m=allDinners().find(x=>x.id===id);return !m||hardBlocked(m)})){showToast('Previous meals no longer match your preferences. Build a new weekly plan in setup.');return}
+  state.days=b.days;state.budget=b.budget;state.extrasAllowance=normaliseExtrasAllowance(b.extrasAllowance);state.priority=b.priority||'balance';state.plan=b.plan.slice();state.paydayBackup=null;state.checked={};paydayPreview=null;calc();save();render();showToast('Usual plan restored with current pantry and prices.');
+}
+function renderPayday(){
+  const msg=document.getElementById('paydayMessage'),apply=document.getElementById('applyPayday'),restore=document.getElementById('restoreRegularPlan'),find=document.getElementById('previewPayday'),list=document.getElementById('paydayMealList');
+  if(!msg||!apply||!restore||!find||!list)return;
+  if(paydayPreview&&paydayPreview.key!==paydayKey())paydayPreview=null;
+  const p=paydayPreview;
+  find.disabled=!paydayCanChange();restore.hidden=!state.paydayBackup;restore.disabled=!paydayCanChange();apply.hidden=!p;
+  list.textContent=p?p.names.map((n,i)=>'Day '+(i+1)+': '+n).join(' · '):'';
+  msg.textContent=p?money(p.combined)+' estimated for '+p.days+' day(s), including reserve. '+(p.combined>p.cash?money(p.combined-p.cash)+' above your cash target. This plan is not within budget.':money(p.cash-p.combined)+' left in your cash target (estimated).')+(p.missingSlots.length?' No suitable '+p.missingSlots.join(', ')+' suggestions; these are not included in the estimate.':' Includes planned breakfast, lunch, dinner and snacks.')+' Prices and availability may vary.':!paydayCanChange()?'Finish setup or reset collected items to change plans.':state.paydayBackup?'Payday Mode is active. Your usual plan is saved.':'Choose days and cash available. Preview before replacing your current plan.';
+  if(p)apply.textContent=p.combined>p.cash?'Use over-budget plan anyway':'Use this plan';
+}
 function rebuildPlan(){build();render();go('plan');showToast('Fresh plan built from your current preferences')}
 function calc(){
   const need={},f=pf();
@@ -1149,7 +1200,7 @@ function renderUnsafe(){
   document.getElementById('target').textContent='/ £'+Math.round(state.budget);
   document.getElementById('remain').textContent=(rem>=0?'Est. '+money(rem)+' below':'Est. '+money(Math.abs(rem))+' above');
   document.getElementById('ring').style.setProperty('--p',state.budget>0?Math.min(100,Math.round(shopEstimate.combined/state.budget*100)):(shopEstimate.combined>0?100:0));
-  const planTitle=document.getElementById('planTitle');if(planTitle)planTitle.textContent=state.days+'-day plan';
+  const planTitle=document.getElementById('planTitle');if(planTitle)planTitle.textContent=(state.paydayBackup?'Payday Mode · ':'')+state.days+'-day plan';
   farefullyRenderDailyNutrition();
   const legacyNotice=document.getElementById('savedFortnightNote');
   if(legacyNotice){legacyNotice.hidden=!(state.plan?.length===14&&!farefullyMayPlanFortnight());}
@@ -1167,13 +1218,13 @@ function renderUnsafe(){
     heroAction.textContent=matchingDinners>0&&state.setupComplete?'Generate my plan →':'Review household settings →';heroAction.onclick=matchingDinners>0&&state.setupComplete?rebuildPlan:openSetup
   }
 
-  const m1=hasPlan?meal(Math.min(1,state.plan.length-1)):null;
+  const m1=state.plan.length>1?meal(1):null;
   document.getElementById('tom').innerHTML=m1?`<img class="thumb" src="${image(m1)}" data-ff-photo-id="${esc(m1.id)}" loading="lazy" decoding="async" data-ff-action="open-recipe" data-index="${Math.min(1,state.plan.length-1)}" alt="${esc(m1.n)}"><div><div class="pill">Tomorrow</div><h3 data-ff-action="open-recipe" data-index="${Math.min(1,state.plan.length-1)}">${esc(m1.n)}</h3><div class="small">⏱ ${m1.t} min · ${money(cost(m1)/(state.adults+state.children))} pp</div>${householdFitBadge(m1)}${prepBadges(m1)}${offerBadge(m1)}</div><button class="chev" aria-label="Open tomorrow's recipe" data-ff-action="open-recipe" data-index="${Math.min(1,state.plan.length-1)}">›</button>`:`<div style="grid-column:1/-1;padding:8px"><b>No matching tomorrow meal</b><div class="small">Adjust the dietary profile to rebuild the plan safely.</div></div>`;
   document.getElementById('forecast').textContent=hasPlan?(rem>=0?'Within estimate':'Over estimate'):'No plan';
   const lc=document.getElementById('libraryCount');if(lc)lc.textContent=allDinners().length+' family dinners available';updateCustomRecipeSummary();
   const prepMeals=state.plan.map((x,i)=>meal(i)).filter(Boolean),batchCount=prepMeals.filter(m=>prepFlags(m).batch).length,freezeCount=prepMeals.filter(m=>prepFlags(m).freeze).length,prepSummary=document.getElementById('prepSummary');
   if(prepMeals.length&&(batchCount||freezeCount)){prepSummary.style.display='flex';prepSummary.innerHTML=`<div><b>Meal-prep friendly plan</b><div class="prepcounts">${batchCount} batch-cook option${batchCount===1?'':'s'} · ${freezeCount} freezer-friendly option${freezeCount===1?'':'s'}</div></div><div class="prepbadges"><span class="prepbadge batch">🍲 Batch cook</span><span class="prepbadge freeze">❄️ Freezer friendly</span></div>`}else prepSummary.style.display='none';
-  document.getElementById('days').innerHTML=state.plan.map((x,i)=>`<button class="day" data-ff-action="scroll-day" data-index="${i}"><b>${['Mon','Tue','Wed','Thu','Fri','Sat','Sun'][i%7]}</b><div class="small">${i+1}</div></button>`).join('');
+  document.getElementById('days').innerHTML=state.plan.map((x,i)=>`<button class="day" data-ff-action="scroll-day" data-index="${i}"><b>${state.paydayBackup?'Day '+(i+1):['Mon','Tue','Wed','Thu','Fri','Sat','Sun'][i%7]}</b><div class="small">${i+1}</div></button>`).join('');
   document.getElementById('plans').innerHTML=state.plan.map((x,i)=>{const m=meal(i),b=slotFor(breakfast,i),l=slotFor(lunch,i),sn=slotFor(snacks,i);return`<div class="meal card" id="m${i}"><img class="thumb" src="${image(m)}" data-ff-photo-id="${esc(m.id)}" loading="lazy" decoding="async" data-ff-action="open-recipe" data-index="${i}" alt="${esc(m.n)}"><div><div class="small" style="font-weight:800">DAY ${i+1}</div><h3 data-ff-action="open-recipe" data-index="${i}">${esc(m.n)}</h3><div class="small">⏱ ${m.t} min · ${money(cost(m)/(state.adults+state.children))} pp</div>${householdFitBadge(m)}${prepBadges(m)}${offerBadge(m)}<div class="desc">${esc(m.d)}</div>${householdFitExplanation(m)}<div class="mealextras"><b>Breakfast:</b> ${esc(safeSlotName(b))}<br><b>Lunch:</b> ${esc(safeSlotName(l))}<br><b>Snack:</b> ${esc(safeSlotName(sn))}</div><div class="actions"><button class="soft" data-ff-action="open-swap" data-index="${i}">↔ Swap</button></div></div><button class="chev" aria-label="Open ${esc(m.n)} recipe" data-ff-action="open-recipe" data-index="${i}">›</button></div>`}).join('')||planEmptyMessage(matchingDinners);
 
   document.getElementById('basketTotal').textContent=money(state.total);
@@ -1200,6 +1251,7 @@ function renderUnsafe(){
   renderShoppingExtras();
   renderWholeShopBudget(hasPlan);
   renderBudgetRescue();
+  renderPayday();
   refreshShoppingAssistant();
   applyShoppingFilters();
 
@@ -1324,11 +1376,11 @@ function openSetup(){
   if(planLength){
     const fortnight=planLength.querySelector('option[value="14"]');
     if(fortnight){fortnight.disabled=!farefullyMayPlanFortnight();fortnight.textContent=farefullyMayPlanFortnight()?'14 days':'14 days · Plus required';}
-    planLength.value=state.days===14&&farefullyMayPlanFortnight()?'14':'7';
+    planLength.value=(state.paydayBackup?.days||state.days)===14&&farefullyMayPlanFortnight()?'14':'7';
   }
   const note=document.getElementById('planAccessNote');
   if(note)note.textContent=farefullyMayPlanFortnight()?'You can build a seven- or fourteen-day plan.':'Seven-day planning is always free. Plus unlocks new fourteen-day plans. Saved plans are kept until you choose to replace them.';
-  document.getElementById('adults').value=state.adults;document.getElementById('children').value=state.children;document.getElementById('budget').value=state.budget;document.getElementById('setupExtrasAllowance').value=normaliseExtrasAllowance(state.extrasAllowance);document.getElementById('supermarket').value=state.supermarket||'';document.getElementById('loyaltyPricing').checked=state.loyaltyPricing!==false;document.getElementById('weeklyOffersPlanning').checked=state.useWeeklyOffers!==false;document.getElementById('avoid').value=(state.avoid||[]).join(', ');
+  document.getElementById('adults').value=state.adults;document.getElementById('children').value=state.children;document.getElementById('budget').value=state.paydayBackup?.budget??state.budget;document.getElementById('setupExtrasAllowance').value=normaliseExtrasAllowance(state.paydayBackup?.extrasAllowance??state.extrasAllowance);document.getElementById('supermarket').value=state.supermarket||'';document.getElementById('loyaltyPricing').checked=state.loyaltyPricing!==false;document.getElementById('weeklyOffersPlanning').checked=state.useWeeklyOffers!==false;document.getElementById('avoid').value=(state.avoid||[]).join(', ');
   loadTasteUI();setupNext(state.setupComplete&&(!state.tasteComplete||!state.dietComplete)?3:1);document.getElementById('setup').classList.add('show');focusDialog('setup')
 }
 function closeSetup(){document.getElementById('setup').classList.remove('show')}
@@ -1339,7 +1391,7 @@ function saveSetup(){
   state.taste={proteins:{},styles:{},ingredients:{}};document.querySelectorAll('.tastebtn').forEach(el=>{const g=tasteBucket(el.dataset.group);state.taste[g][el.dataset.key]=+el.dataset.value||0});
   state.maxTime=+document.getElementById('maxTime').value||45;state.vegFrequency=document.getElementById('vegFrequency').value;state.fishFrequency=document.getElementById('fishFrequency').value;state.novelty=document.getElementById('novelty').value;
   state.dietPattern=document.getElementById('dietPattern').value||'omnivore';state.avoidGroups=[...document.querySelectorAll('[data-avoid].on')].map(b=>b.dataset.avoid);state.allergens=[...document.querySelectorAll('[data-allergen].on')].map(b=>b.dataset.allergen);
-  state.checked={};state.setupComplete=true;state.tasteComplete=true;state.dietComplete=true;closeSetup();build();render();
+  state.checked={};state.paydayBackup=null;paydayPreview=null;state.setupComplete=true;state.tasteComplete=true;state.dietComplete=true;closeSetup();build();render();
   const people=state.adults+state.children,diet=state.dietPattern==='omnivore'?'No specific diet':state.dietPattern[0].toUpperCase()+state.dietPattern.slice(1);
   document.getElementById('readyDetails').innerHTML=`<b>${people} people</b><br>${state.days}-day plan · ${money(state.budget)} budget<br>${esc(diet)} · ${esc(state.supermarket||'No preference')}<br>✨ Taste + dietary profile applied${state.useWeeklyOffers?'<br>💷 Verified weekly offers can influence new plans':''}${state.avoid.length?'<br>Never suggesting: '+esc(state.avoid.join(', ')):''}`;document.getElementById('ready').classList.add('show');focusDialog('ready')
 }
@@ -2413,6 +2465,9 @@ document.addEventListener('click',function(event){
   else if(action==='edit-custom-recipe')editCustomRecipe(el.dataset.id);
   else if(action==='delete-custom-recipe')deleteCustomRecipe(el.dataset.id);
   else if(action==='remove-custom-ingredient')removeCustomIngredient(el.dataset.id);
+  else if(action==='preview-payday')previewPayday();
+  else if(action==='apply-payday')applyPaydayPreview();
+  else if(action==='restore-regular-plan')restoreRegularPlan();
   else if(action==='preview-budget-rescue')previewBudgetRescue();
   else if(action==='apply-budget-rescue')applyBudgetRescue();
   else if(action==='recover-missing-plan')rebuildPlan();
@@ -2436,6 +2491,7 @@ document.addEventListener('error',event=>{
 
 // Shopping companion event handlers. Search / display filters are device-local;
 // quantities and collected checks live inside the cloud-synced household.
+for(const id of ['paydayDays','paydayCash','paydayReserve']){const el=document.getElementById(id);if(el)el.addEventListener('input',()=>{paydayPreview=null;renderPayday()})}
 {const el=document.getElementById('wholeShopBudgetForm');if(el)el.addEventListener('submit',e=>{e.preventDefault();saveExtrasAllowance()})}
 {const el=document.getElementById('shoppingExtraForm');if(el)el.addEventListener('submit',e=>{e.preventDefault();shoppingAddExtra()})}
 {const el=document.getElementById('shopModeStore');if(el)el.addEventListener('click',()=>shoppingSetMode('store'))}
