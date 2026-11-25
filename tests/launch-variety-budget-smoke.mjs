@@ -21,7 +21,7 @@ vm.runInContext(stripped,ctx);
 const run=code=>vm.runInContext(code,ctx,{timeout:20000});
 run("FAREFULLY_FEATURES={plus:true,may_generate_14_day:true,paid_plan_limits_live:true,available:true}");
 assert.match(html,/id="basketBudgetInsights"/,'Basket should explain how estimates are assembled');
-assert.match(html,/app\.js\?v=1189/,'Release must invalidate the cached planner JavaScript');
+assert.match(html,/app\.js\?v=1190/,'Release must invalidate the cached planner JavaScript');
 assert.match(raw,/Model difference/,'Retailer model comparisons must not claim real savings');
 assert.match(raw,/hasFreshRetailerRows\(x\.name\)/,'No live badge on stale price data');
 assert.match(raw,/No current supermarket price matches/,'No real-time pricing claims from stale data');
@@ -55,4 +55,11 @@ for(const days of [7,14]){
   }
  }
 }
-console.log('Farefully launch variety/budget checks passed: 7/14-day choices, strict exclusions, stale-price labels, model explanations.');
+// Budget swaps rank whole-basket estimated reductions ahead of cost increases.
+assert.equal(run("compareSwapOptions({delta:-4,fit:60},{delta:2,fit:99},true)"),-1);
+assert.ok(run("compareSwapOptions({delta:-4,fit:60},{delta:-1,fit:99},true)")<0);
+assert.ok(run("compareSwapOptions({delta:-4,fit:60},{delta:2,fit:99},false)")>0);
+assert.match(raw,/Estimated whole basket:/);
+assert.match(raw,/Average planned grocery cost per day/);
+assert.match(raw,/function chooseSwap\(id\)\{const candidate=allDinners\(\).find\(m=>m.id===id\);if\(!candidate\|\|hardBlocked\(candidate\)/);
+console.log('Farefully launch variety/budget checks passed: 7/14-day choices, strict exclusions, stale-price labels, model explanations, budget swap ranking.');
