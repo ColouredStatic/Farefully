@@ -21,7 +21,7 @@ vm.runInContext(stripped,ctx);
 const run=code=>vm.runInContext(code,ctx,{timeout:20000});
 run("FAREFULLY_FEATURES={plus:true,may_generate_14_day:true,paid_plan_limits_live:true,available:true}");
 assert.match(html,/id="basketBudgetInsights"/,'Basket should explain how estimates are assembled');
-assert.match(html,/app\.js\?v=1196/,'Release must invalidate the cached planner JavaScript');
+assert.match(html,/app\.js\?v=1197/,'Release must invalidate the cached planner JavaScript');
 assert.match(raw,/Model difference/,'Retailer model comparisons must not claim real savings');
 assert.match(raw,/hasFreshRetailerRows\(x\.name\)/,'No live badge on stale price data');
 assert.match(raw,/No current supermarket price matches/,'No real-time pricing claims from stale data');
