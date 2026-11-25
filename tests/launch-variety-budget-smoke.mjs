@@ -21,7 +21,7 @@ vm.runInContext(stripped,ctx);
 const run=code=>vm.runInContext(code,ctx,{timeout:20000});
 run("FAREFULLY_FEATURES={plus:true,may_generate_14_day:true,paid_plan_limits_live:true,available:true}");
 assert.match(html,/id="basketBudgetInsights"/,'Basket should explain how estimates are assembled');
-assert.match(html,/app\.js\?v=1193/,'Release must invalidate the cached planner JavaScript');
+assert.match(html,/app\.js\?v=1194/,'Release must invalidate the cached planner JavaScript');
 assert.match(raw,/Model difference/,'Retailer model comparisons must not claim real savings');
 assert.match(raw,/hasFreshRetailerRows\(x\.name\)/,'No live badge on stale price data');
 assert.match(raw,/No current supermarket price matches/,'No real-time pricing claims from stale data');
@@ -81,6 +81,22 @@ if(run("!!budgetRescuePreview")){
  run("state.checked={rice:true};applyBudgetRescue()");
  assert.equal(run("JSON.stringify(state.plan)"),beforePlan,'Reject stale preview once shopping has started');
 }
+run("state=def();state.setupComplete=state.tasteComplete=state.dietComplete=true;state.supermarket='Aldi';state.budget=100;state.taste.ingredients.polenta=-2;build()");
+const usual=run("JSON.stringify(state)");
+for(const days of [1,3,6]){
+ const p=JSON.parse(run("JSON.stringify(createPaydayPreview("+days+",25,5))"));
+ assert.equal(p.plan.length,days);
+ assert.equal(p.cash,25);assert.equal(p.reserve,5);
+ assert.equal(run("JSON.stringify(state)"),usual,'Preview cannot mutate usual plan or budget');
+ assert.ok(p.plan.every(id=>run("!hardBlocked(allDinners().find(m=>m.id==="+JSON.stringify(id)+"))")));
+}
+assert.equal(run("createPaydayPreview(3,10,20)"),null);
+assert.equal(run("createPaydayPreview(7,25,0)"),null);
+run("state.checked={rice:true}");
+assert.equal(run("createPaydayPreview(3,25,0)"),null);
+run("state.checked={};state.paydayBackup={days:7,budget:100,extrasAllowance:0,priority:'balance',plan:state.plan.slice()};state.days=3;normalizeState()");
+assert.equal(run("state.days"),3,'Saved short plan survives normalisation');
+assert.match(html,/id="paydayPanel"/);
 assert.match(raw,/Average planned grocery cost per day/);
 assert.match(raw,/function chooseSwap\(id\)\{const candidate=allDinners\(\).find\(m=>m.id===id\);if\(!candidate\|\|hardBlocked\(candidate\)/);
 console.log('Farefully launch variety/budget checks passed: 7/14-day choices, strict exclusions, stale-price labels, model explanations, budget swap ranking.');
