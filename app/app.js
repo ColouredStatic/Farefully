@@ -1640,6 +1640,7 @@ function discardActualTrolley(){
  state.trolley=null;save();renderActualTrolley();
 }
 function renderActualTrolley(){
+ const insights=document.getElementById('plusReceiptInsightsResult');if(insights)insights.textContent='Review your last four recorded shops when ready.';
  const start=document.getElementById('startActualTrolley'),controls=document.getElementById('actualTrolleyControls'),msg=document.getElementById('actualTrolleySummary'),items=document.getElementById('actualItem'),lines=document.getElementById('actualTrolleyLines'),history=document.getElementById('actualReceiptHistory');
  if(!start||!controls||!msg||!items||!lines||!history)return;
  const t=state.trolley,total=trolleyTotal();
@@ -1774,6 +1775,29 @@ async function plusShopLoadPrefs(force=false){
   plusShopAisleOrder=Array.isArray(data.aisle_order)?data.aisle_order.filter(x=>typeof x==='string').slice(0,35):[];
   plusShopActualSpend=data.actual_spend==null?null:Number(data.actual_spend);
   if(!Number.isFinite(plusShopActualSpend))plusShopActualSpend=null;
+}
+// Read-only analysis of the user's own receipt history; normal receipt history stays free.
+function receiptSpendInsights(rows,count=4){
+  const shops=normaliseReceipts(rows).slice(0,count);
+  if(!shops.length)return null;
+  const totals=shops.reduce((s,x)=>({actual:s.actual+x.actual,budget:s.budget+x.budget,estimate:s.estimate+x.estimate,within:s.within+(x.actual<=x.budget?1:0)}),{actual:0,budget:0,estimate:0,within:0});
+  return {count:shops.length,actual:totals.actual,average:Math.round(totals.actual/shops.length),budgetDifference:totals.actual-totals.budget,estimateDifference:totals.actual-totals.estimate,within:totals.within};
+}
+async function plusReceiptInsights(){
+  const out=document.getElementById('plusReceiptInsightsResult'),button=document.getElementById('plusReceiptInsightsButton');
+  if(!out||!button||plusShopBusy)return;
+  if(!FAREFULLY_FEATURES.available||!FAREFULLY_FEATURES.plus){out.textContent='Farefully Plus is required. Your recent receipts remain free.';return}
+  const profile=active;plusShopBusy=true;button.disabled=true;out.textContent='Checking your membership…';
+  try{
+    await plusShopCall('get_preferences');
+    if(profile!==active||!FAREFULLY_FEATURES.available||!FAREFULLY_FEATURES.plus){out.textContent='Household or membership changed. Please try again.';return}
+    const r=receiptSpendInsights(state.receiptHistory);
+    if(!r){out.textContent='Record a shop in the free trolley tool first.';return}
+    const fmt=n=>money(Math.abs(n)/100);
+    const compare=n=>n===0?'exactly on target':fmt(n)+(n>0?' above':' below');
+    out.textContent='Last '+r.count+' recorded shop'+(r.count===1?'':'s')+' · '+fmt(r.actual)+' total actual spend · '+fmt(r.average)+' average per shop · '+r.within+' of '+r.count+' within their individual budgets. Combined budget comparison: '+compare(r.budgetDifference)+'. Combined estimate comparison: '+compare(r.estimateDifference)+'. These are your own entered totals, not verified savings or a monthly forecast.';
+  }catch(err){out.textContent=err.message||'Spending insights unavailable.'}
+  finally{plusShopBusy=false;button.disabled=!FAREFULLY_FEATURES.plus}
 }
 function plusShopSpendSummary(){
   const output=document.getElementById('plusSpendResult');
@@ -2391,6 +2415,7 @@ function farefullyUpdatePaidControls(){
     const label=panel.querySelector('.plusbasket-tag');
     if(label)label.textContent=isPlus?'★ FAREFULLY PLUS · ACTIVE':'★ FAREFULLY PLUS';
     if(note)note.hidden=isPlus;
+    if(!isPlus){const out=document.getElementById('plusReceiptInsightsResult');if(out)out.textContent='Farefully Plus is required. Your recent receipts remain free.';}
   }
 }
 
@@ -2636,6 +2661,7 @@ for(const id of ['paydayDays','paydayCash','paydayReserve']){const el=document.g
 {const el=document.getElementById('shopShareStore');if(el)el.addEventListener('click',shoppingShareList)}
 {const el=document.getElementById('shopShareOnline');if(el)el.addEventListener('click',shoppingShareList)}
 {const el=document.getElementById('shopResetChecks');if(el)el.addEventListener('click',shoppingResetChecks)}
+{const el=document.getElementById('plusReceiptInsightsButton');if(el)el.addEventListener('click',plusReceiptInsights)}
 {const el=document.getElementById('plusBasketReviewButton');if(el)el.addEventListener('click',shoppingReviewPacks)}
 {const el=document.getElementById('plusSplitButton');if(el)el.addEventListener('click',plusShopSplitFortnight)}
 {const el=document.getElementById('plusSpendSaveButton');if(el)el.addEventListener('click',plusShopSaveSpend)}
