@@ -81,6 +81,21 @@ try{
   assert.equal(await page.evaluate(()=>state.trolley),null);
   assert.equal(await page.evaluate(()=>JSON.parse(store.get(sk(active))).receiptHistory[0].actual),510);
   assert.match(await trolley.locator('#actualReceiptHistory').innerText(),/£5\.10/);
+  // Cupboard meals use exact quantities and open a recipe without replacing the plan.
+  const cupboard=await page.evaluate(()=>{
+   const m=allDinners().find(x=>!hardBlocked(x));state.pantry=Object.fromEntries(Object.entries(effectiveIngredients(m.i)).map(([id,q])=>[id,q*pf()]));render();go('pantry');return {id:m.id,name:m.n,plan:JSON.stringify(state.plan),pantry:JSON.stringify(state.pantry)};
+  });
+  const panel=page.locator('#cupboardMealPanel');
+  await panel.locator('#cupboardMealLimit').fill('0');
+  await page.waitForFunction(()=>document.getElementById('cupboardMealResults').textContent.includes('£0 estimated top-up'));
+  const cb=await panel.evaluate(el=>({left:el.getBoundingClientRect().left,right:el.getBoundingClientRect().right,scroll:el.scrollWidth,client:el.clientWidth,viewport:document.documentElement.clientWidth}));
+  assert.ok(cb.left>=0&&cb.right<=cb.viewport+1&&cb.scroll<=cb.client+1,'Cupboard controls overflow at '+width);
+  await panel.getByRole('button',{name:'View recipe'}).first().click();
+  assert.equal(await page.locator('#recipe').evaluate(el=>el.classList.contains('active')),true);
+  assert.equal(await page.evaluate(()=>JSON.stringify(state.plan)),cupboard.plan);
+  assert.equal(await page.evaluate(()=>JSON.stringify(state.pantry)),cupboard.pantry);
+  await page.locator('#recipe .recipeback').click();
+  assert.equal(await page.locator('#pantry').evaluate(el=>el.classList.contains('active')),true);
   await page.close();
  }
 }finally{await browser.close();}
