@@ -37,6 +37,27 @@ try{
   assert.ok(bounds.left>=0&&bounds.right<=bounds.viewport+1&&bounds.scroll<=bounds.client+1,'Budget form overflows at width '+width+': '+JSON.stringify(bounds));
   assert.equal(await page.evaluate(()=>JSON.parse(store.get(sk(active))).extrasAllowance),25,'Allowance should persist in synthetic household');
   if(width===390){mkdirSync('test-results',{recursive:true});await form.screenshot({path:'test-results/whole-shop-mobile.png'});}
+  // Exercise preview, explicit apply and restore on the actual mobile page.
+  await page.evaluate(()=>{
+   state.setupComplete=state.tasteComplete=state.dietComplete=true;
+   state.checked={};state.plan=D.filter(m=>!hardBlocked(m)).slice(0,7).map(m=>m.id);state.days=7;state.budget=100;state.extrasAllowance=10;calc();renderPayday();
+  });
+  const regular=await page.evaluate(()=>JSON.stringify([state.plan,state.days,state.budget,state.extrasAllowance]));
+  const payday=page.locator('#paydayPanel');
+  await payday.locator('#paydayDays').selectOption('3');
+  await payday.locator('#paydayCash').fill('25');
+  await payday.locator('#paydayReserve').fill('5');
+  await payday.locator('#previewPayday').click();
+  await page.waitForFunction(()=>document.getElementById('paydayMessage').textContent.includes('estimated for 3 day'));
+  assert.equal(await page.evaluate(()=>JSON.stringify([state.plan,state.days,state.budget,state.extrasAllowance])),regular);
+  const pb=await payday.evaluate(el=>({left:el.getBoundingClientRect().left,right:el.getBoundingClientRect().right,scroll:el.scrollWidth,client:el.clientWidth,viewport:document.documentElement.clientWidth}));
+  assert.ok(pb.left>=0&&pb.right<=pb.viewport+1&&pb.scroll<=pb.client+1,'Payday controls overflow at '+width);
+  await payday.locator('#applyPayday').click();
+  assert.deepEqual(await page.evaluate(()=>[state.plan.length,state.days,state.budget,state.extrasAllowance,!!state.paydayBackup]),[3,3,25,5,true]);
+  await page.evaluate(()=>go('basket'));
+  await payday.locator('#restoreRegularPlan').click();
+  assert.equal(await page.evaluate(()=>JSON.stringify([state.plan,state.days,state.budget,state.extrasAllowance])),regular);
+  assert.equal(await page.evaluate(()=>state.paydayBackup),null);
   await page.close();
  }
 }finally{await browser.close();}
