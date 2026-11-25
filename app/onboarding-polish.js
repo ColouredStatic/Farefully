@@ -18,10 +18,11 @@
     var totalEl=byId('ffHouseholdTotal');
     if(totalEl)totalEl.textContent='Planning for '+total+' '+(total===1?'person':'people')+'. Portions and ingredient quantities will be scaled to your household.';
     var budget=Math.max(0,numberOf('budget',0)), days=Math.max(1,numberOf('planDays',7));
+    var reserve=Math.max(0,numberOf('setupExtrasAllowance',0)), mealBudget=Math.max(0,budget-reserve);
     var daily=byId('ffBudgetDaily');
-    if(daily)daily.textContent=new Intl.NumberFormat('en-GB',{style:'currency',currency:'GBP'}).format(budget/days);
+    if(daily)daily.textContent=new Intl.NumberFormat('en-GB',{style:'currency',currency:'GBP'}).format(mealBudget/days);
     var per=byId('ffBudgetLabel');
-    if(per)per.textContent='daily share of your '+days+'-day budget target, not a supermarket price quote';
+    if(per)per.textContent='Daily meal budget after your reserve: '+days+'-day plan, not a price quote';
     var selected=document.querySelector('#setup [data-priority].on')?.dataset.priority||'balance';
     document.querySelectorAll('[data-ff-vibe]').forEach(function(btn){
       var on=btn.dataset.ffVibe===selected;
@@ -61,7 +62,7 @@
         update();
       });
     });
-    ['adults','children','budget','planDays','supermarket','dietPattern','novelty','maxTime'].forEach(function(id){
+    ['adults','children','budget','setupExtrasAllowance','planDays','supermarket','dietPattern','novelty','maxTime'].forEach(function(id){
       var el=byId(id);
       if(el){el.addEventListener('input',update);el.addEventListener('change',update);}
     });
