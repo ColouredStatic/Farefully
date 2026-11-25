@@ -22,7 +22,7 @@ try{
   });
   await page.goto('http://farefully.test/app/',{waitUntil:'load'});
   await page.evaluate(()=>{
-   state=def();active='synthetic_mobile_test';state.plan=['curry'];state.total=83.42;state.budget=100;
+   state=def();active='synthetic_mobile_test';state.supermarket='Aldi';state.plan=[D.find(m=>!hardBlocked(m)).id];calc();state.budget=state.total+10;
    document.getElementById('cloudAccountGate').style.display='none';
    document.querySelectorAll('.overlay,.welcome').forEach(x=>x.classList.remove('show'));
    go('basket');renderWholeShopBudget(true);
@@ -30,8 +30,9 @@ try{
   const form=page.locator('#wholeShopBudgetForm');
   await form.locator('#extrasAllowance').fill('25');
   await form.getByRole('button',{name:'Save allowance'}).click();
-  await page.waitForFunction(()=>document.getElementById('wholeShopBudgetResult').textContent.includes('£8.42 above target'));
-  assert.match(await form.innerText(),/£108\.42/);
+  await page.waitForFunction(()=>document.getElementById('wholeShopBudgetResult').textContent.includes('£15.00 above target'));
+  assert.ok((await form.innerText()).includes(await page.evaluate(()=>money(state.total+25))),'Combined estimate must include the real calculated recipe basket and reserve');
+  assert.equal(await page.locator('#budgetRescuePanel').isVisible(),true);
   const bounds=await form.evaluate(el=>({left:el.getBoundingClientRect().left,right:el.getBoundingClientRect().right,scroll:el.scrollWidth,client:el.clientWidth,viewport:document.documentElement.clientWidth}));
   assert.ok(bounds.left>=0&&bounds.right<=bounds.viewport+1&&bounds.scroll<=bounds.client+1,'Budget form overflows at width '+width+': '+JSON.stringify(bounds));
   assert.equal(await page.evaluate(()=>JSON.parse(store.get(sk(active))).extrasAllowance),25,'Allowance should persist in synthetic household');
