@@ -1296,7 +1296,7 @@ function renderUnsafe(){
         +(biggest?'Largest estimated basket lines: '+biggest+'.':'');
     }
   }
-  renderPantryPicker();renderPantryHighlights();renderRetailerComparison();renderWeeklyOffers();
+  renderPantryPicker();renderPantryHighlights();renderCupboardMeals();renderRetailerComparison();renderWeeklyOffers();
   const shopSummary=autoShop?`No preference → ${retailer} lowest model estimate`:state.supermarket;
   document.getElementById('householdCard').innerHTML=`<p><b>Adults:</b> ${state.adults}</p><p><b>Children:</b> ${state.children}</p><p><b>Plan:</b> ${state.days} days</p><p><b>Whole-shop budget:</b> ${money(state.budget)}</p><p><b>Reserved for extras:</b> ${money(normaliseExtrasAllowance(state.extrasAllowance))}</p><p><b>Meal ingredient target:</b> ${money(mealBudgetTarget())}</p><p><b>Supermarket:</b> ${esc(shopSummary||'Not selected')}</p><p><b>Loyalty pricing:</b> ${state.loyaltyPricing?'On':'Off'}</p><p><b>Weekly offers in planning:</b> ${state.useWeeklyOffers?'On':'Off'}</p><p><b>Diet:</b> ${esc(state.dietPattern==='omnivore'?'No specific diet':state.dietPattern)}</p><p><b>Extra exclusions:</b> ${esc((state.avoidGroups||[]).join(', ')||'None')}</p><p><b>Allergen filters:</b> ${esc((state.allergens||[]).join(', ')||'None')}</p><p><b>Not keen:</b> ${esc(Object.entries(state.taste?.proteins||{}).filter(([k,v])=>v===-1&&k!=='Halloumi & cheese').map(([k])=>k).concat(Object.entries(state.taste?.styles||{}).filter(([,v])=>v===-1).map(([k])=>k),Object.entries(state.taste?.ingredients||{}).filter(([,v])=>v===-1).map(([k])=>k)).join(', ')||'None')}</p><p><b>Never suggest:</b> ${esc(Object.entries(state.taste?.proteins||{}).filter(([k,v])=>v===-2&&k!=='Halloumi & cheese').map(([k])=>k).concat(Object.entries(state.taste?.styles||{}).filter(([,v])=>v===-2).map(([k])=>k),Object.entries(state.taste?.ingredients||{}).filter(([,v])=>v===-2).map(([k])=>k),(state.avoid||[])).join(', ')||'Nothing added')}</p><p><b>Weeknight time:</b> ${state.maxTime>=999?'No limit':state.maxTime+' minutes'}</p><p><b>Priority:</b> ${esc({budget:'Lowest cost',family:'Everyone eats it',quick:'Quick cooking',variety:'More variety',balance:'Balanced'}[state.priority]||'Balanced')}</p><div class="profile-summary"><b>Taste Profile:</b> ${state.tasteComplete?'Active · recommendations ranked for this household':'Not finished yet'}</div><p><b>Profile:</b> ${state.setupComplete&&state.tasteComplete?'Ready':'Setup incomplete'}</p>`;
   applyAccessibility();save()
@@ -1425,6 +1425,47 @@ function renderPantryHighlights(){
   const icons={Produce:'🥕',Dairy:'🥛',Meat:'🍗',Fish:'🐟',Frozen:'❄️',Bakery:'🍞','Plant protein':'🌱','Dairy alternatives':'🌿',Cupboard:'🥫',Breakfast:'🥣',Snacks:'🍎'};
   const rows=Object.entries(state.pantry||{}).filter(([,q])=>q>0).sort((a,b)=>b[1]-a[1]).slice(0,3);
   el.innerHTML=rows.length?rows.map(([id,q])=>`<div class="use"><div class="foodicon">${icons[P[id]?.c]||'🥫'}</div><b>${esc(P[id]?.n||id)}</b><div class="small">In pantry · ${esc(fmtQty(id,q))}</div></div>`).join(''):'<div class="card" style="grid-column:1/-1;padding:14px"><b>Nothing in your pantry yet</b><div class="small" style="margin-top:4px">Add what you already have and Farefully will deduct it from the basket.</div></div>'
+}
+// A single meal at a time: saved pantry stock is not consumed by browsing suggestions.
+function cupboardMealQuote(m,retailer=selectedRetailer()){
+ if(!m||hardBlocked(m))return null;
+ const ingredients=Object.entries(effectiveIngredients(m.i)),factor=pf(),missing=[];
+ if(!ingredients.length||!Number.isFinite(factor)||factor<=0)return null;
+ let total=0,covered=0;
+ for(const [id,q] of ingredients){
+  const p=P[id],required=q*factor;
+  if(!p||!Number.isFinite(p.pack)||p.pack<=0||!Number.isFinite(required)||required<=0)return null;
+  const have=Math.max(0,Number(state.pantry[id])||0),short=Math.max(0,required-have);
+  if(short<=1e-8){covered++;continue}
+  const packs=Math.ceil(short/p.pack-1e-10),line=Math.round(packs*retailerItemPrice(id,retailer)*100);
+  if(!Number.isFinite(line)||line<0)return null;
+  total+=line;missing.push({id,short,packs,line});
+ }
+ return {id:m.id,name:m.n,time:m.t,covered,count:ingredients.length,missing,total,fit:fitScore(m)};
+}
+function cupboardMealOptions(maxPennies){
+ if(!Number.isSafeInteger(maxPennies)||maxPennies<0)return [];
+ const shop=selectedRetailer();
+ return allDinners().map(m=>cupboardMealQuote(m,shop)).filter(x=>x&&x.total<=maxPennies)
+  .sort((a,b)=>a.total-b.total||b.covered/b.count-a.covered/a.count||b.fit-a.fit||a.time-b.time||a.name.localeCompare(b.name));
+}
+function renderCupboardMeals(){
+ const out=document.getElementById('cupboardMealResults'),limit=document.getElementById('cupboardMealLimit');
+ if(!out||!limit)return;
+ if(!state.setupComplete||!state.dietComplete||!state.tasteComplete){out.textContent='Finish household setup so meals respect your dietary needs and preferences.';return}
+ const cash=actualPennies(limit.value);
+ if(cash===null){out.textContent='Enter a valid top-up budget, including £0 if you cannot spend anything.';return}
+ const choices=cupboardMealOptions(cash);
+ if(!choices.length){out.textContent='No suitable dinner found within this top-up estimate. Check the quantities in your pantry, or try a different limit. No dietary exclusions have been relaxed.';return}
+ out.innerHTML='<p class="small">'+choices.length+' suitable dinner option(s) · showing up to 10 · '+esc(selectedRetailer())+' modelled pack prices</p>'+choices.slice(0,10).map(x=>{
+ const missing=x.missing.map(y=>esc(P[y.id].n)+' — need '+esc(fmtQty(y.id,y.short))+'; buy '+y.packs+' × '+esc(shoppingPackLabel(y.id,P[y.id].pack,P[y.id].u))+' ('+money(y.line/100)+')').join('</li><li>');
+ return '<div style="padding:12px 0;border-top:1px solid #e5ede4"><b>'+esc(x.name)+'</b><div class="small">'+x.time+' min · '+x.covered+' of '+x.count+' ingredients fully covered</div><p style="font-weight:750;margin:5px 0">'+(x.total===0?'£0 estimated top-up · all listed ingredients covered':money(x.total/100)+' estimated top-up')+'</p>'+(missing?'<details><summary>Missing ingredients and packs</summary><ul><li>'+missing+'</li></ul></details>':'')+'<button type="button" class="soft" style="margin-top:7px" data-ff-action="open-cupboard-recipe" data-meal-id="'+esc(x.id)+'">View recipe</button></div>';
+ }).join('');
+}
+function openCupboardRecipe(id){
+ const m=allDinners().find(x=>x.id===id);
+ if(!m||hardBlocked(m)){showToast('This recipe is no longer suitable. Check your pantry options again.');return}
+ recipeIndex=-1;showRecipe(m);
 }
 function renderPantryPicker(){
   const search=(document.getElementById('pantrySearch')?.value||'').trim().toLowerCase();
@@ -2058,12 +2099,16 @@ function recipeMethodGuidance(raw,m){
   return{text,title:recipeMethodTitle(text,0,1),note:[...new Set(notes)].slice(0,2).join(' ')};
 }
 
+let viewedRecipeId=null,viewedRecipeProfile=null;
 function openRecipe(i){
   if(i<0||i>=state.plan.length)return;
-  recipeIndex=i;
+  recipeIndex=i;showRecipe(meal(i));
+}
+function showRecipe(m){
+  if(!m)return;
+  viewedRecipeId=m.id;viewedRecipeProfile=active;
   const current=document.querySelector('.screen.active');
   recipeReturn=current&&current.id!=='recipe'?current.id:(recipeReturn||'home');
-  const m=meal(i);
   document.getElementById('recipeHero').style.backgroundImage=photoBackground(m);
   const creditElement=document.getElementById('recipePhotoCredit'),photo=RECIPE_PHOTOS[m.id];
   if(creditElement){
@@ -2104,7 +2149,7 @@ function backFromRecipe(){go(recipeReturn||'plan')}
 
 function renderRating(id){const current=state.ratings?.[id]||'';document.querySelectorAll('#ratingButtons button').forEach(b=>b.classList.toggle('on',b.dataset.rating===current));syncPressed()}
 function rateRecipe(v){
-  const m=meal(recipeIndex);if(!m)return;state.ratings=state.ratings||{};state.ratings[m.id]=v;save();renderRating(m.id);render();
+  const m=viewedRecipeProfile===active?allDinners().find(x=>x.id===viewedRecipeId):null;if(!m)return;state.ratings=state.ratings||{};state.ratings[m.id]=v;save();renderRating(m.id);render();
   document.getElementById('recipeMatch').textContent=householdFit(m).icon+' '+householdFit(m).label;
   const explanation=document.getElementById('recipeFitDetails');
   if(explanation)explanation.innerHTML=householdFitExplanation(m,true);
@@ -2546,6 +2591,7 @@ document.addEventListener('click',function(event){
   else if(action==='edit-custom-recipe')editCustomRecipe(el.dataset.id);
   else if(action==='delete-custom-recipe')deleteCustomRecipe(el.dataset.id);
   else if(action==='remove-custom-ingredient')removeCustomIngredient(el.dataset.id);
+  else if(action==='open-cupboard-recipe')openCupboardRecipe(el.dataset.mealId);
   else if(action==='start-actual-trolley')startActualTrolley();
   else if(action==='save-actual-line')saveActualLine();
   else if(action==='remove-actual-line')removeActualLine(el.dataset.key);
@@ -2577,6 +2623,7 @@ document.addEventListener('error',event=>{
 
 // Shopping companion event handlers. Search / display filters are device-local;
 // quantities and collected checks live inside the cloud-synced household.
+{const el=document.getElementById('cupboardMealLimit');if(el)el.addEventListener('input',renderCupboardMeals)}
 for(const id of ['paydayDays','paydayCash','paydayReserve']){const el=document.getElementById(id);if(el)el.addEventListener('input',()=>{paydayPreview=null;renderPayday()})}
 {const el=document.getElementById('wholeShopBudgetForm');if(el)el.addEventListener('submit',e=>{e.preventDefault();saveExtrasAllowance()})}
 {const el=document.getElementById('shoppingExtraForm');if(el)el.addEventListener('submit',e=>{e.preventDefault();shoppingAddExtra()})}
