@@ -378,7 +378,7 @@ function migrateLegacyStorage(){
 migrateLegacyStorage();
 let profiles=JSON.parse(store.get(PK)||'[]'),active=store.get(AK),state=null;
 function def(){return{
-  adults:2,children:3,days:7,budget:200,extrasAllowance:0,paydayBackup:null,avoid:[],pantry:{},plan:[],basket:{},need:{},total:0,checked:{},
+  adults:2,children:3,days:7,budget:200,extrasAllowance:0,paydayBackup:null,trolley:null,receiptHistory:[],avoid:[],pantry:{},plan:[],basket:{},need:{},total:0,checked:{},
   supermarket:'',autoRetailer:'Aldi',loyaltyPricing:true,useWeeklyOffers:true,taste:{proteins:{},styles:{},ingredients:{}},maxTime:45,vegFrequency:'some',fishFrequency:'some',
   novelty:'balanced',priority:'balance',ratings:{},tasteComplete:false,planGeneration:0,recentPlans:[],
   dietPattern:'omnivore',avoidGroups:[],allergens:[],dietComplete:false,setupComplete:false,customRecipes:[],shoppingExtras:[]
@@ -397,6 +397,7 @@ function def(){return{
   if(![7,14].includes(state.days)&&!(state.paydayBackup&&Number.isInteger(state.days)&&state.days>=1&&state.days<=6))state.days=7;
   if(!Number.isFinite(state.budget)||state.budget<0)state.budget=200;
   state.extrasAllowance=normaliseExtrasAllowance(state.extrasAllowance);
+  state.trolley=normaliseTrolley(state.trolley);state.receiptHistory=normaliseReceipts(state.receiptHistory);
   if(typeof state.setupComplete!=='boolean')state.setupComplete=false;
   if(typeof state.supermarket!=='string')state.supermarket='';
   if(!RETAILERS[state.autoRetailer])state.autoRetailer='Aldi';
@@ -1534,6 +1535,85 @@ function applyShoppingFilters(){
  empty.hidden=visible>0;
  if(!visible)empty.textContent='Nothing to show here. Try another search or untick “Show only items still needed”.';
 }
+// Free actual-spend ledger. Store integer pennies, never infer checkout prices.
+function actualPennies(value){
+ const v=String(value??'').trim();
+ if(!/^\d{1,5}(?:\.\d{1,2})?$/.test(v))return null;
+ const n=Math.round(Number(v)*100);return n<=5000000?n:null;
+}
+function validPennies(n){return Number.isSafeInteger(n)&&n>=0&&n<=5000000}
+function normaliseTrolley(t){
+ if(!t||!validPennies(t.budget)||!validPennies(t.estimate)||!Array.isArray(t.lines))return null;
+ const seen=new Set();
+ const lines=t.lines.filter(x=>x&&typeof x.key==='string'&&typeof x.name==='string'&&validPennies(x.pennies)&&!seen.has(x.key)&&seen.add(x.key)).slice(0,150).map(x=>({key:x.key.slice(0,100),name:x.name.slice(0,100),pennies:x.pennies}));
+ return {budget:t.budget,estimate:t.estimate,retailer:String(t.retailer||'').slice(0,60),lines};
+}
+function normaliseReceipts(rows){
+ return (Array.isArray(rows)?rows:[]).filter(x=>x&&typeof x.date==='string'&&validPennies(x.budget)&&validPennies(x.estimate)&&validPennies(x.actual)).slice(0,52).map(x=>({date:x.date.slice(0,30),budget:x.budget,estimate:x.estimate,actual:x.actual,retailer:String(x.retailer||'').slice(0,60)}));
+}
+function trolleyTotal(t=state.trolley){return (t?.lines||[]).reduce((sum,x)=>sum+x.pennies,0)}
+function trolleyChoices(){
+ const items=Object.keys(state.basket||{}).filter(k=>P[k]).map(k=>({key:k,name:P[k].n}));
+ for(const x of validShoppingExtras())items.push({key:'extra:'+x.id,name:x.name});
+ for(const x of state.trolley?.lines||[])if(!items.some(y=>y.key===x.key))items.push({key:x.key,name:x.name});
+ return items;
+}
+function startActualTrolley(){
+ if(state.trolley)return;
+ if(!state.plan.length&&!validShoppingExtras().length){showToast('Build a shopping list first.');return}
+ state.trolley={budget:Math.round(state.budget*100),estimate:Math.round(wholeShopBudgetEstimate(state.total,state.extrasAllowance,state.budget).combined*100),retailer:selectedRetailer(),lines:[]};
+ save();renderActualTrolley();showToast('New trolley started. Enter the full price for each item line.');
+}
+function setActualLine(key,pennies){
+ const item=trolleyChoices().find(x=>x.key===key);
+ if(!state.trolley||!item||!validPennies(pennies))return false;
+ const lines=state.trolley.lines,existing=lines.find(x=>x.key===key);
+ if(existing){existing.pennies=pennies;existing.name=item.name}
+ else if(lines.length<150)lines.push({key,name:item.name,pennies});
+ else return false;
+ return true;
+}
+function saveActualLine(){
+ const key=document.getElementById('actualItem').value,field=document.getElementById('actualItemPrice'),p=actualPennies(field.value);
+ if(p===null||!setActualLine(key,p)){showToast('Choose an item and enter its total price in pounds and pence.');return}
+ field.value='';save();renderActualTrolley();showToast('Trolley price saved.');
+}
+function removeActualLine(key){
+ if(!state.trolley)return;
+ state.trolley.lines=state.trolley.lines.filter(x=>x.key!==key);save();renderActualTrolley();
+}
+function recordActualReceipt(pennies,date=new Date().toISOString()){
+ if(!state.trolley||!validPennies(pennies))return false;
+ const t=state.trolley;
+ state.receiptHistory=normaliseReceipts([{date,budget:t.budget,estimate:t.estimate,actual:pennies,retailer:t.retailer},...(state.receiptHistory||[])]);
+ state.trolley=null;return true;
+}
+function finishActualTrolley(){
+ const field=document.getElementById('actualReceiptTotal'),p=actualPennies(field.value);
+ if(p===null||!state.trolley){showToast('Enter the final amount actually paid.');return}
+ if(!window.confirm('Save the final shop total and close this trolley?'))return;
+ if(recordActualReceipt(p)){field.value='';save();renderActualTrolley();showToast('Final shop total recorded.')}
+}
+function discardActualTrolley(){
+ if(!state.trolley||!window.confirm('Discard this trolley and its entered prices? Saved receipts will remain.'))return;
+ state.trolley=null;save();renderActualTrolley();
+}
+function renderActualTrolley(){
+ const start=document.getElementById('startActualTrolley'),controls=document.getElementById('actualTrolleyControls'),msg=document.getElementById('actualTrolleySummary'),items=document.getElementById('actualItem'),lines=document.getElementById('actualTrolleyLines'),history=document.getElementById('actualReceiptHistory');
+ if(!start||!controls||!msg||!items||!lines||!history)return;
+ const t=state.trolley,total=trolleyTotal();
+ start.hidden=!!t;controls.hidden=!t;
+ if(t){
+  const previous=items.value,choices=trolleyChoices();
+  items.innerHTML='<option value="">Choose shopping item</option>'+choices.map(x=>'<option value="'+esc(x.key)+'">'+esc(x.name)+'</option>').join('');
+  if(choices.some(x=>x.key===previous))items.value=previous;
+  const left=t.budget-total,unpriced=choices.filter(x=>!t.lines.some(y=>y.key===x.key)).length;
+  msg.textContent='Entered trolley total: '+money(total/100)+' · '+money(Math.abs(left)/100)+(left<0?' over':' remaining from')+' your starting budget of '+money(t.budget/100)+'. '+unpriced+' list items without entered prices. '+(left<0?'Budget exceeded. ':left<=t.budget*.1?'Budget nearly used. ':'')+' Only entered prices count; unpriced items and discounts may change the final total.';
+  lines.innerHTML=t.lines.map(x=>'<div style="display:flex;align-items:center;gap:8px;justify-content:space-between;padding:6px 0"><span>'+esc(x.name)+' · '+money(x.pennies/100)+'</span><button type="button" class="soft" data-ff-action="remove-actual-line" data-key="'+esc(x.key)+'">Remove</button></div>').join('');
+ }else{msg.textContent='Start a trolley to track what you actually spend, including everyday extras. Your meal-plan estimate stays separate.';lines.innerHTML=''}
+ const records=state.receiptHistory||[];
+ history.innerHTML=records.length?records.slice(0,8).map(x=>{const d=new Date(x.date),label=Number.isNaN(d.getTime())?'Saved shop':d.toLocaleDateString('en-GB');const diff=x.budget-x.actual;return '<div style="padding:8px 0;border-top:1px solid #e5ede4"><b>'+esc(label)+' · '+esc(x.retailer)+' · '+money(x.actual/100)+'</b><div class="small">'+money(Math.abs(diff)/100)+(diff<0?' over':' below')+' starting budget · starting estimate '+money(x.estimate/100)+'</div></div>'}).join(''):'No final shop totals recorded yet.';
+}
 function refreshShoppingAssistant(){
  const basket=state.basket||{},keys=Object.keys(basket).filter(k=>P[k]);
  const extras=validShoppingExtras();
@@ -1550,6 +1630,7 @@ function refreshShoppingAssistant(){
  const fill=document.getElementById('shopProgressFill');if(fill)fill.style.width=percent+'%';
  const estimate=document.getElementById('shopSpendEstimate');
  if(estimate)estimate.textContent=`${money(collectedEstimated)} collected · ${money(remainingEstimated)} still needed (estimated groceries only; excludes extras)`;
+ renderActualTrolley();
  const storePanel=document.getElementById('shoppingStorePanel'),onlinePanel=document.getElementById('shoppingOnlinePanel');
  if(storePanel)storePanel.hidden=shoppingMode!=='store';
  if(onlinePanel)onlinePanel.hidden=shoppingMode!=='online';
@@ -2465,6 +2546,11 @@ document.addEventListener('click',function(event){
   else if(action==='edit-custom-recipe')editCustomRecipe(el.dataset.id);
   else if(action==='delete-custom-recipe')deleteCustomRecipe(el.dataset.id);
   else if(action==='remove-custom-ingredient')removeCustomIngredient(el.dataset.id);
+  else if(action==='start-actual-trolley')startActualTrolley();
+  else if(action==='save-actual-line')saveActualLine();
+  else if(action==='remove-actual-line')removeActualLine(el.dataset.key);
+  else if(action==='finish-actual-trolley')finishActualTrolley();
+  else if(action==='discard-actual-trolley')discardActualTrolley();
   else if(action==='preview-payday')previewPayday();
   else if(action==='apply-payday')applyPaydayPreview();
   else if(action==='restore-regular-plan')restoreRegularPlan();
