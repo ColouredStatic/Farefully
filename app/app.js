@@ -865,7 +865,7 @@ function preferenceSignature(){
   const protein=Object.entries(state.taste?.proteins||{}).sort().map(([k,v])=>k+':'+v).join(',');
   const styles=Object.entries(state.taste?.styles||{}).sort().map(([k,v])=>k+':'+v).join(',');
   const ingredients=Object.entries(state.taste?.ingredients||{}).sort().map(([k,v])=>k+':'+v).join(',');
-  return [state.novelty,state.priority,state.maxTime,state.vegFrequency,state.fishFrequency,state.dietPattern,(state.avoidGroups||[]).slice().sort().join(','),(state.allergens||[]).slice().sort().join(','),protein,styles,ingredients,Math.round(state.budget)].join('|')
+  return [state.novelty,state.priority,state.maxTime,state.vegFrequency,state.fishFrequency,state.dietPattern,(state.avoidGroups||[]).slice().sort().join(','),(state.allergens||[]).slice().sort().join(','),protein,styles,ingredients,Math.round(state.budget),Math.round(normaliseExtrasAllowance(state.extrasAllowance)*100)].join('|')
 }
 function recentExposure(id){
   const plans=state.recentPlans||[];let score=0;
@@ -1011,9 +1011,9 @@ function build(){
     mealStyles(pick).forEach(k=>styleCount[k]=(styleCount[k]||0)+1)
   }
   calc();
-  if(state.total>state.budget){
-    for(let pass=0;pass<2&&state.total>state.budget;pass++){
-      for(let i=0;i<state.plan.length&&state.total>state.budget;i++){
+  if(state.total>mealBudgetTarget()){
+    for(let pass=0;pass<2&&state.total>mealBudgetTarget();pass++){
+      for(let i=0;i<state.plan.length&&state.total>mealBudgetTarget();i++){
         const current=meal(i),before=state.total,currentFit=fitScore(current);let best=null;
         for(const cand of pool){
           if(state.plan.includes(cand.id)||fitScore(cand)<currentFit-14||excessiveRepeat(cand,i,state.plan,dishLookup))continue;
@@ -1067,11 +1067,11 @@ function renderUnsafe(){
   document.getElementById('profileBtn').textContent=p?p.name:'Set up';
   document.getElementById('setupBanner').classList.toggle('show',!!p&&(!state.setupComplete||!state.tasteComplete||!state.dietComplete));
   document.getElementById('greet').textContent=p?'Good evening, '+p.name:'Good evening';
-  const rem=state.budget-state.total;
-  document.getElementById('spend').textContent='£'+Math.round(state.total);
+  const shopEstimate=wholeShopBudgetEstimate(state.total,state.extrasAllowance,state.budget),rem=shopEstimate.remaining;
+  document.getElementById('spend').textContent='£'+shopEstimate.combined.toFixed(2);
   document.getElementById('target').textContent='/ £'+Math.round(state.budget);
   document.getElementById('remain').textContent=(rem>=0?'Est. '+money(rem)+' below':'Est. '+money(Math.abs(rem))+' above');
-  document.getElementById('ring').style.setProperty('--p',Math.min(100,Math.round(state.total/state.budget*100)));
+  document.getElementById('ring').style.setProperty('--p',state.budget>0?Math.min(100,Math.round(shopEstimate.combined/state.budget*100)):(shopEstimate.combined>0?100:0));
   const planTitle=document.getElementById('planTitle');if(planTitle)planTitle.textContent=state.days+'-day plan';
   farefullyRenderDailyNutrition();
   const legacyNotice=document.getElementById('savedFortnightNote');
@@ -1151,23 +1151,23 @@ function renderUnsafe(){
       const modelled=basketLines.length-Math.min(basketLines.length,Math.max(0,Number(state.liveCoverage?.matched)||0));
       const biggest=basketLines.slice().sort((a,b)=>b[1].line-a[1].line).slice(0,3)
         .map(([id,row])=>P[id].n+' ('+money(row.line)+')').join(', ');
-      const gap=state.total-state.budget;
+      const gap=-shopEstimate.remaining;
       budgetInsights.textContent=
         state.plan.length+' planned days · '+basketLines.length+' grocery lines · includes matching breakfast, lunch, dinner and snack ingredients.\n'
         +'Average planned grocery cost per day: '+money(state.total/state.plan.length)+' (not per person).\n'
-        +'Pack sizes are rounded up and saved pantry amounts are deducted. Everyday extras are not priced.\n'
+        +'Pack sizes are rounded up and saved pantry amounts are deducted. Everyday extras are not individually priced; the saved allowance is reserved separately.\n'
         +(hasCurrentMatches&&modelled<basketLines.length
           ?modelled+' grocery lines use modelled prices. Remaining lines use recent product matches.\n'
           :'All basket lines use indicative benchmark prices.\n')
         +(gap>0
-          ?'Currently '+money(gap)+' above your target estimate. Open a dinner swap in Plan to see estimated lower-cost choices first, or review your budget and pantry.\n'
-          :'Currently '+money(Math.abs(gap))+' below your target estimate. Keep a buffer for checkout differences.\n')
+          ?'Combined grocery and allowance estimate is '+money(gap)+' above your target. Open a dinner swap in Plan to see estimated lower-cost choices first, or review your budget and pantry.\n'
+          :'Combined grocery and allowance estimate is '+money(Math.abs(gap))+' below your target. Keep a buffer for checkout differences.\n')
         +(biggest?'Largest estimated basket lines: '+biggest+'.':'');
     }
   }
   renderPantryPicker();renderPantryHighlights();renderRetailerComparison();renderWeeklyOffers();
   const shopSummary=autoShop?`No preference → ${retailer} lowest model estimate`:state.supermarket;
-  document.getElementById('householdCard').innerHTML=`<p><b>Adults:</b> ${state.adults}</p><p><b>Children:</b> ${state.children}</p><p><b>Plan:</b> ${state.days} days</p><p><b>Budget:</b> ${money(state.budget)}</p><p><b>Supermarket:</b> ${esc(shopSummary||'Not selected')}</p><p><b>Loyalty pricing:</b> ${state.loyaltyPricing?'On':'Off'}</p><p><b>Weekly offers in planning:</b> ${state.useWeeklyOffers?'On':'Off'}</p><p><b>Diet:</b> ${esc(state.dietPattern==='omnivore'?'No specific diet':state.dietPattern)}</p><p><b>Extra exclusions:</b> ${esc((state.avoidGroups||[]).join(', ')||'None')}</p><p><b>Allergen filters:</b> ${esc((state.allergens||[]).join(', ')||'None')}</p><p><b>Not keen:</b> ${esc(Object.entries(state.taste?.proteins||{}).filter(([k,v])=>v===-1&&k!=='Halloumi & cheese').map(([k])=>k).concat(Object.entries(state.taste?.styles||{}).filter(([,v])=>v===-1).map(([k])=>k),Object.entries(state.taste?.ingredients||{}).filter(([,v])=>v===-1).map(([k])=>k)).join(', ')||'None')}</p><p><b>Never suggest:</b> ${esc(Object.entries(state.taste?.proteins||{}).filter(([k,v])=>v===-2&&k!=='Halloumi & cheese').map(([k])=>k).concat(Object.entries(state.taste?.styles||{}).filter(([,v])=>v===-2).map(([k])=>k),Object.entries(state.taste?.ingredients||{}).filter(([,v])=>v===-2).map(([k])=>k),(state.avoid||[])).join(', ')||'Nothing added')}</p><p><b>Weeknight time:</b> ${state.maxTime>=999?'No limit':state.maxTime+' minutes'}</p><p><b>Priority:</b> ${esc({budget:'Lowest cost',family:'Everyone eats it',quick:'Quick cooking',variety:'More variety',balance:'Balanced'}[state.priority]||'Balanced')}</p><div class="profile-summary"><b>Taste Profile:</b> ${state.tasteComplete?'Active · recommendations ranked for this household':'Not finished yet'}</div><p><b>Profile:</b> ${state.setupComplete&&state.tasteComplete?'Ready':'Setup incomplete'}</p>`;
+  document.getElementById('householdCard').innerHTML=`<p><b>Adults:</b> ${state.adults}</p><p><b>Children:</b> ${state.children}</p><p><b>Plan:</b> ${state.days} days</p><p><b>Whole-shop budget:</b> ${money(state.budget)}</p><p><b>Reserved for extras:</b> ${money(normaliseExtrasAllowance(state.extrasAllowance))}</p><p><b>Meal ingredient target:</b> ${money(mealBudgetTarget())}</p><p><b>Supermarket:</b> ${esc(shopSummary||'Not selected')}</p><p><b>Loyalty pricing:</b> ${state.loyaltyPricing?'On':'Off'}</p><p><b>Weekly offers in planning:</b> ${state.useWeeklyOffers?'On':'Off'}</p><p><b>Diet:</b> ${esc(state.dietPattern==='omnivore'?'No specific diet':state.dietPattern)}</p><p><b>Extra exclusions:</b> ${esc((state.avoidGroups||[]).join(', ')||'None')}</p><p><b>Allergen filters:</b> ${esc((state.allergens||[]).join(', ')||'None')}</p><p><b>Not keen:</b> ${esc(Object.entries(state.taste?.proteins||{}).filter(([k,v])=>v===-1&&k!=='Halloumi & cheese').map(([k])=>k).concat(Object.entries(state.taste?.styles||{}).filter(([,v])=>v===-1).map(([k])=>k),Object.entries(state.taste?.ingredients||{}).filter(([,v])=>v===-1).map(([k])=>k)).join(', ')||'None')}</p><p><b>Never suggest:</b> ${esc(Object.entries(state.taste?.proteins||{}).filter(([k,v])=>v===-2&&k!=='Halloumi & cheese').map(([k])=>k).concat(Object.entries(state.taste?.styles||{}).filter(([,v])=>v===-2).map(([k])=>k),Object.entries(state.taste?.ingredients||{}).filter(([,v])=>v===-2).map(([k])=>k),(state.avoid||[])).join(', ')||'Nothing added')}</p><p><b>Weeknight time:</b> ${state.maxTime>=999?'No limit':state.maxTime+' minutes'}</p><p><b>Priority:</b> ${esc({budget:'Lowest cost',family:'Everyone eats it',quick:'Quick cooking',variety:'More variety',balance:'Balanced'}[state.priority]||'Balanced')}</p><div class="profile-summary"><b>Taste Profile:</b> ${state.tasteComplete?'Active · recommendations ranked for this household':'Not finished yet'}</div><p><b>Profile:</b> ${state.setupComplete&&state.tasteComplete?'Ready':'Setup incomplete'}</p>`;
   applyAccessibility();save()
 }
 
@@ -1250,13 +1250,14 @@ function openSetup(){
   }
   const note=document.getElementById('planAccessNote');
   if(note)note.textContent=farefullyMayPlanFortnight()?'You can build a seven- or fourteen-day plan.':'Seven-day planning is always free. Plus unlocks new fourteen-day plans. Saved plans are kept until you choose to replace them.';
-  document.getElementById('adults').value=state.adults;document.getElementById('children').value=state.children;document.getElementById('budget').value=state.budget;document.getElementById('supermarket').value=state.supermarket||'';document.getElementById('loyaltyPricing').checked=state.loyaltyPricing!==false;document.getElementById('weeklyOffersPlanning').checked=state.useWeeklyOffers!==false;document.getElementById('avoid').value=(state.avoid||[]).join(', ');
+  document.getElementById('adults').value=state.adults;document.getElementById('children').value=state.children;document.getElementById('budget').value=state.budget;document.getElementById('setupExtrasAllowance').value=normaliseExtrasAllowance(state.extrasAllowance);document.getElementById('supermarket').value=state.supermarket||'';document.getElementById('loyaltyPricing').checked=state.loyaltyPricing!==false;document.getElementById('weeklyOffersPlanning').checked=state.useWeeklyOffers!==false;document.getElementById('avoid').value=(state.avoid||[]).join(', ');
   loadTasteUI();setupNext(state.setupComplete&&(!state.tasteComplete||!state.dietComplete)?3:1);document.getElementById('setup').classList.add('show');focusDialog('setup')
 }
 function closeSetup(){document.getElementById('setup').classList.remove('show')}
 function saveSetup(){
   const a=document.getElementById('adults'),c=document.getElementById('children'),d=document.getElementById('planDays'),b=document.getElementById('budget'),shop=document.getElementById('supermarket'),av=document.getElementById('avoid');
-  state.adults=Math.max(1,+a.value||2);state.children=Math.max(0,+c.value||0);state.days=(+d.value===14&&farefullyMayPlanFortnight())?14:7;state.budget=Math.max(40,+b.value||200);state.supermarket=shop.value||'No preference';state.loyaltyPricing=document.getElementById('loyaltyPricing').checked;state.useWeeklyOffers=document.getElementById('weeklyOffersPlanning').checked;state.avoid=av.value.split(',').map(x=>x.trim()).filter(Boolean);
+  const enteredBudget=Number(b.value),extraInput=document.getElementById('setupExtrasAllowance'),enteredExtras=Number(extraInput.value);if(b.value.trim()===''||!Number.isFinite(enteredBudget)||enteredBudget<0||enteredBudget>5000||!Number.isFinite(enteredExtras)||enteredExtras<0||enteredExtras>5000){showToast('Enter a valid budget and allowance between £0 and £5,000');setupNext(2);return}state.extrasAllowance=normaliseExtrasAllowance(enteredExtras);
+  state.adults=Math.max(1,+a.value||2);state.children=Math.max(0,+c.value||0);state.days=(+d.value===14&&farefullyMayPlanFortnight())?14:7;state.budget=Math.round(enteredBudget*100)/100;state.supermarket=shop.value||'No preference';state.loyaltyPricing=document.getElementById('loyaltyPricing').checked;state.useWeeklyOffers=document.getElementById('weeklyOffersPlanning').checked;state.avoid=av.value.split(',').map(x=>x.trim()).filter(Boolean);
   state.taste={proteins:{},styles:{},ingredients:{}};document.querySelectorAll('.tastebtn').forEach(el=>{const g=tasteBucket(el.dataset.group);state.taste[g][el.dataset.key]=+el.dataset.value||0});
   state.maxTime=+document.getElementById('maxTime').value||45;state.vegFrequency=document.getElementById('vegFrequency').value;state.fishFrequency=document.getElementById('fishFrequency').value;state.novelty=document.getElementById('novelty').value;
   state.dietPattern=document.getElementById('dietPattern').value||'omnivore';state.avoidGroups=[...document.querySelectorAll('[data-avoid].on')].map(b=>b.dataset.avoid);state.allergens=[...document.querySelectorAll('[data-allergen].on')].map(b=>b.dataset.allergen);
@@ -1337,6 +1338,7 @@ const SHOP_ONLINE_STORES=Object.freeze({
 function normaliseExtrasAllowance(value){
   return typeof value==='number'&&Number.isFinite(value)&&value>=0&&value<=5000?Math.round(value*100)/100:0;
 }
+function mealBudgetTarget(){return Math.max(0,Math.round((state.budget-normaliseExtrasAllowance(state.extrasAllowance))*100)/100)}
 function wholeShopBudgetEstimate(recipeTotal,allowance,target){
   const recipes=Math.max(0,Math.round((Number(recipeTotal)||0)*100));
   const extras=Math.round(normaliseExtrasAllowance(allowance)*100);
@@ -1350,7 +1352,7 @@ function renderWholeShopBudget(hasPlan){
   field.value=String(allowance);
   if(!hasPlan){output.textContent='Build a meal plan to compare your full shopping estimate.';return}
   const result=wholeShopBudgetEstimate(state.total,allowance,state.budget);
-  output.textContent='Combined estimate: '+money(result.combined)+' · '+(result.remaining<0?money(-result.remaining)+' above target':money(result.remaining)+' remaining within target')+'. Includes your manual allowance, not actual checkout spend.';
+  output.textContent='Meal ingredient target: '+money(mealBudgetTarget())+' · Combined estimate: '+money(result.combined)+' · '+(result.remaining<0?money(-result.remaining)+' above target':money(result.remaining)+' remaining within target')+'. Includes your manual allowance, not actual checkout spend.';
 }
 function saveExtrasAllowance(){
   if(!state||!active)return;
@@ -1358,7 +1360,7 @@ function saveExtrasAllowance(){
   const value=field?.value===''?0:Number(field?.value);
   if(!Number.isFinite(value)||value<0||value>5000){showToast('Enter an allowance from £0 to £5,000');return}
   state.extrasAllowance=normaliseExtrasAllowance(value);
-  save();renderWholeShopBudget(!!state.plan?.length);showToast('Shopping allowance saved');
+  save();render();showToast('Allowance saved. Rebuild your plan to use the new meal budget.');
 }
 function validShoppingExtras(){
  return Array.isArray(state?.shoppingExtras)
@@ -1769,7 +1771,7 @@ function compareSwapOptions(a,b,preferBudget){
   return b.fit-a.fit||a.delta-b.delta;
 }
 function openSwap(i){
-  const cur=meal(i);if(!cur)return;swapIndex=i;const preferBudget=state.priority==='budget'||state.total>state.budget;document.getElementById('swapTitle').textContent='Replace '+cur.n+(preferBudget?' · lower-cost options first':'');
+  const cur=meal(i);if(!cur)return;swapIndex=i;const preferBudget=state.priority==='budget'||state.total>mealBudgetTarget();document.getElementById('swapTitle').textContent='Replace '+cur.n+(preferBudget?' · lower-cost options first':'');
   const opts=allDinners().filter(x=>x.id!==cur.id&&!state.plan.includes(x.id)&&!hardBlocked(x)).map(m=>{
     const old=state.plan[i],before=state.total;state.plan[i]=m.id;calc();const after=state.total;state.plan[i]=old;calc();
     return{m,delta:+(after-before).toFixed(2),after,fit:fitScore(m)}
