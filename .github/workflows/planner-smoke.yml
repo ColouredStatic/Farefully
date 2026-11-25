@@ -10,6 +10,7 @@ on:
       - 'app/onboarding-polish.css'
       - 'tests/onboarding-polish-smoke.mjs'
       - 'tests/launch-variety-budget-smoke.mjs'
+      - 'tests/whole-shop-mobile-browser.mjs'
       - 'index.html'
       - 'assets/styles.css'
       - 'tests/plus-basket-smoke.mjs'
@@ -38,6 +39,7 @@ on:
       - 'app/onboarding-polish.css'
       - 'tests/onboarding-polish-smoke.mjs'
       - 'tests/launch-variety-budget-smoke.mjs'
+      - 'tests/whole-shop-mobile-browser.mjs'
       - 'index.html'
       - 'assets/styles.css'
       - 'tests/plus-basket-smoke.mjs'
@@ -111,3 +113,22 @@ jobs:
         run: node tests/launch-variety-budget-smoke.mjs
       - name: Test recipe photo assignment and fallback
         run: node tests/recipe-photography-smoke.mjs
+
+  mobile-browser:
+    name: Whole-shop mobile browser check
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-save --no-package-lock playwright
+      - run: npx playwright install --with-deps chromium
+      - run: node tests/whole-shop-mobile-browser.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: whole-shop-mobile-preview
+          path: test-results/whole-shop-mobile.png
+          if-no-files-found: ignore
