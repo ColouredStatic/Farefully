@@ -966,6 +966,22 @@ function archiveCurrentPlan(){
   const key=prev.join('|');state.recentPlans=state.recentPlans.filter(p=>Array.isArray(p)&&p.join('|')!==key);
   state.recentPlans.unshift(prev.slice());state.recentPlans=state.recentPlans.slice(0,4)
 }
+function modelPackIncrement(need,ingredients,retailer){
+  let delta=0;
+  for(const [id,qty] of Object.entries(ingredients)){
+    const p=P[id];if(!p||!Number.isFinite(qty)||qty<=0)continue;
+    const have=Math.max(0,Number(state.pantry[id])||0),old=Math.max(0,(need[id]||0)-have),next=Math.max(0,(need[id]||0)+qty*pf()-have);
+    delta+=(Math.ceil(next/p.pack)-Math.ceil(old/p.pack))*retailerItemPrice(id,retailer);
+  }
+  return delta;
+}
+function budgetSlotNeeds(days){
+  const need={};
+  for(let i=0;i<days;i++)for(const arr of [breakfast,lunch,snacks]){
+    const slot=slotFor(arr,i);if(slot)add(need,effectiveIngredients(slot.i),pf());
+  }
+  return need;
+}
 function build(){
   if(state.days===14&&!farefullyMayPlanFortnight()){
     state.days=7;
@@ -979,6 +995,8 @@ function build(){
   const signature=preferenceSignature(),generation=state.planGeneration;
   const people=Math.max(1,state.adults+state.children);
   const ppCosts=pool.map(m=>cost(m)/people),minCost=Math.min(...ppCosts),maxCost=Math.max(...ppCosts),costRange=Math.max(.01,maxCost-minCost);
+  const sharedNeed=state.priority==='budget'?budgetSlotNeeds(state.days):null;
+  const modelRetailer=selectedRetailer();
   for(let i=0;i<state.days;i++){
     let candidates=pool.filter(m=>!used.has(m.id)&&!excessiveRepeat(m,i,state.plan,dishLookup));
     if(!candidates.length)candidates=pool.filter(m=>!excessiveRepeat(m,i,state.plan,dishLookup));
@@ -997,7 +1015,9 @@ function build(){
       else if(state.novelty==='balanced')score-=exposure*4;
       else if(state.novelty==='familiar'&&!(r==='love'||r==='good'))score-=exposure*1.5;
       if(state.priority==='budget'){
-        const ppCost=cost(m)/people;score+=((maxCost-ppCost)/costRange)*24;
+        const ppCost=cost(m)/people;score+=((maxCost-ppCost)/costRange)*18;
+        // Full packs and pantry matter more than a theoretical per-serving price.
+        score-=Math.min(32,modelPackIncrement(sharedNeed,effectiveIngredients(m.i),modelRetailer)*3);
       }else if(state.priority==='quick'){
         score+=m.t<=20?18:m.t<=30?10:m.t>45?-16:0;
       }else if(state.priority==='family'){
@@ -1007,30 +1027,87 @@ function build(){
       return{m,score}
     }).sort((a,b)=>b.score-a.score);
     const pick=ranked[0].m;state.plan.push(pick.id);used.add(pick.id);
+    if(sharedNeed)add(sharedNeed,effectiveIngredients(pick.i),pf());
     const protein=mealProtein(pick);catCount[protein]=(catCount[protein]||0)+1;
     mealStyles(pick).forEach(k=>styleCount[k]=(styleCount[k]||0)+1)
   }
   calc();
-  if(state.total>mealBudgetTarget()){
-    for(let pass=0;pass<2&&state.total>mealBudgetTarget();pass++){
-      for(let i=0;i<state.plan.length&&state.total>mealBudgetTarget();i++){
-        const current=meal(i),before=state.total,currentFit=fitScore(current);let best=null;
-        for(const cand of pool){
-          if(state.plan.includes(cand.id)||fitScore(cand)<currentFit-14||excessiveRepeat(cand,i,state.plan,dishLookup))continue;
-          // Rescue the estimated budget without turning a whole week into the same dinner.
-          const currentVariety=weeklyVarietyPenalty(current,i,state.plan,dishLookup);
-          const candidateVariety=weeklyVarietyPenalty(cand,i,state.plan,dishLookup);
-          if(candidateVariety>currentVariety+(state.priority==='budget'?14:8))continue;
-          if(state.novelty==='adventurous'&&recentExposure(cand.id)>=3)continue;
-          const old=state.plan[i];state.plan[i]=cand.id;calc();const saving=before-state.total;state.plan[i]=old;calc();
-          if(saving>.25&&(!best||saving>best.saving))best={id:cand.id,saving}
-        }
-        if(best){state.plan[i]=best.id;calc()}
-      }
-    }
-  }
+  reducePlanCost(pool,dishLookup,false);
   calc();
   save()
+}
+// Work on complete basket prices; never relax dietary exclusions or dislike thresholds.
+function reducePlanCost(pool,dishLookup,manual){
+  let changes=0;
+  for(let pass=0;pass<2&&state.total>mealBudgetTarget();pass++){
+    let improved=false;
+    for(let i=0;i<state.plan.length&&state.total>mealBudgetTarget();i++){
+      const current=meal(i);if(!current)continue;
+      const before=state.total,currentFit=fitScore(current);
+      if(!manual&&state.ratings?.[current.id]==='love')continue;
+      // Estimate promising swaps cheaply before verifying complete basket prices.
+      const base={...state.need};
+      for(const [id,q] of Object.entries(effectiveIngredients(current.i)))base[id]=Math.max(0,(base[id]||0)-q*pf());
+      const shop=selectedRetailer(),currentIncrement=modelPackIncrement(base,effectiveIngredients(current.i),shop);
+      const currentVariety=weeklyVarietyPenalty(current,i,state.plan,dishLookup);
+      const options=[];
+      for(const cand of pool){
+        if(state.plan.includes(cand.id)||fitScore(cand)<currentFit-14||excessiveRepeat(cand,i,state.plan,dishLookup))continue;
+        if(weeklyVarietyPenalty(cand,i,state.plan,dishLookup)>currentVariety+(state.priority==='budget'||manual?14:8))continue;
+        if(state.novelty==='adventurous'&&recentExposure(cand.id)>=3)continue;
+        const modelSaving=currentIncrement-modelPackIncrement(base,effectiveIngredients(cand.i),shop);
+        options.push({cand,modelSaving});
+      }
+      options.sort((a,b)=>b.modelSaving-a.modelSaving);
+      let best=null;
+      const old=state.plan[i];
+      try{
+        for(const {cand} of options.slice(0,12)){
+          state.plan[i]=cand.id;calc();
+          const saving=before-state.total;
+          if(saving>.01&&(!best||saving>best.saving))best={id:cand.id,saving};
+        }
+      }finally{state.plan[i]=old;calc()}
+      if(best){state.plan[i]=best.id;calc();changes++;improved=true}
+    }
+    if(!improved)break;
+  }
+  return changes;
+}
+let budgetRescuePreview=null;
+function budgetRescueKey(){
+  return JSON.stringify([active,state.plan,state.budget,state.extrasAllowance,state.pantry,state.checked,state.supermarket,state.loyaltyPricing,state.total,state.taste,state.ratings,state.dietPattern,state.avoidGroups,state.allergens,state.avoid,state.priority,state.novelty,state.maxTime,state.vegFrequency,state.fishFrequency]);
+}
+function previewBudgetRescue(){
+  if(!state.plan.length||Object.values(state.checked||{}).some(Boolean)){showToast('Finish or reset your collected shopping items before changing the meal plan.');return}
+  calc();
+  if(state.total<=mealBudgetTarget()){showToast('Your current meal estimate fits the available food budget.');return}
+  const original=state.plan.slice(),before=state.total,key=budgetRescueKey();
+  const pool=allDinners().filter(m=>!hardBlocked(m)),lookup=new Map(pool.map(m=>[m.id,m]));
+  let candidate,after;
+  try{reducePlanCost(pool,lookup,true);candidate=state.plan.slice();after=state.total}
+  finally{state.plan=original;calc()}
+  budgetRescuePreview=after<before?{key,candidate,before,after,changed:candidate.filter((id,i)=>id!==original[i]).length}:null;
+  renderBudgetRescue();
+  if(!budgetRescuePreview)showToast('No cheaper suitable dinner swaps found. Check pantry amounts or review the budget.');
+}
+function applyBudgetRescue(){
+  if(!budgetRescuePreview||budgetRescuePreview.key!==budgetRescueKey()){budgetRescuePreview=null;renderBudgetRescue();showToast('Your plan changed. Check for savings again.');return}
+  const preview=budgetRescuePreview,old=state.plan.slice(),before=state.total;
+  if(preview.candidate.some(id=>{const m=allDinners().find(x=>x.id===id);return !m||hardBlocked(m)})){budgetRescuePreview=null;renderBudgetRescue();showToast('Meal preferences changed. Check again.');return}
+  state.plan=preview.candidate.slice();calc();budgetRescuePreview=null;
+  if(state.total>=before){state.plan=old;calc();render();showToast('Prices changed; your original plan was kept.');return}
+  const saving=before-state.total;save();render();showToast('Estimated basket reduced by '+money(saving));
+}
+function renderBudgetRescue(){
+  const panel=document.getElementById('budgetRescuePanel'),msg=document.getElementById('budgetRescueMessage'),btn=document.getElementById('applyBudgetRescue'),find=document.getElementById('previewBudgetRescue');
+  if(!panel||!msg||!btn||!find)return;
+  panel.hidden=!state.plan.length;
+  if(budgetRescuePreview&&budgetRescuePreview.key!==budgetRescueKey())budgetRescuePreview=null;
+  const gap=state.total-mealBudgetTarget(),collected=Object.values(state.checked||{}).some(Boolean);
+  find.disabled=gap<=0||collected;
+  btn.hidden=!budgetRescuePreview;
+  msg.textContent=budgetRescuePreview?'Estimated saving '+money(budgetRescuePreview.before-budgetRescuePreview.after)+' by changing '+budgetRescuePreview.changed+' dinner(s). New food basket: '+money(budgetRescuePreview.after)+'. '+(budgetRescuePreview.after<=mealBudgetTarget()?'Within the meal budget estimate.':'Still '+money(budgetRescuePreview.after-mealBudgetTarget())+' above the meal budget.'):collected?'Shopping is in progress. Reset collected items before changing meals.':gap>0?'Your food basket is '+money(gap)+' above the money available for meals. Check for cheaper suitable swaps without changing your plan.':'Your current food basket estimate fits the available meal budget. Actual prices may differ.';
 }
 function rebuildPlan(){build();render();go('plan');showToast('Fresh plan built from your current preferences')}
 function calc(){
@@ -1122,6 +1199,7 @@ function renderUnsafe(){
 
   renderShoppingExtras();
   renderWholeShopBudget(hasPlan);
+  renderBudgetRescue();
   refreshShoppingAssistant();
   applyShoppingFilters();
 
@@ -1776,7 +1854,7 @@ function openSwap(i){
     const old=state.plan[i],before=state.total;state.plan[i]=m.id;calc();const after=state.total;state.plan[i]=old;calc();
     return{m,delta:+(after-before).toFixed(2),after,fit:fitScore(m)}
   }).sort((a,b)=>compareSwapOptions(a,b,preferBudget)).slice(0,10);
-  document.getElementById('swapList').innerHTML=opts.map(o=>`<div class="swapopt"><img src="${image(o.m)}" data-ff-photo-id="${esc(o.m.id)}" loading="lazy" decoding="async" alt="${esc(o.m.n)}"><div><b>${esc(o.m.n)}</b><div class="small">${esc(o.m.cat)} · ${o.m.t} min · ${esc(o.m.d)}</div>${householdFitBadge(o.m)}${householdFitExplanation(o.m)}${prepBadges(o.m)}${offerBadge(o.m)}<div style="font-weight:800;color:${o.delta<=0?'var(--green)':'#a36f27'};margin-top:5px">${o.delta<0?'Estimated reduction '+money(Math.abs(o.delta)):o.delta>0?'Estimated increase '+money(o.delta):'No estimated basket change'}</div><div class="small">Estimated whole basket: ${money(o.after)} · ${o.after<=state.budget?'within target':'above target'} · not a checkout quote</div><button class="soft" style="margin-top:7px" data-ff-action="choose-swap" data-meal-id="${esc(o.m.id)}">Use this meal</button></div></div>`).join('');
+  document.getElementById('swapList').innerHTML=opts.map(o=>`<div class="swapopt"><img src="${image(o.m)}" data-ff-photo-id="${esc(o.m.id)}" loading="lazy" decoding="async" alt="${esc(o.m.n)}"><div><b>${esc(o.m.n)}</b><div class="small">${esc(o.m.cat)} · ${o.m.t} min · ${esc(o.m.d)}</div>${householdFitBadge(o.m)}${householdFitExplanation(o.m)}${prepBadges(o.m)}${offerBadge(o.m)}<div style="font-weight:800;color:${o.delta<=0?'var(--green)':'#a36f27'};margin-top:5px">${o.delta<0?'Estimated reduction '+money(Math.abs(o.delta)):o.delta>0?'Estimated increase '+money(o.delta):'No estimated basket change'}</div><div class="small">Estimated whole basket: ${money(wholeShopBudgetEstimate(o.after,state.extrasAllowance,state.budget).combined)} including reserve · ${o.after<=mealBudgetTarget()?'within food target':'above food target'} · not a checkout quote</div><button class="soft" style="margin-top:7px" data-ff-action="choose-swap" data-meal-id="${esc(o.m.id)}">Use this meal</button></div></div>`).join('');
   document.getElementById('swap').classList.add('show');focusDialog('swap')
 }
 function closeSwap(){document.getElementById('swap').classList.remove('show')}function chooseSwap(id){const candidate=allDinners().find(m=>m.id===id);if(!candidate||hardBlocked(candidate)||!Number.isInteger(swapIndex)||swapIndex<0||swapIndex>=state.plan.length||state.plan.includes(id)){showToast('This meal is no longer available for this plan. Choose another.');return}state.plan[swapIndex]=id;calc();save();closeSwap();render();showToast('Meal swapped')}
@@ -2335,6 +2413,8 @@ document.addEventListener('click',function(event){
   else if(action==='edit-custom-recipe')editCustomRecipe(el.dataset.id);
   else if(action==='delete-custom-recipe')deleteCustomRecipe(el.dataset.id);
   else if(action==='remove-custom-ingredient')removeCustomIngredient(el.dataset.id);
+  else if(action==='preview-budget-rescue')previewBudgetRescue();
+  else if(action==='apply-budget-rescue')applyBudgetRescue();
   else if(action==='recover-missing-plan')rebuildPlan();
   else if(action==='reload-saved-plan')window.location.reload();
   else if(action==='open-household-setup')openSetup();
