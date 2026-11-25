@@ -58,6 +58,29 @@ try{
   await payday.locator('#restoreRegularPlan').click();
   assert.equal(await page.evaluate(()=>JSON.stringify([state.plan,state.days,state.budget,state.extrasAllowance])),regular);
   assert.equal(await page.evaluate(()=>state.paydayBackup),null);
+  // Actual trolley: edit a price, include an extra, record checkout total.
+  page.on('dialog',d=>d.accept());
+  await page.evaluate(()=>{state.shoppingExtras=[{id:'testsoap',name:'Soap'}];render();});
+  const trolley=page.locator('#actualTrolleyPanel');
+  await trolley.locator('#startActualTrolley').click();
+  const key=await page.evaluate(()=>Object.keys(state.basket)[0]);
+  await trolley.locator('#actualItem').selectOption(key);
+  await trolley.locator('#actualItemPrice').fill('4.49');
+  await trolley.getByRole('button',{name:'Save item price'}).click();
+  await trolley.locator('#actualItemPrice').fill('3.49');
+  await trolley.getByRole('button',{name:'Save item price'}).click();
+  await trolley.locator('#actualItem').selectOption('extra:testsoap');
+  await trolley.locator('#actualItemPrice').fill('1.25');
+  await trolley.getByRole('button',{name:'Save item price'}).click();
+  assert.equal(await page.evaluate(()=>trolleyTotal()),474);
+  assert.match(await trolley.locator('#actualTrolleySummary').innerText(),/£4\.74/);
+  const tb=await trolley.evaluate(el=>({left:el.getBoundingClientRect().left,right:el.getBoundingClientRect().right,scroll:el.scrollWidth,client:el.clientWidth,viewport:document.documentElement.clientWidth}));
+  assert.ok(tb.left>=0&&tb.right<=tb.viewport+1&&tb.scroll<=tb.client+1,'Trolley controls overflow at '+width);
+  await trolley.locator('#actualReceiptTotal').fill('5.10');
+  await trolley.getByRole('button',{name:'Record final shop'}).click();
+  assert.equal(await page.evaluate(()=>state.trolley),null);
+  assert.equal(await page.evaluate(()=>JSON.parse(store.get(sk(active))).receiptHistory[0].actual),510);
+  assert.match(await trolley.locator('#actualReceiptHistory').innerText(),/£5\.10/);
   await page.close();
  }
 }finally{await browser.close();}
