@@ -378,7 +378,7 @@ function migrateLegacyStorage(){
 migrateLegacyStorage();
 let profiles=JSON.parse(store.get(PK)||'[]'),active=store.get(AK),state=null;
 function def(){return{
-  adults:2,children:3,days:7,budget:200,avoid:[],pantry:{},plan:[],basket:{},need:{},total:0,checked:{},
+  adults:2,children:3,days:7,budget:200,extrasAllowance:0,avoid:[],pantry:{},plan:[],basket:{},need:{},total:0,checked:{},
   supermarket:'',autoRetailer:'Aldi',loyaltyPricing:true,useWeeklyOffers:true,taste:{proteins:{},styles:{},ingredients:{}},maxTime:45,vegFrequency:'some',fishFrequency:'some',
   novelty:'balanced',priority:'balance',ratings:{},tasteComplete:false,planGeneration:0,recentPlans:[],
   dietPattern:'omnivore',avoidGroups:[],allergens:[],dietComplete:false,setupComplete:false,customRecipes:[],shoppingExtras:[]
@@ -395,6 +395,7 @@ function def(){return{
   if(!Number.isFinite(state.children)||state.children<0)state.children=0;
   if(![7,14].includes(state.days))state.days=7;
   if(!Number.isFinite(state.budget)||state.budget<0)state.budget=200;
+  state.extrasAllowance=normaliseExtrasAllowance(state.extrasAllowance);
   if(typeof state.setupComplete!=='boolean')state.setupComplete=false;
   if(typeof state.supermarket!=='string')state.supermarket='';
   if(!RETAILERS[state.autoRetailer])state.autoRetailer='Aldi';
@@ -1120,6 +1121,7 @@ function renderUnsafe(){
   document.getElementById('basketGroups').innerHTML=plusShopCategories().filter(cat=>groups[cat]).map(c=>[c,groups[c]]).map(([c,items])=>`<div class="aisle card"><div class="aisletop"><h3>${esc(c)}</h3><b>${money(items.reduce((sum,x)=>sum+x[1].line,0))}</b></div>${items.map(([k,v])=>`<div class="shoprow ${state.checked[k]?'done':''}" role="checkbox" tabindex="0" aria-checked="${!!state.checked[k]}" aria-label="${esc(P[k].n)}: ${state.checked[k]?'collected':'still needed'}. Tap to change." data-shop-name="${esc(P[k].n.toLowerCase())}" data-shop-checked="${state.checked[k]?'1':'0'}" data-ff-action="toggle-basket" data-key="${esc(k)}"><div class="check">${state.checked[k]?'✓':''}</div><div><b>${esc(P[k].n)}</b><div class="small">${v.live&&v.liveQuote?v.liveQuote.items.map(x=>`${x.packs} × ${esc(x.row.packSize||liveProductName(x.row))}`).join(' + '):`${v.packs} × ${shoppingPackLabel(k,P[k].pack,P[k].u)} · recipe need ${fmtQty(k,state.need[k]||0)}`}${v.have?' · pantry '+fmtQty(k,v.have):''}${v.live?'<span class="liveprice">LIVE PRODUCT</span>':'<span class="fallbackprice">MODEL</span>'}${coeliacMode()&&coeliacLabelCheck(k)?'<span class="fallbackprice">CHECK COELIAC LABEL</span>':''}${wheatFreeMode()&&wheatLabelCheck(k)?'<span class="fallbackprice">CHECK WHEAT LABEL</span>':''}</div>${v.live&&v.liveQuote?`<div class="productdetail">${v.liveQuote.items.map(x=>esc(liveProductName(x.row))).join(' + ')}</div>`:''}</div><b>${money(v.line)}</b></div>`).join('')}</div>`).join('')||'<div class="card" style="padding:16px"><div class="small">No shopping lines yet.</div></div>';
 
   renderShoppingExtras();
+  renderWholeShopBudget(hasPlan);
   refreshShoppingAssistant();
   applyShoppingFilters();
 
@@ -1331,6 +1333,33 @@ const SHOP_ONLINE_STORES=Object.freeze({
   'Ocado':'https://www.ocado.com/',
   'Waitrose':'https://www.waitrose.com/ecom/shop/browse/groceries'
 });
+// An optional household allowance for unpriced extras; never presented as retailer pricing.
+function normaliseExtrasAllowance(value){
+  return typeof value==='number'&&Number.isFinite(value)&&value>=0&&value<=5000?Math.round(value*100)/100:0;
+}
+function wholeShopBudgetEstimate(recipeTotal,allowance,target){
+  const recipes=Math.max(0,Math.round((Number(recipeTotal)||0)*100));
+  const extras=Math.round(normaliseExtrasAllowance(allowance)*100);
+  const budget=Math.max(0,Math.round((Number(target)||0)*100));
+  return {combined:(recipes+extras)/100,remaining:(budget-recipes-extras)/100};
+}
+function renderWholeShopBudget(hasPlan){
+  const form=document.getElementById('wholeShopBudgetForm'),field=document.getElementById('extrasAllowance'),output=document.getElementById('wholeShopBudgetResult');
+  if(!form||!field||!output)return;
+  const allowance=normaliseExtrasAllowance(state.extrasAllowance);
+  field.value=String(allowance);
+  if(!hasPlan){output.textContent='Build a meal plan to compare your full shopping estimate.';return}
+  const result=wholeShopBudgetEstimate(state.total,allowance,state.budget);
+  output.textContent='Combined estimate: '+money(result.combined)+' · '+(result.remaining<0?money(-result.remaining)+' above target':money(result.remaining)+' remaining within target')+'. Includes your manual allowance, not actual checkout spend.';
+}
+function saveExtrasAllowance(){
+  if(!state||!active)return;
+  const field=document.getElementById('extrasAllowance');
+  const value=field?.value===''?0:Number(field?.value);
+  if(!Number.isFinite(value)||value<0||value>5000){showToast('Enter an allowance from £0 to £5,000');return}
+  state.extrasAllowance=normaliseExtrasAllowance(value);
+  save();renderWholeShopBudget(!!state.plan?.length);showToast('Shopping allowance saved');
+}
 function validShoppingExtras(){
  return Array.isArray(state?.shoppingExtras)
    ?state.shoppingExtras.filter(x=>x&&typeof x.id==='string'&&typeof x.name==='string')
@@ -2325,6 +2354,7 @@ document.addEventListener('error',event=>{
 
 // Shopping companion event handlers. Search / display filters are device-local;
 // quantities and collected checks live inside the cloud-synced household.
+{const el=document.getElementById('wholeShopBudgetForm');if(el)el.addEventListener('submit',e=>{e.preventDefault();saveExtrasAllowance()})}
 {const el=document.getElementById('shoppingExtraForm');if(el)el.addEventListener('submit',e=>{e.preventDefault();shoppingAddExtra()})}
 {const el=document.getElementById('shopModeStore');if(el)el.addEventListener('click',()=>shoppingSetMode('store'))}
 {const el=document.getElementById('shopModeOnline');if(el)el.addEventListener('click',()=>shoppingSetMode('online'))}
