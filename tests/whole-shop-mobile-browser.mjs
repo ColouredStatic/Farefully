@@ -58,6 +58,30 @@ try{
   await payday.locator('#restoreRegularPlan').click();
   assert.equal(await page.evaluate(()=>JSON.stringify([state.plan,state.days,state.budget,state.extrasAllowance])),regular);
   assert.equal(await page.evaluate(()=>state.paydayBackup),null);
+  // Exercise the new home shortcuts, household lunch mode and basket review.
+  await page.evaluate(()=>{go('home');render();});
+  await page.locator('#ffQuickBasket').click();
+  assert.equal(await page.locator('#basket').evaluate(el=>el.classList.contains('active')),true);
+  await page.locator('#wholeShopBudgetForm #ffFamilyAllowance summary').click();
+  await page.locator('#ffFamilyCost0').fill('12.50');
+  await page.locator('#ffFamilyCost2').fill('5.25');
+  await page.locator('#ffFamilyAllowanceUse').click();
+  assert.equal(await page.locator('#extrasAllowance').inputValue(),'17.75');
+  await form.getByRole('button',{name:'Save allowance'}).click();
+  assert.equal(await page.evaluate(()=>state.extrasAllowance),17.75);
+  await page.evaluate(()=>go('plan'));
+  await page.locator('#ffPackedLunchMode').check();
+  assert.equal(await page.evaluate(()=>state.packedLunchMode),true);
+  assert.ok(await page.evaluate(()=>state.plan.every((_,i)=>{const m=slotFor(lunch,i);return !m||PACKED_LUNCH_NAMES.has(m.n)})));
+  await page.evaluate(()=>go('basket'));
+  const review=page.locator('#ffBasketReview');
+  await review.locator('summary').first().click();
+  assert.ok(await page.locator('#ffCostDrivers .ff-review-row').count()>0);
+  assert.ok(await page.locator('#ffPackSurplus').innerText());
+  assert.ok(await page.locator('#ffSurplusIdeas').innerText());
+  const rb=await review.evaluate(el=>({left:el.getBoundingClientRect().left,right:el.getBoundingClientRect().right,scroll:el.scrollWidth,client:el.clientWidth,viewport:document.documentElement.clientWidth}));
+  assert.ok(rb.left>=0&&rb.right<=rb.viewport+1&&rb.scroll<=rb.client+1,'Smart review overflows at '+width+': '+JSON.stringify(rb));
+  if(width===390){await review.screenshot({path:'test-results/smart-basket-mobile.png'});}
   // Actual trolley: edit a price, include an extra, record checkout total.
   page.on('dialog',d=>d.accept());
   await page.evaluate(()=>{state.shoppingExtras=[{id:'testsoap',name:'Soap'}];render();});
@@ -81,6 +105,7 @@ try{
   assert.equal(await page.evaluate(()=>state.trolley),null);
   assert.equal(await page.evaluate(()=>JSON.parse(store.get(sk(active))).receiptHistory[0].actual),510);
   assert.match(await trolley.locator('#actualReceiptHistory').innerText(),/£5\.10/);
+  assert.match(await trolley.locator('#ffReceiptComparison').innerText(),/£5\.10/);
   // Cupboard meals use exact quantities and open a recipe without replacing the plan.
   const cupboard=await page.evaluate(()=>{
    const m=allDinners().find(x=>!hardBlocked(x));state.pantry=Object.fromEntries(Object.entries(effectiveIngredients(m.i)).map(([id,q])=>[id,q*pf()]));render();go('pantry');return {id:m.id,name:m.n,plan:JSON.stringify(state.plan),pantry:JSON.stringify(state.pantry)};

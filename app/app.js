@@ -53,8 +53,8 @@ const RECIPE_PHOTOS=Object.freeze({
 });
 const PANTRY_META={"eggs":["Eggs","Fridge",6],"milk":["Milk","Fridge",1000],"cheese":["Cheddar","Fridge",250],"ham":["Ham","Fridge",200],"chicken":["Chicken breast","Fridge",500],"beef":["Beef mince","Fridge",500],"sausages":["Sausages","Fridge",8],"bread":["Bread","Bakery",10],"wraps":["Wraps","Bakery",4],"naan":["Naan","Bakery",2],"rice":["Rice","Cupboard",500],"pasta":["Pasta","Cupboard",500],"spaghetti":["Spaghetti","Cupboard",500],"passata":["Passata","Cupboard",500],"beans":["Baked beans","Cupboard",420],"curry":["Curry sauce","Cupboard",250],"gravy":["Gravy","Cupboard",100],"tuna":["Tuna","Cupboard",145],"mayo":["Mayonnaise","Cupboard",250],"salsa":["Salsa","Cupboard",150],"cereal":["Cereal","Breakfast",250],"oats":["Oats","Breakfast",500],"potatoes":["Potatoes","Produce",1000],"onions":["Onions","Produce",500],"carrots":["Carrots","Produce",500],"peppers":["Peppers","Produce",3],"broccoli":["Broccoli","Produce",1],"bananas":["Bananas","Produce",4],"apples":["Apples","Produce",4],"peas":["Frozen peas","Freezer",500],"mixed":["Frozen mixed veg","Freezer",500],"fishfingers":["Fish fingers","Freezer",10],"yoghurts":["Yoghurts","Fridge",3],"popcorn":["Popcorn","Snacks",250],"biscuits":["Biscuits","Snacks",150]};let pantryCategory='All';
 
-const LIVE_DATASET_URL="live-prices.json?v=1164";
-const LIVE_CACHE_KEY='farefully_price_feed_cache_v4';
+const LIVE_DATASET_URL="live-prices.json?v=1198";
+const LIVE_CACHE_KEY='farefully_price_feed_cache_v5';
 const WEEKLY_OFFERS_URL='weekly-offers.json?v=1161';
 const WEEKLY_OFFERS_CACHE_KEY='farefully_weekly_offers_cache_v1';
 let LIVE_ROWS=[];
@@ -159,7 +159,7 @@ function latestRows(rows){
   }
   return Object.values(by)
 }
-function liveRowFresh(row,maxDays=7){const t=liveTimestamp(row);return !!t&&Date.now()-t<=maxDays*24*60*60*1000}
+function liveRowFresh(row,maxDays=7){const t=liveTimestamp(row),age=Date.now()-t;return !!t&&age>=0&&age<=maxDays*24*60*60*1000}
 function candidateRows(ingredient,retailer){
   const p=P[ingredient];if(!p)return[];
   return LIVE_ROWS.filter(r=>{
@@ -279,7 +279,7 @@ function quoteForRetailer(retailer){
   if(LIVE_ROWS.length&&LIVE_RETAILERS.has(retailer))return hybridQuote(retailer);
   return{retailer,total:retailerBasketTotal(retailer),matched:0,eligible:Object.keys(state.basket||{}).length,details:[],liveCapable:LIVE_RETAILERS.has(retailer)}
 }
-function latestLiveTimestamp(){let latest=0;for(const r of LIVE_ROWS){const t=liveTimestamp(r);if(t>latest)latest=t}return latest}
+function latestLiveTimestamp(){let latest=0;for(const r of LIVE_ROWS){const t=liveTimestamp(r);if(t>latest&&t<=Date.now())latest=t}return latest}
 async function refreshLivePrices(force=false){
   const status=document.getElementById('liveStatusText');if(status)status.textContent='Loading current product data…';
   try{
@@ -291,16 +291,16 @@ async function refreshLivePrices(force=false){
     const rows=await res.json();LIVE_ROWS=latestRows(Array.isArray(rows)?rows:[]);OFFER_CACHE.key='';
     localStorage.setItem(LIVE_CACHE_KEY,JSON.stringify({savedAt:Date.now(),rows:LIVE_ROWS}));render()
   }catch(e){
-    try{const cached=JSON.parse(localStorage.getItem(LIVE_CACHE_KEY)||'null');if(cached?.rows?.length)LIVE_ROWS=cached.rows}catch(_){}
+    try{const cached=JSON.parse(localStorage.getItem(LIVE_CACHE_KEY)||'null');if(cached?.rows?.length){LIVE_ROWS=latestRows(cached.rows);OFFER_CACHE.key=''}}catch(_){}
     render()
   }
 }
 function renderLiveStatus(){
   const box=document.getElementById('liveStatus'),txt=document.getElementById('liveStatusText');if(!box||!txt)return;
   if(!LIVE_ROWS.length){box.classList.add('off');txt.textContent='Verified product snapshot unavailable. Farefully is using the benchmark fallback model.';return}
-  const ts=latestLiveTimestamp(),age=ts?Date.now()-ts:Infinity,when=ts?new Date(ts).toLocaleString('en-GB',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}):'unknown';
-  if(age>7*24*60*60*1000){box.classList.add('off');txt.textContent='Verified product snapshot is out of date. Farefully is using the benchmark fallback model until the next data refresh.';return}
-  box.classList.remove('off');txt.textContent=(age>48*60*60*1000?'Recent verified product snapshot':'Verified product snapshot')+' for Aldi, Asda, Tesco and Sainsbury’s · '+when+' · checkout prices can change'
+  const ts=latestLiveTimestamp(),age=ts?Date.now()-ts:Infinity,when=ts?new Date(ts).toLocaleString('en-GB',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}):'unknown';
+  if(age>7*24*60*60*1000){box.classList.add('off');txt.textContent='Verified product snapshot is out of date (last checked '+when+'). All grocery prices shown use benchmark estimates until a fresh snapshot is available.';return}
+  const fresh=LIVE_ROWS.filter(r=>liveRowFresh(r)&&r.inStock!==false&&r.available!==false&&activeLivePrice(r)>0);const stores=[...new Set(fresh.map(r=>normRetailer(r.retailer)).filter(Boolean))];if(!fresh.length||!stores.length){box.classList.add('off');txt.textContent='No usable fresh product prices. Grocery costs are benchmark estimates.';return}box.classList.remove('off');txt.textContent=fresh.length+' fresh product records across '+stores.join(', ')+' · newest '+when+' · unmatched items use benchmark estimates; checkout prices can change'
 }
 
 const RETAILERS={
@@ -378,7 +378,7 @@ function migrateLegacyStorage(){
 migrateLegacyStorage();
 let profiles=JSON.parse(store.get(PK)||'[]'),active=store.get(AK),state=null;
 function def(){return{
-  adults:2,children:3,days:7,budget:200,extrasAllowance:0,paydayBackup:null,trolley:null,receiptHistory:[],avoid:[],pantry:{},plan:[],basket:{},need:{},total:0,checked:{},
+  adults:2,children:3,days:7,budget:200,extrasAllowance:0,packedLunchMode:false,paydayBackup:null,trolley:null,receiptHistory:[],avoid:[],pantry:{},plan:[],basket:{},need:{},total:0,checked:{},
   supermarket:'',autoRetailer:'Aldi',loyaltyPricing:true,useWeeklyOffers:true,taste:{proteins:{},styles:{},ingredients:{}},maxTime:45,vegFrequency:'some',fishFrequency:'some',
   novelty:'balanced',priority:'balance',ratings:{},tasteComplete:false,planGeneration:0,recentPlans:[],
   dietPattern:'omnivore',avoidGroups:[],allergens:[],dietComplete:false,setupComplete:false,customRecipes:[],shoppingExtras:[]
@@ -397,6 +397,7 @@ function def(){return{
   if(![7,14].includes(state.days)&&!(state.paydayBackup&&Number.isInteger(state.days)&&state.days>=1&&state.days<=6))state.days=7;
   if(!Number.isFinite(state.budget)||state.budget<0)state.budget=200;
   state.extrasAllowance=normaliseExtrasAllowance(state.extrasAllowance);
+  state.packedLunchMode=state.packedLunchMode===true;
   state.trolley=normaliseTrolley(state.trolley);state.receiptHistory=normaliseReceipts(state.receiptHistory);
   if(typeof state.setupComplete!=='boolean')state.setupComplete=false;
   if(typeof state.supermarket!=='string')state.supermarket='';
@@ -735,7 +736,8 @@ function freeTextBlocked(name,obj){
   const hay=((name||'')+' '+ingredients).toLowerCase();return terms.some(a=>hay.includes(a))
 }
 function objectBlocked(obj,name=''){return Object.keys(effectiveIngredients(obj)).some(ingredientBlocked)||objectPreferenceBlocked(obj)||objectTasteNeverBlocked(obj,name)||freeTextBlocked(name,obj)}
-function slotFor(arr,i){const allowed=arr.filter(x=>!objectBlocked(x.i,x.n));return allowed.length?allowed[i%allowed.length]:null}
+const PACKED_LUNCH_NAMES=new Set(['Ham & cheese sandwiches','Tuna mayo wraps','Cheese sandwiches','Egg mayo sandwiches','Chicken wraps','Hummus salad wraps','Chickpea & sweetcorn wraps','Chicken mayo sandwiches','Ham & cheese wraps','Chicken & sweetcorn wraps','Ham & egg sandwiches']);
+function slotFor(arr,i){const pool=arr===lunch&&state.packedLunchMode?arr.filter(x=>PACKED_LUNCH_NAMES.has(x.n)):arr;const allowed=pool.filter(x=>!objectBlocked(x.i,x.n));return allowed.length?allowed[i%allowed.length]:null}
 function safeSlotName(x){return x?x.n:'No matching option — review dietary filters'}
 function generic(m){return'data:image/svg+xml;utf8,'+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="500" height="330"><defs><linearGradient id="g"><stop stop-color="#dfeadf"/><stop offset="1" stop-color="#f3dfd3"/></linearGradient></defs><rect width="100%" height="100%" rx="34" fill="url(#g)"/><text x="250" y="195" text-anchor="middle" font-size="105">${m.e||'🍽️'}</text></svg>`)}function image(m){return m?.img||RECIPE_PHOTOS[m?.id]?.src||generic(m)}function photoBackground(m){const main=image(m),fallback=generic(m);return main===fallback?`url('${fallback}')`:`url('${main}'),url('${fallback}')`}function cost(m){return retailerRecipeCost(m,selectedRetailer())}function mealProtein(m){
   if(!m)return'Vegetarian';
@@ -1078,10 +1080,10 @@ function reducePlanCost(pool,dishLookup,manual){
 }
 let budgetRescuePreview=null;
 function budgetRescueKey(){
-  return JSON.stringify([active,state.plan,state.budget,state.extrasAllowance,state.pantry,state.checked,state.supermarket,state.loyaltyPricing,state.total,state.taste,state.ratings,state.dietPattern,state.avoidGroups,state.allergens,state.avoid,state.priority,state.novelty,state.maxTime,state.vegFrequency,state.fishFrequency]);
+  return JSON.stringify([active,state.plan,state.budget,state.extrasAllowance,state.packedLunchMode,state.pantry,state.checked,state.supermarket,state.loyaltyPricing,state.total,state.taste,state.ratings,state.dietPattern,state.avoidGroups,state.allergens,state.avoid,state.priority,state.novelty,state.maxTime,state.vegFrequency,state.fishFrequency]);
 }
 function previewBudgetRescue(){
-  if(!state.plan.length||Object.values(state.checked||{}).some(Boolean)){showToast('Finish or reset your collected shopping items before changing the meal plan.');return}
+  if(!state.plan.length||basketReviewLocked()){showToast('Finish or reset your collected shopping items before changing the meal plan.');return}
   calc();
   if(state.total<=mealBudgetTarget()){showToast('Your current meal estimate fits the available food budget.');return}
   const original=state.plan.slice(),before=state.total,key=budgetRescueKey();
@@ -1094,7 +1096,7 @@ function previewBudgetRescue(){
   if(!budgetRescuePreview)showToast('No cheaper suitable dinner swaps found. Check pantry amounts or review the budget.');
 }
 function applyBudgetRescue(){
-  if(!budgetRescuePreview||budgetRescuePreview.key!==budgetRescueKey()){budgetRescuePreview=null;renderBudgetRescue();showToast('Your plan changed. Check for savings again.');return}
+  if(basketReviewLocked()||!budgetRescuePreview||budgetRescuePreview.key!==budgetRescueKey()){budgetRescuePreview=null;renderBudgetRescue();showToast('Your plan changed. Check for savings again.');return}
   const preview=budgetRescuePreview,old=state.plan.slice(),before=state.total;
   if(preview.candidate.some(id=>{const m=allDinners().find(x=>x.id===id);return !m||hardBlocked(m)})){budgetRescuePreview=null;renderBudgetRescue();showToast('Meal preferences changed. Check again.');return}
   state.plan=preview.candidate.slice();calc();budgetRescuePreview=null;
@@ -1106,7 +1108,7 @@ function renderBudgetRescue(){
   if(!panel||!msg||!btn||!find)return;
   panel.hidden=!state.plan.length;
   if(budgetRescuePreview&&budgetRescuePreview.key!==budgetRescueKey())budgetRescuePreview=null;
-  const gap=state.total-mealBudgetTarget(),collected=Object.values(state.checked||{}).some(Boolean);
+  const gap=state.total-mealBudgetTarget(),collected=basketReviewLocked();
   find.disabled=gap<=0||collected;
   btn.hidden=!budgetRescuePreview;
   msg.textContent=budgetRescuePreview?'Estimated saving '+money(budgetRescuePreview.before-budgetRescuePreview.after)+' by changing '+budgetRescuePreview.changed+' dinner(s). New food basket: '+money(budgetRescuePreview.after)+'. '+(budgetRescuePreview.after<=mealBudgetTarget()?'Within the meal budget estimate.':'Still '+money(budgetRescuePreview.after-mealBudgetTarget())+' above the meal budget.'):collected?'Shopping is in progress. Reset collected items before changing meals.':gap>0?'Your food basket is '+money(gap)+' above the money available for meals. Check for cheaper suitable swaps without changing your plan.':'Your current food basket estimate fits the available meal budget. Actual prices may differ.';
@@ -1189,8 +1191,74 @@ function calc(){
  }
  return '<div class="card" style="padding:18px"><b>No dinners match every hard exclusion</b><div class="small" style="margin-top:6px">Your strict “Never suggest”, dietary and allergen rules are still respected. Review household settings to see which requirements could be adjusted. “Not keen” foods are preferences, not exclusions.</div><button type="button" class="soft" style="margin-top:12px" data-ff-action="open-household-setup">Review household settings</button></div>';
 }
+function renderPackedLunchMode(){
+ const el=document.getElementById('ffPackedLunchMode'),out=document.getElementById('ffPackedLunchStatus');if(!el||!out)return;
+ el.checked=state.packedLunchMode===true;el.disabled=!!state.trolley||!!state.paydayBackup||Object.values(state.checked||{}).some(Boolean)||!state.plan.length;
+ const count=state.plan.reduce((n,_,i)=>n+(slotFor(lunch,i)?1:0),0);
+ out.textContent=state.packedLunchMode?count+' of '+state.plan.length+' days have a compatible packed-lunch suggestion. '+(count<state.plan.length?'Missing lunches are not included in the basket. ':'')+'These replace ordinary planned lunches, not add another meal.':'Standard lunch suggestions are included in your existing grocery basket.';
+ if(el.disabled)out.textContent+=' Finish or reset current shopping, or restore your usual plan, before changing lunch mode.';
+}
+function setPackedLunchMode(enabled){
+ if(!active||!state.plan.length||state.trolley||state.paydayBackup||Object.values(state.checked||{}).some(Boolean)){renderPackedLunchMode();return;}
+ state.packedLunchMode=enabled===true;budgetRescuePreview=null;paydayPreview=null;calc();save();render();showToast('Lunch choices and shopping basket updated.');
+}
+{const el=document.getElementById('ffPackedLunchMode');if(el)el.addEventListener('change',()=>setPackedLunchMode(el.checked));}
+function basketReviewRows(basket=state.basket,need=state.need,pantry=state.pantry){
+ const rows=[];
+ for(const [id,row] of Object.entries(basket||{})){
+  const p=P[id],cost=Number(row?.line),required=Math.max(0,(Number(need?.[id])||0)-Math.max(0,Number(pantry?.[id])||0));
+  if(!p||!Number.isFinite(cost)||cost<0||!required)continue;
+  const items=row.live&&Array.isArray(row.liveQuote?.items)?row.liveQuote.items:null;
+  let purchased=items?.length?items.reduce((sum,x)=>sum+Number(x.packs)*Number(x.row?._qty||parsePackQuantity(x.row?.packSize,p.u,liveProductName(x.row))),0):Number(row.packs)*Number(p.pack);
+  if(!Number.isFinite(purchased)||purchased<required-.00001)purchased=null;
+  const surplus=purchased===null?null:Math.max(0,purchased-required);
+  const dinnerIndex=state.plan.map((_,i)=>({i,qty:Number(effectiveIngredients(meal(i)?.i)[id])||0})).filter(x=>x.qty>0).sort((a,b)=>b.qty-a.qty)[0]?.i??null;
+  rows.push({id,cost,required,purchased,surplus,unusedValue:surplus===null||!purchased?0:cost*surplus/purchased,dinnerIndex,live:!!row.live});
+ }
+ return rows.sort((a,b)=>b.cost-a.cost||a.id.localeCompare(b.id));
+}
+function surplusMealOptions(rows=basketReviewRows()){
+ const stock=Object.fromEntries(rows.filter(r=>r.surplus!==null&&Number.isFinite(r.surplus)&&r.surplus>.01&&P[r.id]).map(r=>[r.id,r.surplus]));
+ if(!Object.keys(stock).length)return [];
+ const shop=selectedRetailer();
+ return allDinners().map(m=>{
+  const quote=cupboardMealQuote(m,shop,stock);if(!quote)return null;
+  const used=Object.entries(effectiveIngredients(m.i)).map(([id,q])=>({id,qty:Math.min(stock[id]||0,q*pf())})).filter(x=>x.qty>.01);
+  if(!used.length)return null;
+  return {...quote,used};
+ }).filter(Boolean).sort((a,b)=>a.total-b.total||b.used.length-a.used.length||b.covered-a.covered||b.fit-a.fit||a.name.localeCompare(b.name)).slice(0,5);
+}
+function renderSurplusIdeas(rows){
+ const out=document.getElementById('ffSurplusIdeas');if(!out)return;
+ if(!state.plan.length){out.textContent='Build a plan to see ideas for spare ingredients.';return;}
+ const choices=surplusMealOptions(rows);
+ if(!choices.length){out.textContent='No compatible reuse ideas found for the estimated spare packs.';return;}
+ out.innerHTML=choices.map(x=>'<div class="ff-review-row"><div><b>'+esc(x.name)+'</b><div class="small">Could use '+x.used.map(y=>esc(P[y.id].n)+' ('+esc(fmtQty(y.id,y.qty))+')').join(', ')+'</div><div class="small">'+x.covered+' of '+x.count+' ingredient lines fully covered by spare quantities</div></div><div><b>'+money(x.total/100)+'</b><div class="small">model top-up</div><button type="button" class="soft" data-ff-action="open-cupboard-recipe" data-meal-id="'+esc(x.id)+'">View recipe</button></div></div>').join('');
+}
+function receiptComparison(row){
+ if(!row||!validPennies(row.actual)||!validPennies(row.budget)||!validPennies(row.estimate))return null;
+ return {actual:row.actual,budget:row.budget,estimate:row.estimate,budgetDifference:row.budget-row.actual,estimateDifference:row.estimate-row.actual};
+}
+function renderReceiptComparison(){
+ const out=document.getElementById('ffReceiptComparison');if(!out)return;
+ const x=receiptComparison((state.receiptHistory||[])[0]);
+ if(!x){out.textContent='Record your final checkout total to compare it with your starting estimate and budget.';return;}
+ const delta=(n,label)=>n===0?'Matches '+label:money(Math.abs(n)/100)+(n>0?' below ':' above ')+label;
+ out.innerHTML='<div class="ff-review-row"><b>Last recorded checkout</b><b>'+money(x.actual/100)+'</b></div><div class="ff-review-row"><span>Starting budget · '+money(x.budget/100)+'</span><b>'+esc(delta(x.budgetDifference,'budget'))+'</b></div><div class="ff-review-row"><span>Starting estimate · '+money(x.estimate/100)+'</span><b>'+esc(delta(x.estimateDifference,'estimate'))+'</b></div>';
+}
+function basketReviewLocked(){return !!state.trolley||Object.values(state.checked||{}).some(Boolean)}
+function renderBasketReview(){
+ const cost=document.getElementById('ffCostDrivers'),surplus=document.getElementById('ffPackSurplus'),note=document.getElementById('ffReviewNote');if(!cost||!surplus||!note)return;
+ const rows=basketReviewRows(),locked=basketReviewLocked();renderSurplusIdeas(rows);
+ if(!rows.length){cost.innerHTML='No grocery purchases to review yet.';surplus.innerHTML='No purchased packs to review.';note.textContent='Build a plan to see your estimated costs.';return;}
+ cost.innerHTML=rows.slice(0,5).map(r=>'<div class="ff-review-row"><div><b>'+esc(P[r.id].n)+'</b><div class="small">'+(r.live?'Recent product match':'Benchmark estimate')+'</div></div><div><b>'+money(r.cost)+'</b>'+(r.dinnerIndex!==null?'<button type="button" class="soft" data-ff-review-swap="'+r.dinnerIndex+'" '+(locked?'disabled':'')+'>Compare swaps</button>':'')+'</div></div>').join('');
+ const spare=rows.filter(r=>r.surplus!==null&&r.surplus>.01).sort((a,b)=>b.unusedValue-a.unusedValue).slice(0,5);
+ surplus.innerHTML=spare.length?spare.map(r=>'<div class="ff-review-row"><div><b>'+esc(P[r.id].n)+'</b><div class="small">'+esc(fmtQty(r.id,r.required))+' needed · '+esc(fmtQty(r.id,r.purchased))+' to buy</div></div><b>'+esc(fmtQty(r.id,r.surplus))+' spare</b></div>').join(''):'No estimated spare pack quantities identified.';
+ note.textContent=locked?'Shopping is underway. Finish or reset your shop before changing meals.':'Compare swaps for a dinner using an expensive ingredient. Alternatives are ranked by the estimated change in the whole basket, not just recipe price.';
+}
+{const el=document.getElementById('ffBasketReview');if(el)el.addEventListener('click',event=>{const b=event.target.closest?.('[data-ff-review-swap]');if(!b||basketReviewLocked())return;const i=Number(b.dataset.ffReviewSwap);if(Number.isInteger(i)&&i>=0&&i<state.plan.length)openSwap(i,true);});}
 function renderUnsafe(){
-  calc();
+  calc();renderPackedLunchMode();renderBasketReview();
   const p=prof(),hasPlan=state.plan.length>0,retailer=selectedRetailer(),autoShop=!RETAILERS[state.supermarket];
   const matchingDinners=hasPlan?-1:allDinners().filter(m=>!hardBlocked(m)).length;
   document.getElementById('profileBtn').textContent=p?p.name:'Set up';
@@ -1198,7 +1266,7 @@ function renderUnsafe(){
   document.getElementById('greet').textContent=p?'Good evening, '+p.name:'Good evening';
   const shopEstimate=wholeShopBudgetEstimate(state.total,state.extrasAllowance,state.budget),rem=shopEstimate.remaining;
   document.getElementById('spend').textContent='£'+shopEstimate.combined.toFixed(2);
-  document.getElementById('target').textContent='/ £'+Math.round(state.budget);
+  document.getElementById('target').textContent='/ '+money(state.budget);
   document.getElementById('remain').textContent=(rem>=0?'Est. '+money(rem)+' below':'Est. '+money(Math.abs(rem))+' above');
   document.getElementById('ring').style.setProperty('--p',state.budget>0?Math.min(100,Math.round(shopEstimate.combined/state.budget*100)):(shopEstimate.combined>0?100:0));
   const planTitle=document.getElementById('planTitle');if(planTitle)planTitle.textContent=(state.paydayBackup?'Payday Mode · ':'')+state.days+'-day plan';
@@ -1349,7 +1417,10 @@ function editCustomRecipe(id){openCustomRecipeEditor(id)}
 function deleteCustomRecipe(id){const m=(state.customRecipes||[]).find(x=>x.id===id);if(!m)return;state.customRecipes=state.customRecipes.filter(x=>x.id!==id);delete state.ratings?.[id];const wasPlanned=state.plan.includes(id);if(wasPlanned)build();else{calc();save()}render();renderCustomRecipes();showToast(wasPlanned?'Recipe deleted and plan refreshed':'Recipe deleted')}
 function rebuildWithCustomRecipes(){if(!state.customRecipes?.length){showToast('Add a custom recipe first');return}build();render();closeCustomRecipes();go('plan');showToast('Plan rebuilt with your recipes in the mix')}
 
-function go(id){document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));document.getElementById(id).classList.add('active');document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('active',b.dataset.tab===id));scrollTo(0,0)}document.querySelectorAll('.nav button').forEach(b=>b.onclick=()=>go(b.dataset.tab));function syncPressed(){document.querySelectorAll('.tastebtn,.dietbtn,.allergenbtn,#ratingButtons button').forEach(b=>b.setAttribute('aria-pressed',b.classList.contains('on')?'true':'false'))}
+function go(id){document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));document.getElementById(id).classList.add('active');document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('active',b.dataset.tab===id));scrollTo(0,0)}document.querySelectorAll('.nav button').forEach(b=>b.onclick=()=>go(b.dataset.tab));
+function ffOpenBudgetTool(id){go('basket');if(!id)return;const target=document.getElementById(id);if(target&&!target.hidden&&typeof target.scrollIntoView==='function')target.scrollIntoView({block:'start',behavior:'auto'})}
+for(const [button,target] of [['ffQuickBasket',null],['ffQuickPayday','paydayPanel'],['ffQuickTrolley','actualTrolleyPanel']]){const el=document.getElementById(button);if(el)el.addEventListener('click',()=>ffOpenBudgetTool(target));}
+function syncPressed(){document.querySelectorAll('.tastebtn,.dietbtn,.allergenbtn,#ratingButtons button').forEach(b=>b.setAttribute('aria-pressed',b.classList.contains('on')?'true':'false'))}
 function applyAccessibility(){
   document.querySelectorAll('.field').forEach((field,i)=>{const control=field.querySelector('input,select,textarea'),label=field.querySelector('label');if(!control||!label)return;if(!control.id)control.id='farefullyField'+i;label.htmlFor=control.id});
   document.querySelectorAll('.overlay .sheet,.welcome .box').forEach((box,i)=>{box.setAttribute('role','dialog');box.setAttribute('aria-modal','true');box.tabIndex=-1;const h=box.querySelector('h1,h2');if(h){if(!h.id)h.id='dialogTitle'+i;box.setAttribute('aria-labelledby',h.id)}});
@@ -1427,7 +1498,7 @@ function renderPantryHighlights(){
   el.innerHTML=rows.length?rows.map(([id,q])=>`<div class="use"><div class="foodicon">${icons[P[id]?.c]||'🥫'}</div><b>${esc(P[id]?.n||id)}</b><div class="small">In pantry · ${esc(fmtQty(id,q))}</div></div>`).join(''):'<div class="card" style="grid-column:1/-1;padding:14px"><b>Nothing in your pantry yet</b><div class="small" style="margin-top:4px">Add what you already have and Farefully will deduct it from the basket.</div></div>'
 }
 // A single meal at a time: saved pantry stock is not consumed by browsing suggestions.
-function cupboardMealQuote(m,retailer=selectedRetailer()){
+function cupboardMealQuote(m,retailer=selectedRetailer(),stock=state.pantry){
  if(!m||hardBlocked(m))return null;
  const ingredients=Object.entries(effectiveIngredients(m.i)),factor=pf(),missing=[];
  if(!ingredients.length||!Number.isFinite(factor)||factor<=0)return null;
@@ -1435,7 +1506,7 @@ function cupboardMealQuote(m,retailer=selectedRetailer()){
  for(const [id,q] of ingredients){
   const p=P[id],required=q*factor;
   if(!p||!Number.isFinite(p.pack)||p.pack<=0||!Number.isFinite(required)||required<=0)return null;
-  const have=Math.max(0,Number(state.pantry[id])||0),short=Math.max(0,required-have);
+  const have=Math.max(0,Number(stock?.[id])||0),short=Math.max(0,required-have);
   if(short<=1e-8){covered++;continue}
   const packs=Math.ceil(short/p.pack-1e-10),line=Math.round(packs*retailerItemPrice(id,retailer)*100);
   if(!Number.isFinite(line)||line<0)return null;
@@ -1510,6 +1581,32 @@ const SHOP_ONLINE_STORES=Object.freeze({
 function normaliseExtrasAllowance(value){
   return typeof value==='number'&&Number.isFinite(value)&&value>=0&&value<=5000?Math.round(value*100)/100:0;
 }
+function familyAllowanceTotal(values){
+ if(!Array.isArray(values)||values.length!==6)return null;
+ let pennies=0;
+ for(const value of values){
+  const text=String(value??'').trim();
+  if(!text)continue;
+  if(!/^\d+(?:\.\d{1,2})?$/.test(text))return null;
+  const p=Math.round(Number(text)*100);
+  if(!Number.isSafeInteger(p)||p<0||p>500000)return null;
+  pennies+=p;
+ }
+ return pennies<=500000?pennies/100:null;
+}
+function updateFamilyAllowancePreview(apply=false){
+ const output=document.getElementById('ffFamilyAllowancePreview'),button=document.getElementById('ffFamilyAllowanceUse'),field=document.getElementById('extrasAllowance');
+ if(!output||!button||!field)return;
+ const values=Array.from({length:6},(_,i)=>document.getElementById('ffFamilyCost'+i)?.value??'');
+ const total=familyAllowanceTotal(values);
+ button.disabled=total===null;
+ if(total===null){output.textContent='Enter valid amounts, totalling no more than £5,000.';return;}
+ const remaining=Math.round((Number(state?.budget||0)-total)*100)/100;
+ output.textContent='Other shopping allowance: '+money(total)+' · '+(remaining>=0?money(remaining)+' available for planned meals':money(-remaining)+' over your entire budget before planned meals')+'.';
+ if(apply){field.value=total.toFixed(2);output.textContent+=' Total copied below. Select Save allowance to keep it.';}
+}
+for(let i=0;i<6;i++){const el=document.getElementById('ffFamilyCost'+i);if(el)el.addEventListener('input',()=>updateFamilyAllowancePreview());}
+{const el=document.getElementById('ffFamilyAllowanceUse');if(el)el.addEventListener('click',()=>updateFamilyAllowancePreview(true));}
 function mealBudgetTarget(){return Math.max(0,Math.round((state.budget-normaliseExtrasAllowance(state.extrasAllowance))*100)/100)}
 function wholeShopBudgetEstimate(recipeTotal,allowance,target){
   const recipes=Math.max(0,Math.round((Number(recipeTotal)||0)*100));
@@ -1640,6 +1737,7 @@ function discardActualTrolley(){
  state.trolley=null;save();renderActualTrolley();
 }
 function renderActualTrolley(){
+ renderReceiptComparison();renderBasketReview();renderPackedLunchMode();renderBudgetRescue();
  const start=document.getElementById('startActualTrolley'),controls=document.getElementById('actualTrolleyControls'),msg=document.getElementById('actualTrolleySummary'),items=document.getElementById('actualItem'),lines=document.getElementById('actualTrolleyLines'),history=document.getElementById('actualReceiptHistory');
  if(!start||!controls||!msg||!items||!lines||!history)return;
  const t=state.trolley,total=trolleyTotal();
@@ -2022,8 +2120,9 @@ function compareSwapOptions(a,b,preferBudget){
   }
   return b.fit-a.fit||a.delta-b.delta;
 }
-function openSwap(i){
-  const cur=meal(i);if(!cur)return;swapIndex=i;const preferBudget=state.priority==='budget'||state.total>mealBudgetTarget();document.getElementById('swapTitle').textContent='Replace '+cur.n+(preferBudget?' · lower-cost options first':'');
+function openSwap(i,forceBudget=false){
+  if(basketReviewLocked()){showToast('Finish or reset your shop before changing meals.');return;}
+  const cur=meal(i);if(!cur)return;swapIndex=i;const preferBudget=forceBudget||state.priority==='budget'||state.total>mealBudgetTarget();document.getElementById('swapTitle').textContent='Replace '+cur.n+(preferBudget?' · lower-cost options first':'');
   const opts=allDinners().filter(x=>x.id!==cur.id&&!state.plan.includes(x.id)&&!hardBlocked(x)).map(m=>{
     const old=state.plan[i],before=state.total;state.plan[i]=m.id;calc();const after=state.total;state.plan[i]=old;calc();
     return{m,delta:+(after-before).toFixed(2),after,fit:fitScore(m)}
@@ -2031,7 +2130,7 @@ function openSwap(i){
   document.getElementById('swapList').innerHTML=opts.map(o=>`<div class="swapopt"><img src="${image(o.m)}" data-ff-photo-id="${esc(o.m.id)}" loading="lazy" decoding="async" alt="${esc(o.m.n)}"><div><b>${esc(o.m.n)}</b><div class="small">${esc(o.m.cat)} · ${o.m.t} min · ${esc(o.m.d)}</div>${householdFitBadge(o.m)}${householdFitExplanation(o.m)}${prepBadges(o.m)}${offerBadge(o.m)}<div style="font-weight:800;color:${o.delta<=0?'var(--green)':'#a36f27'};margin-top:5px">${o.delta<0?'Estimated reduction '+money(Math.abs(o.delta)):o.delta>0?'Estimated increase '+money(o.delta):'No estimated basket change'}</div><div class="small">Estimated whole basket: ${money(wholeShopBudgetEstimate(o.after,state.extrasAllowance,state.budget).combined)} including reserve · ${o.after<=mealBudgetTarget()?'within food target':'above food target'} · not a checkout quote</div><button class="soft" style="margin-top:7px" data-ff-action="choose-swap" data-meal-id="${esc(o.m.id)}">Use this meal</button></div></div>`).join('');
   document.getElementById('swap').classList.add('show');focusDialog('swap')
 }
-function closeSwap(){document.getElementById('swap').classList.remove('show')}function chooseSwap(id){const candidate=allDinners().find(m=>m.id===id);if(!candidate||hardBlocked(candidate)||!Number.isInteger(swapIndex)||swapIndex<0||swapIndex>=state.plan.length||state.plan.includes(id)){showToast('This meal is no longer available for this plan. Choose another.');return}state.plan[swapIndex]=id;calc();save();closeSwap();render();showToast('Meal swapped')}
+function closeSwap(){document.getElementById('swap').classList.remove('show')}function chooseSwap(id){const candidate=allDinners().find(m=>m.id===id);if(!candidate||hardBlocked(candidate)||!Number.isInteger(swapIndex)||swapIndex<0||swapIndex>=state.plan.length||state.plan.includes(id)||basketReviewLocked()){showToast('This meal is no longer available for this plan, or shopping is underway.');return}state.plan[swapIndex]=id;calc();save();closeSwap();render();showToast('Meal swapped')}
 function fmtQty(id,q){
   const p=P[id];
   if(!p)return Math.round(q);
