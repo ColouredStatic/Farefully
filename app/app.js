@@ -378,7 +378,7 @@ function migrateLegacyStorage(){
 migrateLegacyStorage();
 let profiles=JSON.parse(store.get(PK)||'[]'),active=store.get(AK),state=null;
 function def(){return{
-  adults:2,children:3,days:7,budget:200,extrasAllowance:0,paydayBackup:null,trolley:null,receiptHistory:[],avoid:[],pantry:{},plan:[],basket:{},need:{},total:0,checked:{},
+  adults:2,children:3,days:7,budget:200,extrasAllowance:0,packedLunchMode:false,paydayBackup:null,trolley:null,receiptHistory:[],avoid:[],pantry:{},plan:[],basket:{},need:{},total:0,checked:{},
   supermarket:'',autoRetailer:'Aldi',loyaltyPricing:true,useWeeklyOffers:true,taste:{proteins:{},styles:{},ingredients:{}},maxTime:45,vegFrequency:'some',fishFrequency:'some',
   novelty:'balanced',priority:'balance',ratings:{},tasteComplete:false,planGeneration:0,recentPlans:[],
   dietPattern:'omnivore',avoidGroups:[],allergens:[],dietComplete:false,setupComplete:false,customRecipes:[],shoppingExtras:[]
@@ -397,6 +397,7 @@ function def(){return{
   if(![7,14].includes(state.days)&&!(state.paydayBackup&&Number.isInteger(state.days)&&state.days>=1&&state.days<=6))state.days=7;
   if(!Number.isFinite(state.budget)||state.budget<0)state.budget=200;
   state.extrasAllowance=normaliseExtrasAllowance(state.extrasAllowance);
+  state.packedLunchMode=state.packedLunchMode===true;
   state.trolley=normaliseTrolley(state.trolley);state.receiptHistory=normaliseReceipts(state.receiptHistory);
   if(typeof state.setupComplete!=='boolean')state.setupComplete=false;
   if(typeof state.supermarket!=='string')state.supermarket='';
@@ -735,7 +736,8 @@ function freeTextBlocked(name,obj){
   const hay=((name||'')+' '+ingredients).toLowerCase();return terms.some(a=>hay.includes(a))
 }
 function objectBlocked(obj,name=''){return Object.keys(effectiveIngredients(obj)).some(ingredientBlocked)||objectPreferenceBlocked(obj)||objectTasteNeverBlocked(obj,name)||freeTextBlocked(name,obj)}
-function slotFor(arr,i){const allowed=arr.filter(x=>!objectBlocked(x.i,x.n));return allowed.length?allowed[i%allowed.length]:null}
+const PACKED_LUNCH_NAMES=new Set(['Ham & cheese sandwiches','Tuna mayo wraps','Cheese sandwiches','Egg mayo sandwiches','Chicken wraps','Hummus salad wraps','Chickpea & sweetcorn wraps','Chicken mayo sandwiches','Ham & cheese wraps','Chicken & sweetcorn wraps','Ham & egg sandwiches']);
+function slotFor(arr,i){const pool=arr===lunch&&state.packedLunchMode?arr.filter(x=>PACKED_LUNCH_NAMES.has(x.n)):arr;const allowed=pool.filter(x=>!objectBlocked(x.i,x.n));return allowed.length?allowed[i%allowed.length]:null}
 function safeSlotName(x){return x?x.n:'No matching option — review dietary filters'}
 function generic(m){return'data:image/svg+xml;utf8,'+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="500" height="330"><defs><linearGradient id="g"><stop stop-color="#dfeadf"/><stop offset="1" stop-color="#f3dfd3"/></linearGradient></defs><rect width="100%" height="100%" rx="34" fill="url(#g)"/><text x="250" y="195" text-anchor="middle" font-size="105">${m.e||'🍽️'}</text></svg>`)}function image(m){return m?.img||RECIPE_PHOTOS[m?.id]?.src||generic(m)}function photoBackground(m){const main=image(m),fallback=generic(m);return main===fallback?`url('${fallback}')`:`url('${main}'),url('${fallback}')`}function cost(m){return retailerRecipeCost(m,selectedRetailer())}function mealProtein(m){
   if(!m)return'Vegetarian';
@@ -1078,7 +1080,7 @@ function reducePlanCost(pool,dishLookup,manual){
 }
 let budgetRescuePreview=null;
 function budgetRescueKey(){
-  return JSON.stringify([active,state.plan,state.budget,state.extrasAllowance,state.pantry,state.checked,state.supermarket,state.loyaltyPricing,state.total,state.taste,state.ratings,state.dietPattern,state.avoidGroups,state.allergens,state.avoid,state.priority,state.novelty,state.maxTime,state.vegFrequency,state.fishFrequency]);
+  return JSON.stringify([active,state.plan,state.budget,state.extrasAllowance,state.packedLunchMode,state.pantry,state.checked,state.supermarket,state.loyaltyPricing,state.total,state.taste,state.ratings,state.dietPattern,state.avoidGroups,state.allergens,state.avoid,state.priority,state.novelty,state.maxTime,state.vegFrequency,state.fishFrequency]);
 }
 function previewBudgetRescue(){
   if(!state.plan.length||Object.values(state.checked||{}).some(Boolean)){showToast('Finish or reset your collected shopping items before changing the meal plan.');return}
@@ -1189,8 +1191,20 @@ function calc(){
  }
  return '<div class="card" style="padding:18px"><b>No dinners match every hard exclusion</b><div class="small" style="margin-top:6px">Your strict “Never suggest”, dietary and allergen rules are still respected. Review household settings to see which requirements could be adjusted. “Not keen” foods are preferences, not exclusions.</div><button type="button" class="soft" style="margin-top:12px" data-ff-action="open-household-setup">Review household settings</button></div>';
 }
+function renderPackedLunchMode(){
+ const el=document.getElementById('ffPackedLunchMode'),out=document.getElementById('ffPackedLunchStatus');if(!el||!out)return;
+ el.checked=state.packedLunchMode===true;el.disabled=!!state.trolley||!!state.paydayBackup||Object.values(state.checked||{}).some(Boolean)||!state.plan.length;
+ const count=state.plan.reduce((n,_,i)=>n+(slotFor(lunch,i)?1:0),0);
+ out.textContent=state.packedLunchMode?count+' of '+state.plan.length+' days have a compatible packed-lunch suggestion. '+(count<state.plan.length?'Missing lunches are not included in the basket. ':'')+'These replace ordinary planned lunches, not add another meal.':'Standard lunch suggestions are included in your existing grocery basket.';
+ if(el.disabled)out.textContent+=' Finish or reset current shopping, or restore your usual plan, before changing lunch mode.';
+}
+function setPackedLunchMode(enabled){
+ if(!active||!state.plan.length||state.trolley||state.paydayBackup||Object.values(state.checked||{}).some(Boolean)){renderPackedLunchMode();return;}
+ state.packedLunchMode=enabled===true;budgetRescuePreview=null;paydayPreview=null;calc();save();render();showToast('Lunch choices and shopping basket updated.');
+}
+{const el=document.getElementById('ffPackedLunchMode');if(el)el.addEventListener('change',()=>setPackedLunchMode(el.checked));}
 function renderUnsafe(){
-  calc();
+  calc();renderPackedLunchMode();
   const p=prof(),hasPlan=state.plan.length>0,retailer=selectedRetailer(),autoShop=!RETAILERS[state.supermarket];
   const matchingDinners=hasPlan?-1:allDinners().filter(m=>!hardBlocked(m)).length;
   document.getElementById('profileBtn').textContent=p?p.name:'Set up';
@@ -1534,7 +1548,7 @@ function updateFamilyAllowancePreview(apply=false){
  button.disabled=total===null;
  if(total===null){output.textContent='Enter valid amounts, totalling no more than £5,000.';return;}
  const remaining=Math.round((Number(state?.budget||0)-total)*100)/100;
- output.textContent='Other shopping allowance: '+money(total)+' · '+(remaining>=0?money(remaining)+' available for dinner ingredients':money(-remaining)+' over your entire budget before dinners')+'.';
+ output.textContent='Other shopping allowance: '+money(total)+' · '+(remaining>=0?money(remaining)+' available for planned meals':money(-remaining)+' over your entire budget before planned meals')+'.';
  if(apply){field.value=total.toFixed(2);output.textContent+=' Total copied below. Select Save allowance to keep it.';}
 }
 for(let i=0;i<6;i++){const el=document.getElementById('ffFamilyCost'+i);if(el)el.addEventListener('input',()=>updateFamilyAllowancePreview());}
