@@ -53,8 +53,8 @@ const RECIPE_PHOTOS=Object.freeze({
 });
 const PANTRY_META={"eggs":["Eggs","Fridge",6],"milk":["Milk","Fridge",1000],"cheese":["Cheddar","Fridge",250],"ham":["Ham","Fridge",200],"chicken":["Chicken breast","Fridge",500],"beef":["Beef mince","Fridge",500],"sausages":["Sausages","Fridge",8],"bread":["Bread","Bakery",10],"wraps":["Wraps","Bakery",4],"naan":["Naan","Bakery",2],"rice":["Rice","Cupboard",500],"pasta":["Pasta","Cupboard",500],"spaghetti":["Spaghetti","Cupboard",500],"passata":["Passata","Cupboard",500],"beans":["Baked beans","Cupboard",420],"curry":["Curry sauce","Cupboard",250],"gravy":["Gravy","Cupboard",100],"tuna":["Tuna","Cupboard",145],"mayo":["Mayonnaise","Cupboard",250],"salsa":["Salsa","Cupboard",150],"cereal":["Cereal","Breakfast",250],"oats":["Oats","Breakfast",500],"potatoes":["Potatoes","Produce",1000],"onions":["Onions","Produce",500],"carrots":["Carrots","Produce",500],"peppers":["Peppers","Produce",3],"broccoli":["Broccoli","Produce",1],"bananas":["Bananas","Produce",4],"apples":["Apples","Produce",4],"peas":["Frozen peas","Freezer",500],"mixed":["Frozen mixed veg","Freezer",500],"fishfingers":["Fish fingers","Freezer",10],"yoghurts":["Yoghurts","Fridge",3],"popcorn":["Popcorn","Snacks",250],"biscuits":["Biscuits","Snacks",150]};let pantryCategory='All';
 
-const LIVE_DATASET_URL="live-prices.json?v=1197";
-const LIVE_CACHE_KEY='farefully_price_feed_cache_v4';
+const LIVE_DATASET_URL="live-prices.json?v=1198";
+const LIVE_CACHE_KEY='farefully_price_feed_cache_v5';
 const WEEKLY_OFFERS_URL='weekly-offers.json?v=1161';
 const WEEKLY_OFFERS_CACHE_KEY='farefully_weekly_offers_cache_v1';
 let LIVE_ROWS=[];
@@ -1513,6 +1513,32 @@ const SHOP_ONLINE_STORES=Object.freeze({
 function normaliseExtrasAllowance(value){
   return typeof value==='number'&&Number.isFinite(value)&&value>=0&&value<=5000?Math.round(value*100)/100:0;
 }
+function familyAllowanceTotal(values){
+ if(!Array.isArray(values)||values.length!==6)return null;
+ let pennies=0;
+ for(const value of values){
+  const text=String(value??'').trim();
+  if(!text)continue;
+  if(!/^\d+(?:\.\d{1,2})?$/.test(text))return null;
+  const p=Math.round(Number(text)*100);
+  if(!Number.isSafeInteger(p)||p<0||p>500000)return null;
+  pennies+=p;
+ }
+ return pennies<=500000?pennies/100:null;
+}
+function updateFamilyAllowancePreview(apply=false){
+ const output=document.getElementById('ffFamilyAllowancePreview'),button=document.getElementById('ffFamilyAllowanceUse'),field=document.getElementById('extrasAllowance');
+ if(!output||!button||!field)return;
+ const values=Array.from({length:6},(_,i)=>document.getElementById('ffFamilyCost'+i)?.value??'');
+ const total=familyAllowanceTotal(values);
+ button.disabled=total===null;
+ if(total===null){output.textContent='Enter valid amounts, totalling no more than £5,000.';return;}
+ const remaining=Math.round((Number(state?.budget||0)-total)*100)/100;
+ output.textContent='Other shopping allowance: '+money(total)+' · '+(remaining>=0?money(remaining)+' available for dinner ingredients':money(-remaining)+' over your entire budget before dinners')+'.';
+ if(apply){field.value=total.toFixed(2);output.textContent+=' Total copied below. Select Save allowance to keep it.';}
+}
+for(let i=0;i<6;i++){const el=document.getElementById('ffFamilyCost'+i);if(el)el.addEventListener('input',()=>updateFamilyAllowancePreview());}
+{const el=document.getElementById('ffFamilyAllowanceUse');if(el)el.addEventListener('click',()=>updateFamilyAllowancePreview(true));}
 function mealBudgetTarget(){return Math.max(0,Math.round((state.budget-normaliseExtrasAllowance(state.extrasAllowance))*100)/100)}
 function wholeShopBudgetEstimate(recipeTotal,allowance,target){
   const recipes=Math.max(0,Math.round((Number(recipeTotal)||0)*100));
