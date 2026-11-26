@@ -121,20 +121,16 @@
     "productName": "Tesco Maris Piper Potatoes 1.25Kg",
     "brand": "Tesco",
     "retailer": "Tesco",
-    "price": 1.45,
-    "loyaltyPrice": 1,
-    "loyaltyScheme": "Tesco Clubcard",
+    "price": 1.5,
     "loyaltyPromotion": "£1.00 Clubcard Price",
-    "offerText": "£1.00 Clubcard Price",
     "packSize": "1.25Kg",
-    "unitPriceValue": 1.16,
+    "unitPriceValue": 1.2,
     "unitPriceUnit": "kg",
     "available": true,
     "inStock": true,
-    "fetchedAt": "2026-10-08T19:35:00Z",
-    "promoValidFrom": "2026-09-22T00:00:00Z",
-    "promoValidUntil": "2026-10-19T23:59:59Z",
-    "url": "https://www.tesco.com/groceries/en-GB/products/304376337"
+    "fetchedAt": "2026-11-26T00:00:00Z",
+    "url": "https://www.tesco.com/groceries/en-GB/products/304376337",
+    "sourceUrl": "https://www.tesco.com/shop/en-GB/search?query=tesco+potatoes"
   },
   {
     "productName": "Sainsbury's White Vivaldi Potatoes, Taste the Difference 2kg",
@@ -209,14 +205,20 @@
     "productName": "Tesco British Chicken Breast Fillets 1KG",
     "brand": "Tesco",
     "retailer": "Tesco",
-    "price": 6.9,
+    "price": 7,
     "packSize": "1KG",
-    "unitPriceValue": 6.9,
+    "unitPriceValue": 7,
     "unitPriceUnit": "kg",
     "available": true,
     "inStock": true,
-    "fetchedAt": "2026-10-08T19:35:00Z",
-    "url": "https://www.tesco.com/groceries/en-GB/products/323658459"
+    "fetchedAt": "2026-11-26T00:00:00Z",
+    "url": "https://www.tesco.com/groceries/en-GB/products/323658459",
+    "sourceUrl": "https://www.tesco.com/shop/en-GB/search?query=tesco+chicken+breast+fillet+1kg",
+    "loyaltyPrice": 6.25,
+    "loyaltyScheme": "Tesco Clubcard",
+    "promoValidFrom": "2026-11-23T00:00:00Z",
+    "promoValidUntil": "2026-12-08T23:59:59Z",
+    "offerText": "£6.25 Clubcard price for delivery 23 November to 8 December 2026"
   },
   {
     "productName": "Sainsbury's 1kg British Fresh Skinless & Boneless Chicken Breast Fillets",
@@ -342,14 +344,15 @@
     "productName": "Tesco All Rounder Potatoes 2Kg",
     "brand": "Tesco",
     "retailer": "Tesco",
-    "price": 1.32,
+    "price": 1.39,
     "packSize": "2Kg",
-    "unitPriceValue": 0.66,
+    "unitPriceValue": 0.7,
     "unitPriceUnit": "kg",
     "available": true,
     "inStock": true,
-    "fetchedAt": "2026-10-08T19:35:00Z",
-    "url": "https://www.tesco.com/groceries/en-GB/products/313165959"
+    "fetchedAt": "2026-11-26T00:00:00Z",
+    "url": "https://www.tesco.com/groceries/en-GB/products/313165959",
+    "sourceUrl": "https://www.tesco.com/shop/en-GB/search?query=tesco+potatoes"
   },
   {
     "productName": "Sainsbury's Maris Piper Potatoes 2kg",
@@ -386,8 +389,9 @@
     "unitPriceUnit": "kg",
     "available": true,
     "inStock": true,
-    "fetchedAt": "2026-10-08T19:35:00Z",
-    "url": "https://www.tesco.com/groceries/en-GB/products/297844111"
+    "fetchedAt": "2026-11-26T00:00:00Z",
+    "url": "https://www.tesco.com/groceries/en-GB/products/297844111",
+    "sourceUrl": "https://www.tesco.com/shop/en-GB/search?query=pasta+500g"
   },
   {
     "productName": "Sainsbury's Italian Rigatoni Tubes Pasta 500g",
@@ -414,5 +418,44 @@
     "fetchedAt": "2026-10-08T19:35:00Z",
     "url": "https://www.aldi.co.uk/product/cucina-orzo-pasta-000000000000596280",
     "inStock": true
+  },
+  {
+    "productName": "British Medium Free Range Eggs 12 Pack",
+    "brand": "MEREVALE",
+    "retailer": "Aldi",
+    "price": 2.49,
+    "packSize": "12 pack",
+    "unitPriceValue": 0.2075,
+    "unitPriceUnit": "each",
+    "fetchedAt": "2026-11-26T00:00:00Z",
+    "url": "https://www.aldi.co.uk/product/merevale-british-medium-free-range-eggs-12-pack-000000000000417633",
+    "sourceUrl": "https://www.aldi.co.uk/products/chilled-food/eggs/k/1588161416978051003",
+    "available": true
+  },
+  {
+    "productName": "British Free Range Mixed Weight Eggs 15 Pack",
+    "brand": "MEREVALE",
+    "retailer": "Aldi",
+    "price": 2.85,
+    "packSize": "15 pack",
+    "unitPriceValue": 0.19,
+    "unitPriceUnit": "each",
+    "fetchedAt": "2026-11-26T00:00:00Z",
+    "url": "https://www.aldi.co.uk/product/merevale-british-free-range-mixed-weight-eggs-15-pack-000000000000417635",
+    "sourceUrl": "https://www.aldi.co.uk/products/chilled-food/eggs/k/1588161416978051003",
+    "available": true
+  },
+  {
+    "productName": "Free Range Eggs 6 Pack",
+    "brand": "MEREVALE",
+    "retailer": "Aldi",
+    "price": 0.99,
+    "packSize": "6 pack",
+    "unitPriceValue": 0.165,
+    "unitPriceUnit": "each",
+    "fetchedAt": "2026-11-26T00:00:00Z",
+    "url": "https://www.aldi.co.uk/product/merevale-free-range-eggs-6-pack-000000000000548465",
+    "sourceUrl": "https://www.aldi.co.uk/products/chilled-food/eggs/k/1588161416978051003",
+    "available": true
   }
 ]
