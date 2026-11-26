@@ -159,7 +159,7 @@ function latestRows(rows){
   }
   return Object.values(by)
 }
-function liveRowFresh(row,maxDays=7){const t=liveTimestamp(row);return !!t&&Date.now()-t<=maxDays*24*60*60*1000}
+function liveRowFresh(row,maxDays=7){const t=liveTimestamp(row),age=Date.now()-t;return !!t&&age>=0&&age<=maxDays*24*60*60*1000}
 function candidateRows(ingredient,retailer){
   const p=P[ingredient];if(!p)return[];
   return LIVE_ROWS.filter(r=>{
@@ -279,7 +279,7 @@ function quoteForRetailer(retailer){
   if(LIVE_ROWS.length&&LIVE_RETAILERS.has(retailer))return hybridQuote(retailer);
   return{retailer,total:retailerBasketTotal(retailer),matched:0,eligible:Object.keys(state.basket||{}).length,details:[],liveCapable:LIVE_RETAILERS.has(retailer)}
 }
-function latestLiveTimestamp(){let latest=0;for(const r of LIVE_ROWS){const t=liveTimestamp(r);if(t>latest)latest=t}return latest}
+function latestLiveTimestamp(){let latest=0;for(const r of LIVE_ROWS){const t=liveTimestamp(r);if(t>latest&&t<=Date.now())latest=t}return latest}
 async function refreshLivePrices(force=false){
   const status=document.getElementById('liveStatusText');if(status)status.textContent='Loading current product data…';
   try{
@@ -291,16 +291,16 @@ async function refreshLivePrices(force=false){
     const rows=await res.json();LIVE_ROWS=latestRows(Array.isArray(rows)?rows:[]);OFFER_CACHE.key='';
     localStorage.setItem(LIVE_CACHE_KEY,JSON.stringify({savedAt:Date.now(),rows:LIVE_ROWS}));render()
   }catch(e){
-    try{const cached=JSON.parse(localStorage.getItem(LIVE_CACHE_KEY)||'null');if(cached?.rows?.length)LIVE_ROWS=cached.rows}catch(_){}
+    try{const cached=JSON.parse(localStorage.getItem(LIVE_CACHE_KEY)||'null');if(cached?.rows?.length){LIVE_ROWS=latestRows(cached.rows);OFFER_CACHE.key=''}}catch(_){}
     render()
   }
 }
 function renderLiveStatus(){
   const box=document.getElementById('liveStatus'),txt=document.getElementById('liveStatusText');if(!box||!txt)return;
   if(!LIVE_ROWS.length){box.classList.add('off');txt.textContent='Verified product snapshot unavailable. Farefully is using the benchmark fallback model.';return}
-  const ts=latestLiveTimestamp(),age=ts?Date.now()-ts:Infinity,when=ts?new Date(ts).toLocaleString('en-GB',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}):'unknown';
-  if(age>7*24*60*60*1000){box.classList.add('off');txt.textContent='Verified product snapshot is out of date. Farefully is using the benchmark fallback model until the next data refresh.';return}
-  box.classList.remove('off');txt.textContent=(age>48*60*60*1000?'Recent verified product snapshot':'Verified product snapshot')+' for Aldi, Asda, Tesco and Sainsbury’s · '+when+' · checkout prices can change'
+  const ts=latestLiveTimestamp(),age=ts?Date.now()-ts:Infinity,when=ts?new Date(ts).toLocaleString('en-GB',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}):'unknown';
+  if(age>7*24*60*60*1000){box.classList.add('off');txt.textContent='Verified product snapshot is out of date (last checked '+when+'). All grocery prices shown use benchmark estimates until a fresh snapshot is available.';return}
+  const fresh=LIVE_ROWS.filter(r=>liveRowFresh(r)&&r.inStock!==false&&r.available!==false&&activeLivePrice(r)>0);const stores=[...new Set(fresh.map(r=>normRetailer(r.retailer)).filter(Boolean))];if(!fresh.length||!stores.length){box.classList.add('off');txt.textContent='No usable fresh product prices. Grocery costs are benchmark estimates.';return}box.classList.remove('off');txt.textContent=fresh.length+' fresh product records across '+stores.join(', ')+' · newest '+when+' · unmatched items use benchmark estimates; checkout prices can change'
 }
 
 const RETAILERS={
@@ -1349,7 +1349,10 @@ function editCustomRecipe(id){openCustomRecipeEditor(id)}
 function deleteCustomRecipe(id){const m=(state.customRecipes||[]).find(x=>x.id===id);if(!m)return;state.customRecipes=state.customRecipes.filter(x=>x.id!==id);delete state.ratings?.[id];const wasPlanned=state.plan.includes(id);if(wasPlanned)build();else{calc();save()}render();renderCustomRecipes();showToast(wasPlanned?'Recipe deleted and plan refreshed':'Recipe deleted')}
 function rebuildWithCustomRecipes(){if(!state.customRecipes?.length){showToast('Add a custom recipe first');return}build();render();closeCustomRecipes();go('plan');showToast('Plan rebuilt with your recipes in the mix')}
 
-function go(id){document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));document.getElementById(id).classList.add('active');document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('active',b.dataset.tab===id));scrollTo(0,0)}document.querySelectorAll('.nav button').forEach(b=>b.onclick=()=>go(b.dataset.tab));function syncPressed(){document.querySelectorAll('.tastebtn,.dietbtn,.allergenbtn,#ratingButtons button').forEach(b=>b.setAttribute('aria-pressed',b.classList.contains('on')?'true':'false'))}
+function go(id){document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));document.getElementById(id).classList.add('active');document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('active',b.dataset.tab===id));scrollTo(0,0)}document.querySelectorAll('.nav button').forEach(b=>b.onclick=()=>go(b.dataset.tab));
+function ffOpenBudgetTool(id){go('basket');if(!id)return;const target=document.getElementById(id);if(target&&!target.hidden&&typeof target.scrollIntoView==='function')target.scrollIntoView({block:'start',behavior:'auto'})}
+for(const [button,target] of [['ffQuickBasket',null],['ffQuickPayday','paydayPanel'],['ffQuickTrolley','actualTrolleyPanel']]){const el=document.getElementById(button);if(el)el.addEventListener('click',()=>ffOpenBudgetTool(target));}
+function syncPressed(){document.querySelectorAll('.tastebtn,.dietbtn,.allergenbtn,#ratingButtons button').forEach(b=>b.setAttribute('aria-pressed',b.classList.contains('on')?'true':'false'))}
 function applyAccessibility(){
   document.querySelectorAll('.field').forEach((field,i)=>{const control=field.querySelector('input,select,textarea'),label=field.querySelector('label');if(!control||!label)return;if(!control.id)control.id='farefullyField'+i;label.htmlFor=control.id});
   document.querySelectorAll('.overlay .sheet,.welcome .box').forEach((box,i)=>{box.setAttribute('role','dialog');box.setAttribute('aria-modal','true');box.tabIndex=-1;const h=box.querySelector('h1,h2');if(h){if(!h.id)h.id='dialogTitle'+i;box.setAttribute('aria-labelledby',h.id)}});
