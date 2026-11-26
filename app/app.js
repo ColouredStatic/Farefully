@@ -53,7 +53,7 @@ const RECIPE_PHOTOS=Object.freeze({
 });
 const PANTRY_META={"eggs":["Eggs","Fridge",6],"milk":["Milk","Fridge",1000],"cheese":["Cheddar","Fridge",250],"ham":["Ham","Fridge",200],"chicken":["Chicken breast","Fridge",500],"beef":["Beef mince","Fridge",500],"sausages":["Sausages","Fridge",8],"bread":["Bread","Bakery",10],"wraps":["Wraps","Bakery",4],"naan":["Naan","Bakery",2],"rice":["Rice","Cupboard",500],"pasta":["Pasta","Cupboard",500],"spaghetti":["Spaghetti","Cupboard",500],"passata":["Passata","Cupboard",500],"beans":["Baked beans","Cupboard",420],"curry":["Curry sauce","Cupboard",250],"gravy":["Gravy","Cupboard",100],"tuna":["Tuna","Cupboard",145],"mayo":["Mayonnaise","Cupboard",250],"salsa":["Salsa","Cupboard",150],"cereal":["Cereal","Breakfast",250],"oats":["Oats","Breakfast",500],"potatoes":["Potatoes","Produce",1000],"onions":["Onions","Produce",500],"carrots":["Carrots","Produce",500],"peppers":["Peppers","Produce",3],"broccoli":["Broccoli","Produce",1],"bananas":["Bananas","Produce",4],"apples":["Apples","Produce",4],"peas":["Frozen peas","Freezer",500],"mixed":["Frozen mixed veg","Freezer",500],"fishfingers":["Fish fingers","Freezer",10],"yoghurts":["Yoghurts","Fridge",3],"popcorn":["Popcorn","Snacks",250],"biscuits":["Biscuits","Snacks",150]};let pantryCategory='All';
 
-const LIVE_DATASET_URL="live-prices.json?v=1164";
+const LIVE_DATASET_URL="live-prices.json?v=1197";
 const LIVE_CACHE_KEY='farefully_price_feed_cache_v4';
 const WEEKLY_OFFERS_URL='weekly-offers.json?v=1161';
 const WEEKLY_OFFERS_CACHE_KEY='farefully_weekly_offers_cache_v1';
@@ -1198,7 +1198,7 @@ function renderUnsafe(){
   document.getElementById('greet').textContent=p?'Good evening, '+p.name:'Good evening';
   const shopEstimate=wholeShopBudgetEstimate(state.total,state.extrasAllowance,state.budget),rem=shopEstimate.remaining;
   document.getElementById('spend').textContent='£'+shopEstimate.combined.toFixed(2);
-  document.getElementById('target').textContent='/ £'+Math.round(state.budget);
+  document.getElementById('target').textContent='/ '+money(state.budget);
   document.getElementById('remain').textContent=(rem>=0?'Est. '+money(rem)+' below':'Est. '+money(Math.abs(rem))+' above');
   document.getElementById('ring').style.setProperty('--p',state.budget>0?Math.min(100,Math.round(shopEstimate.combined/state.budget*100)):(shopEstimate.combined>0?100:0));
   const planTitle=document.getElementById('planTitle');if(planTitle)planTitle.textContent=(state.paydayBackup?'Payday Mode · ':'')+state.days+'-day plan';
