@@ -1083,7 +1083,7 @@ function budgetRescueKey(){
   return JSON.stringify([active,state.plan,state.budget,state.extrasAllowance,state.packedLunchMode,state.pantry,state.checked,state.supermarket,state.loyaltyPricing,state.total,state.taste,state.ratings,state.dietPattern,state.avoidGroups,state.allergens,state.avoid,state.priority,state.novelty,state.maxTime,state.vegFrequency,state.fishFrequency]);
 }
 function previewBudgetRescue(){
-  if(!state.plan.length||Object.values(state.checked||{}).some(Boolean)){showToast('Finish or reset your collected shopping items before changing the meal plan.');return}
+  if(!state.plan.length||basketReviewLocked()){showToast('Finish or reset your collected shopping items before changing the meal plan.');return}
   calc();
   if(state.total<=mealBudgetTarget()){showToast('Your current meal estimate fits the available food budget.');return}
   const original=state.plan.slice(),before=state.total,key=budgetRescueKey();
@@ -1096,7 +1096,7 @@ function previewBudgetRescue(){
   if(!budgetRescuePreview)showToast('No cheaper suitable dinner swaps found. Check pantry amounts or review the budget.');
 }
 function applyBudgetRescue(){
-  if(!budgetRescuePreview||budgetRescuePreview.key!==budgetRescueKey()){budgetRescuePreview=null;renderBudgetRescue();showToast('Your plan changed. Check for savings again.');return}
+  if(basketReviewLocked()||!budgetRescuePreview||budgetRescuePreview.key!==budgetRescueKey()){budgetRescuePreview=null;renderBudgetRescue();showToast('Your plan changed. Check for savings again.');return}
   const preview=budgetRescuePreview,old=state.plan.slice(),before=state.total;
   if(preview.candidate.some(id=>{const m=allDinners().find(x=>x.id===id);return !m||hardBlocked(m)})){budgetRescuePreview=null;renderBudgetRescue();showToast('Meal preferences changed. Check again.');return}
   state.plan=preview.candidate.slice();calc();budgetRescuePreview=null;
@@ -1108,7 +1108,7 @@ function renderBudgetRescue(){
   if(!panel||!msg||!btn||!find)return;
   panel.hidden=!state.plan.length;
   if(budgetRescuePreview&&budgetRescuePreview.key!==budgetRescueKey())budgetRescuePreview=null;
-  const gap=state.total-mealBudgetTarget(),collected=Object.values(state.checked||{}).some(Boolean);
+  const gap=state.total-mealBudgetTarget(),collected=basketReviewLocked();
   find.disabled=gap<=0||collected;
   btn.hidden=!budgetRescuePreview;
   msg.textContent=budgetRescuePreview?'Estimated saving '+money(budgetRescuePreview.before-budgetRescuePreview.after)+' by changing '+budgetRescuePreview.changed+' dinner(s). New food basket: '+money(budgetRescuePreview.after)+'. '+(budgetRescuePreview.after<=mealBudgetTarget()?'Within the meal budget estimate.':'Still '+money(budgetRescuePreview.after-mealBudgetTarget())+' above the meal budget.'):collected?'Shopping is in progress. Reset collected items before changing meals.':gap>0?'Your food basket is '+money(gap)+' above the money available for meals. Check for cheaper suitable swaps without changing your plan.':'Your current food basket estimate fits the available meal budget. Actual prices may differ.';
@@ -1203,8 +1203,33 @@ function setPackedLunchMode(enabled){
  state.packedLunchMode=enabled===true;budgetRescuePreview=null;paydayPreview=null;calc();save();render();showToast('Lunch choices and shopping basket updated.');
 }
 {const el=document.getElementById('ffPackedLunchMode');if(el)el.addEventListener('change',()=>setPackedLunchMode(el.checked));}
+function basketReviewRows(basket=state.basket,need=state.need,pantry=state.pantry){
+ const rows=[];
+ for(const [id,row] of Object.entries(basket||{})){
+  const p=P[id],cost=Number(row?.line),required=Math.max(0,(Number(need?.[id])||0)-Math.max(0,Number(pantry?.[id])||0));
+  if(!p||!Number.isFinite(cost)||cost<0||!required)continue;
+  const items=row.live&&Array.isArray(row.liveQuote?.items)?row.liveQuote.items:null;
+  let purchased=items?.length?items.reduce((sum,x)=>sum+Number(x.packs)*Number(x.row?._qty||parsePackQuantity(x.row?.packSize,p.u,liveProductName(x.row))),0):Number(row.packs)*Number(p.pack);
+  if(!Number.isFinite(purchased)||purchased<required-.00001)purchased=null;
+  const surplus=purchased===null?null:Math.max(0,purchased-required);
+  const dinnerIndex=state.plan.map((_,i)=>({i,qty:Number(effectiveIngredients(meal(i)?.i)[id])||0})).filter(x=>x.qty>0).sort((a,b)=>b.qty-a.qty)[0]?.i??null;
+  rows.push({id,cost,required,purchased,surplus,unusedValue:surplus===null||!purchased?0:cost*surplus/purchased,dinnerIndex,live:!!row.live});
+ }
+ return rows.sort((a,b)=>b.cost-a.cost||a.id.localeCompare(b.id));
+}
+function basketReviewLocked(){return !!state.trolley||Object.values(state.checked||{}).some(Boolean)}
+function renderBasketReview(){
+ const cost=document.getElementById('ffCostDrivers'),surplus=document.getElementById('ffPackSurplus'),note=document.getElementById('ffReviewNote');if(!cost||!surplus||!note)return;
+ const rows=basketReviewRows(),locked=basketReviewLocked();
+ if(!rows.length){cost.innerHTML='No grocery purchases to review yet.';surplus.innerHTML='No purchased packs to review.';note.textContent='Build a plan to see your estimated costs.';return;}
+ cost.innerHTML=rows.slice(0,5).map(r=>'<div class="ff-review-row"><div><b>'+esc(P[r.id].n)+'</b><div class="small">'+(r.live?'Recent product match':'Benchmark estimate')+'</div></div><div><b>'+money(r.cost)+'</b>'+(r.dinnerIndex!==null?'<button type="button" class="soft" data-ff-review-swap="'+r.dinnerIndex+'" '+(locked?'disabled':'')+'>Compare swaps</button>':'')+'</div></div>').join('');
+ const spare=rows.filter(r=>r.surplus!==null&&r.surplus>.01).sort((a,b)=>b.unusedValue-a.unusedValue).slice(0,5);
+ surplus.innerHTML=spare.length?spare.map(r=>'<div class="ff-review-row"><div><b>'+esc(P[r.id].n)+'</b><div class="small">'+esc(fmtQty(r.id,r.required))+' needed · '+esc(fmtQty(r.id,r.purchased))+' to buy</div></div><b>'+esc(fmtQty(r.id,r.surplus))+' spare</b></div>').join(''):'No estimated spare pack quantities identified.';
+ note.textContent=locked?'Shopping is underway. Finish or reset your shop before changing meals.':'Compare swaps for a dinner using an expensive ingredient. Alternatives are ranked by the estimated change in the whole basket, not just recipe price.';
+}
+{const el=document.getElementById('ffBasketReview');if(el)el.addEventListener('click',event=>{const b=event.target.closest?.('[data-ff-review-swap]');if(!b||basketReviewLocked())return;const i=Number(b.dataset.ffReviewSwap);if(Number.isInteger(i)&&i>=0&&i<state.plan.length)openSwap(i,true);});}
 function renderUnsafe(){
-  calc();renderPackedLunchMode();
+  calc();renderPackedLunchMode();renderBasketReview();
   const p=prof(),hasPlan=state.plan.length>0,retailer=selectedRetailer(),autoShop=!RETAILERS[state.supermarket];
   const matchingDinners=hasPlan?-1:allDinners().filter(m=>!hardBlocked(m)).length;
   document.getElementById('profileBtn').textContent=p?p.name:'Set up';
@@ -2065,8 +2090,9 @@ function compareSwapOptions(a,b,preferBudget){
   }
   return b.fit-a.fit||a.delta-b.delta;
 }
-function openSwap(i){
-  const cur=meal(i);if(!cur)return;swapIndex=i;const preferBudget=state.priority==='budget'||state.total>mealBudgetTarget();document.getElementById('swapTitle').textContent='Replace '+cur.n+(preferBudget?' · lower-cost options first':'');
+function openSwap(i,forceBudget=false){
+  if(basketReviewLocked()){showToast('Finish or reset your shop before changing meals.');return;}
+  const cur=meal(i);if(!cur)return;swapIndex=i;const preferBudget=forceBudget||state.priority==='budget'||state.total>mealBudgetTarget();document.getElementById('swapTitle').textContent='Replace '+cur.n+(preferBudget?' · lower-cost options first':'');
   const opts=allDinners().filter(x=>x.id!==cur.id&&!state.plan.includes(x.id)&&!hardBlocked(x)).map(m=>{
     const old=state.plan[i],before=state.total;state.plan[i]=m.id;calc();const after=state.total;state.plan[i]=old;calc();
     return{m,delta:+(after-before).toFixed(2),after,fit:fitScore(m)}
@@ -2074,7 +2100,7 @@ function openSwap(i){
   document.getElementById('swapList').innerHTML=opts.map(o=>`<div class="swapopt"><img src="${image(o.m)}" data-ff-photo-id="${esc(o.m.id)}" loading="lazy" decoding="async" alt="${esc(o.m.n)}"><div><b>${esc(o.m.n)}</b><div class="small">${esc(o.m.cat)} · ${o.m.t} min · ${esc(o.m.d)}</div>${householdFitBadge(o.m)}${householdFitExplanation(o.m)}${prepBadges(o.m)}${offerBadge(o.m)}<div style="font-weight:800;color:${o.delta<=0?'var(--green)':'#a36f27'};margin-top:5px">${o.delta<0?'Estimated reduction '+money(Math.abs(o.delta)):o.delta>0?'Estimated increase '+money(o.delta):'No estimated basket change'}</div><div class="small">Estimated whole basket: ${money(wholeShopBudgetEstimate(o.after,state.extrasAllowance,state.budget).combined)} including reserve · ${o.after<=mealBudgetTarget()?'within food target':'above food target'} · not a checkout quote</div><button class="soft" style="margin-top:7px" data-ff-action="choose-swap" data-meal-id="${esc(o.m.id)}">Use this meal</button></div></div>`).join('');
   document.getElementById('swap').classList.add('show');focusDialog('swap')
 }
-function closeSwap(){document.getElementById('swap').classList.remove('show')}function chooseSwap(id){const candidate=allDinners().find(m=>m.id===id);if(!candidate||hardBlocked(candidate)||!Number.isInteger(swapIndex)||swapIndex<0||swapIndex>=state.plan.length||state.plan.includes(id)){showToast('This meal is no longer available for this plan. Choose another.');return}state.plan[swapIndex]=id;calc();save();closeSwap();render();showToast('Meal swapped')}
+function closeSwap(){document.getElementById('swap').classList.remove('show')}function chooseSwap(id){const candidate=allDinners().find(m=>m.id===id);if(!candidate||hardBlocked(candidate)||!Number.isInteger(swapIndex)||swapIndex<0||swapIndex>=state.plan.length||state.plan.includes(id)||basketReviewLocked()){showToast('This meal is no longer available for this plan, or shopping is underway.');return}state.plan[swapIndex]=id;calc();save();closeSwap();render();showToast('Meal swapped')}
 function fmtQty(id,q){
   const p=P[id];
   if(!p)return Math.round(q);
