@@ -1217,10 +1217,39 @@ function basketReviewRows(basket=state.basket,need=state.need,pantry=state.pantr
  }
  return rows.sort((a,b)=>b.cost-a.cost||a.id.localeCompare(b.id));
 }
+function surplusMealOptions(rows=basketReviewRows()){
+ const stock=Object.fromEntries(rows.filter(r=>r.surplus!==null&&Number.isFinite(r.surplus)&&r.surplus>.01&&P[r.id]).map(r=>[r.id,r.surplus]));
+ if(!Object.keys(stock).length)return [];
+ const shop=selectedRetailer();
+ return allDinners().map(m=>{
+  const quote=cupboardMealQuote(m,shop,stock);if(!quote)return null;
+  const used=Object.entries(effectiveIngredients(m.i)).map(([id,q])=>({id,qty:Math.min(stock[id]||0,q*pf())})).filter(x=>x.qty>.01);
+  if(!used.length)return null;
+  return {...quote,used};
+ }).filter(Boolean).sort((a,b)=>a.total-b.total||b.used.length-a.used.length||b.covered-a.covered||b.fit-a.fit||a.name.localeCompare(b.name)).slice(0,5);
+}
+function renderSurplusIdeas(rows){
+ const out=document.getElementById('ffSurplusIdeas');if(!out)return;
+ if(!state.plan.length){out.textContent='Build a plan to see ideas for spare ingredients.';return;}
+ const choices=surplusMealOptions(rows);
+ if(!choices.length){out.textContent='No compatible reuse ideas found for the estimated spare packs.';return;}
+ out.innerHTML=choices.map(x=>'<div class="ff-review-row"><div><b>'+esc(x.name)+'</b><div class="small">Could use '+x.used.map(y=>esc(P[y.id].n)+' ('+esc(fmtQty(y.id,y.qty))+')').join(', ')+'</div><div class="small">'+x.covered+' of '+x.count+' ingredient lines fully covered by spare quantities</div></div><div><b>'+money(x.total/100)+'</b><div class="small">model top-up</div><button type="button" class="soft" data-ff-action="open-cupboard-recipe" data-meal-id="'+esc(x.id)+'">View recipe</button></div></div>').join('');
+}
+function receiptComparison(row){
+ if(!row||!validPennies(row.actual)||!validPennies(row.budget)||!validPennies(row.estimate))return null;
+ return {actual:row.actual,budget:row.budget,estimate:row.estimate,budgetDifference:row.budget-row.actual,estimateDifference:row.estimate-row.actual};
+}
+function renderReceiptComparison(){
+ const out=document.getElementById('ffReceiptComparison');if(!out)return;
+ const x=receiptComparison((state.receiptHistory||[])[0]);
+ if(!x){out.textContent='Record your final checkout total to compare it with your starting estimate and budget.';return;}
+ const delta=(n,label)=>n===0?'Matches '+label:money(Math.abs(n)/100)+(n>0?' below ':' above ')+label;
+ out.innerHTML='<div class="ff-review-row"><b>Last recorded checkout</b><b>'+money(x.actual/100)+'</b></div><div class="ff-review-row"><span>Starting budget · '+money(x.budget/100)+'</span><b>'+esc(delta(x.budgetDifference,'budget'))+'</b></div><div class="ff-review-row"><span>Starting estimate · '+money(x.estimate/100)+'</span><b>'+esc(delta(x.estimateDifference,'estimate'))+'</b></div>';
+}
 function basketReviewLocked(){return !!state.trolley||Object.values(state.checked||{}).some(Boolean)}
 function renderBasketReview(){
  const cost=document.getElementById('ffCostDrivers'),surplus=document.getElementById('ffPackSurplus'),note=document.getElementById('ffReviewNote');if(!cost||!surplus||!note)return;
- const rows=basketReviewRows(),locked=basketReviewLocked();
+ const rows=basketReviewRows(),locked=basketReviewLocked();renderSurplusIdeas(rows);
  if(!rows.length){cost.innerHTML='No grocery purchases to review yet.';surplus.innerHTML='No purchased packs to review.';note.textContent='Build a plan to see your estimated costs.';return;}
  cost.innerHTML=rows.slice(0,5).map(r=>'<div class="ff-review-row"><div><b>'+esc(P[r.id].n)+'</b><div class="small">'+(r.live?'Recent product match':'Benchmark estimate')+'</div></div><div><b>'+money(r.cost)+'</b>'+(r.dinnerIndex!==null?'<button type="button" class="soft" data-ff-review-swap="'+r.dinnerIndex+'" '+(locked?'disabled':'')+'>Compare swaps</button>':'')+'</div></div>').join('');
  const spare=rows.filter(r=>r.surplus!==null&&r.surplus>.01).sort((a,b)=>b.unusedValue-a.unusedValue).slice(0,5);
@@ -1469,7 +1498,7 @@ function renderPantryHighlights(){
   el.innerHTML=rows.length?rows.map(([id,q])=>`<div class="use"><div class="foodicon">${icons[P[id]?.c]||'🥫'}</div><b>${esc(P[id]?.n||id)}</b><div class="small">In pantry · ${esc(fmtQty(id,q))}</div></div>`).join(''):'<div class="card" style="grid-column:1/-1;padding:14px"><b>Nothing in your pantry yet</b><div class="small" style="margin-top:4px">Add what you already have and Farefully will deduct it from the basket.</div></div>'
 }
 // A single meal at a time: saved pantry stock is not consumed by browsing suggestions.
-function cupboardMealQuote(m,retailer=selectedRetailer()){
+function cupboardMealQuote(m,retailer=selectedRetailer(),stock=state.pantry){
  if(!m||hardBlocked(m))return null;
  const ingredients=Object.entries(effectiveIngredients(m.i)),factor=pf(),missing=[];
  if(!ingredients.length||!Number.isFinite(factor)||factor<=0)return null;
@@ -1477,7 +1506,7 @@ function cupboardMealQuote(m,retailer=selectedRetailer()){
  for(const [id,q] of ingredients){
   const p=P[id],required=q*factor;
   if(!p||!Number.isFinite(p.pack)||p.pack<=0||!Number.isFinite(required)||required<=0)return null;
-  const have=Math.max(0,Number(state.pantry[id])||0),short=Math.max(0,required-have);
+  const have=Math.max(0,Number(stock?.[id])||0),short=Math.max(0,required-have);
   if(short<=1e-8){covered++;continue}
   const packs=Math.ceil(short/p.pack-1e-10),line=Math.round(packs*retailerItemPrice(id,retailer)*100);
   if(!Number.isFinite(line)||line<0)return null;
@@ -1708,6 +1737,7 @@ function discardActualTrolley(){
  state.trolley=null;save();renderActualTrolley();
 }
 function renderActualTrolley(){
+ renderReceiptComparison();renderBasketReview();renderPackedLunchMode();renderBudgetRescue();
  const start=document.getElementById('startActualTrolley'),controls=document.getElementById('actualTrolleyControls'),msg=document.getElementById('actualTrolleySummary'),items=document.getElementById('actualItem'),lines=document.getElementById('actualTrolleyLines'),history=document.getElementById('actualReceiptHistory');
  if(!start||!controls||!msg||!items||!lines||!history)return;
  const t=state.trolley,total=trolleyTotal();
