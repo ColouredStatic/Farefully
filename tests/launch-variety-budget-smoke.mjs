@@ -34,6 +34,18 @@ assert.equal(run("hasFreshRetailerRows('Aldi')"),false,'October product prices c
 const oldSnapshot=JSON.parse(readFileSync(new URL('../app/live-prices.json',import.meta.url),'utf8'));
 assert.ok(oldSnapshot.length>10,'Historical snapshot should be present for an expiry regression');
 assert.ok(oldSnapshot.every(row=>Number.isFinite(Date.parse(row.fetchedAt))&&row.price>0&&row.url),'Every repository price needs a source, valid timestamp and positive price');
+const retailerKeys=new Set();
+for(const row of oldSnapshot){
+ const key=row.retailer+'|'+(row.matchKey||row.retailerProductId||row.url);
+ assert.ok(!retailerKeys.has(key),'Duplicate price record: '+key);retailerKeys.add(key);
+ if(row.sourceType==='retailer-listing'){
+  assert.ok(row.sourceUrl?.startsWith('https://')&&row.matchKey,'Listing rows require explicit evidence and a unique key');
+  assert.equal(row.stockConfirmed,false,'Public listings cannot prove local stock');
+  const match=run("ingredientForLive("+JSON.stringify(row)+")");
+  assert.equal(match,row.canonicalIngredientId,'Unexpected canonical ingredient: '+row.productName);
+  assert.ok(run("parsePackQuantity("+JSON.stringify(row.packSize)+",P["+JSON.stringify(match)+"].u,"+JSON.stringify(row.productName)+")")>0,'Pack quantity cannot be parsed: '+row.productName);
+ }
+}
 const expiredSnapshot=oldSnapshot.map(row=>({...row,fetchedAt:'2026-10-08T19:35:00Z',scrapedAt:undefined,updatedAt:undefined}));
 run('state=def();LIVE_ROWS='+JSON.stringify(expiredSnapshot)+';OFFER_CACHE.key=""');
 assert.equal(run("weeklyOffers('Aldi').length"),0,'Stale October promotional rows must not be advertised as live November offers');
