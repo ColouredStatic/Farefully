@@ -16,12 +16,12 @@ const today=new Date(),date=n=>new Date(today.getTime()-n*86400000).toISOString(
 console.log('## Open Prices UK feasibility (read only)');
 console.log('Source: https://huggingface.co/datasets/openfoodfacts/open-prices');
 console.log('ODbL attribution and share-alike required; never combine with unlicensed sources.');
-console.log('| Observation age | GBP records | Partial response |');
+console.log('| Observation age | UK GBP records | Partial response |');
 console.log('|---|---:|---|');
 for(const days of [7,30,90]){
- const data=await get('/filter',{dataset,config:split.config,split:split.split,where:'"currency" = \'GBP\' AND "date" >= \''+date(days)+'\' AND "date" <= \''+date(0)+'\'',length:1});
+ const data=await get('/filter',{dataset,config:split.config,split:split.split,where:'"currency" = \'GBP\' AND "location_osm_address_country_code" = \'GB\' AND "date" >= \''+date(days)+'\' AND "date" <= \''+date(0)+'\'',length:1});
  if(!Number.isSafeInteger(data.num_rows_total))throw Error('Dataset server did not return a usable count');
  console.log('| Last '+days+' days | '+data.num_rows_total+' | '+(data.partial===true?'Yes':data.partial===false?'No':'Not reported')+' |');
 }
-console.log('GBP counts alone do not establish UK store location, staple coverage, matching pack sizes, current stock or present checkout price.');
+console.log('Counts include only records tagged GB and GBP; they do not establish staple coverage, matching pack sizes, current stock or present checkout price.');
 console.log('No production database changes were made.');
