@@ -82,11 +82,26 @@ try{
   const rb=await review.evaluate(el=>({left:el.getBoundingClientRect().left,right:el.getBoundingClientRect().right,scroll:el.scrollWidth,client:el.clientWidth,viewport:document.documentElement.clientWidth}));
   assert.ok(rb.left>=0&&rb.right<=rb.viewport+1&&rb.scroll<=rb.client+1,'Smart review overflows at '+width+': '+JSON.stringify(rb));
   if(width===390){await review.screenshot({path:'test-results/smart-basket-mobile.png'});}
+  // Household prices require explicit matching-pack confirmation and affect only this shop.
+  const localPrices=page.locator('#ffPersonalPricePanel');
+  await localPrices.locator('summary').click();
+  await localPrices.locator('#ffPriceRetailer').selectOption('Aldi');
+  const priceIngredient=await page.evaluate(()=>Object.keys(state.basket)[0]);
+  await localPrices.locator('#ffPriceIngredient').selectOption(priceIngredient);
+  await localPrices.locator('#ffPersonalPrice').fill('2.37');
+  await localPrices.locator('#ffPricePackConfirm').check();
+  await localPrices.locator('#ffSavePersonalPrice').click();
+  assert.equal(await page.evaluate(id=>personalPackPrice(id,'Aldi'),priceIngredient),2.37);
+  assert.equal(await page.evaluate(id=>JSON.parse(store.get(sk(active))).personalPrices.find(x=>x.id===id).pennies,priceIngredient),237);
+  assert.match(await localPrices.locator('#ffPersonalPriceList').innerText(),/£2\.37/);
+  const lp=await localPrices.evaluate(el=>({left:el.getBoundingClientRect().left,right:el.getBoundingClientRect().right,scroll:el.scrollWidth,client:el.clientWidth,viewport:document.documentElement.clientWidth}));
+  assert.ok(lp.left>=0&&lp.right<=lp.viewport+1&&lp.scroll<=lp.client+1,'Personal prices overflow at '+width);
   // Actual trolley: edit a price, include an extra, record checkout total.
   page.on('dialog',d=>d.accept());
   await page.evaluate(()=>{state.shoppingExtras=[{id:'testsoap',name:'Soap'}];render();});
   const trolley=page.locator('#actualTrolleyPanel');
   await trolley.locator('#startActualTrolley').click();
+  assert.equal(await localPrices.locator('#ffSavePersonalPrice').isDisabled(),true);
   const key=await page.evaluate(()=>Object.keys(state.basket)[0]);
   await trolley.locator('#actualItem').selectOption(key);
   await trolley.locator('#actualItemPrice').fill('4.49');
