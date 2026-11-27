@@ -1382,7 +1382,8 @@ function renderUnsafe(){
     const matched=Math.max(0,Number(state.liveCoverage?.matched)||0);
     const eligible=Math.max(0,Number(state.liveCoverage?.eligible)||0);
     const personal=Object.values(state.basket||{}).filter(row=>row.personal).length;
-    basketCoverage.textContent=personal?personal+' household-entered price lines · '+matched+' recent product matches · '+Math.max(0,eligible-personal-matched)+' benchmark lines. Estimates, not checkout quotes.':hasCurrentMatches&&eligible&&matched
+    if(personal)basketCoverage.textContent=personal+' household-entered price lines · '+matched+' recent product matches · '+Math.max(0,eligible-personal-matched)+' benchmark lines. Estimates, not checkout quotes.';
+    else basketCoverage.textContent=hasCurrentMatches&&eligible&&matched
       ?matched+' of '+eligible+' ingredient lines matched with recent product data. Remaining prices are modelled; not a checkout quote.'
       :'Benchmark-based estimate. No current supermarket price matches are available. Actual product prices, packs and checkout totals may differ.';
   }
