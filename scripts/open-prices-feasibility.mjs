@@ -8,8 +8,10 @@ async function get(path,params){
  return res.json();
 }
 const splitResponse=await get('/splits',{dataset});
-const split=splitResponse.splits?.find(x=>x.split==='train');
-if(!split)throw Error('Open Prices train split not available');
+const splits=Array.isArray(splitResponse.splits)?splitResponse.splits:[];
+const split=splits.find(x=>x.split==='train')||splits.find(x=>/price/i.test(x.config||x.split))||splits[0];
+if(!split||!split.config||!split.split)throw Error('Open Prices dataset split unavailable');
+console.log('Using public dataset subset: '+split.config+' / '+split.split);
 const today=new Date(),date=n=>new Date(today.getTime()-n*86400000).toISOString().slice(0,10);
 console.log('## Open Prices UK feasibility (read only)');
 console.log('Source: https://huggingface.co/datasets/openfoodfacts/open-prices');
