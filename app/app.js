@@ -269,7 +269,8 @@ function hybridQuote(retailer){
   const need=state.need||{},details=[];let total=0,matched=0,eligible=0;
   for(const[id,q0]of Object.entries(need)){
     const have=state.pantry[id]||0,q=Math.max(0,q0-have);if(q<=0)continue;eligible++;
-    const lq=LIVE_RETAILERS.has(retailer)?bestPackQuote(id,q,retailer):null;
+    const personal=personalPackPrice(id,retailer)!==null;
+    const lq=!personal&&LIVE_RETAILERS.has(retailer)?bestPackQuote(id,q,retailer):null;
     if(lq){total+=lq.cost;matched++;details.push({id,live:true,cost:lq.cost,quote:lq})}
     else{const p=P[id],packs=Math.ceil(q/p.pack),cost=packs*retailerItemPrice(id,retailer);total+=cost;details.push({id,live:false,cost:+cost.toFixed(2),packs})}
   }
@@ -297,10 +298,10 @@ async function refreshLivePrices(force=false){
 }
 function renderLiveStatus(){
   const box=document.getElementById('liveStatus'),txt=document.getElementById('liveStatusText');if(!box||!txt)return;
-  if(!LIVE_ROWS.length){box.classList.add('off');txt.textContent='Verified product snapshot unavailable. Farefully is using the benchmark fallback model.';return}
+  if(!LIVE_ROWS.length){box.classList.add('off');txt.textContent='Public product snapshot unavailable. Farefully uses household-entered prices where applicable and benchmark estimates elsewhere.';return}
   const ts=latestLiveTimestamp(),age=ts?Date.now()-ts:Infinity,when=ts?new Date(ts).toLocaleString('en-GB',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}):'unknown';
-  if(age>7*24*60*60*1000){box.classList.add('off');txt.textContent='Verified product snapshot is out of date (last checked '+when+'). All grocery prices shown use benchmark estimates until a fresh snapshot is available.';return}
-  const fresh=LIVE_ROWS.filter(r=>liveRowFresh(r)&&r.inStock!==false&&r.available!==false&&activeLivePrice(r)>0);const stores=[...new Set(fresh.map(r=>normRetailer(r.retailer)).filter(Boolean))];if(!fresh.length||!stores.length){box.classList.add('off');txt.textContent='No usable fresh product prices. Grocery costs are benchmark estimates.';return}box.classList.remove('off');txt.textContent=fresh.length+' fresh product records across '+stores.join(', ')+' · newest '+when+' · unmatched items use benchmark estimates; checkout prices can change'
+  if(age>7*24*60*60*1000){box.classList.add('off');txt.textContent='Verified product snapshot is out of date (last checked '+when+'). Unmatched prices use the benchmark model unless you have entered a personal pack price.';return}
+  const fresh=LIVE_ROWS.filter(r=>liveRowFresh(r)&&r.inStock!==false&&r.available!==false&&activeLivePrice(r)>0);const stores=[...new Set(fresh.map(r=>normRetailer(r.retailer)).filter(Boolean))];if(!fresh.length||!stores.length){box.classList.add('off');txt.textContent='No usable fresh public product prices. Household-entered prices and benchmark estimates are used.';return}box.classList.remove('off');txt.textContent=fresh.length+' fresh product records across '+stores.join(', ')+' · newest '+when+' · household-entered prices take precedence; other unmatched items use benchmark estimates; checkout prices can change'
 }
 
 const RETAILERS={
@@ -331,7 +332,24 @@ function retailerIndex(name){
   const r=RETAILERS[name]||RETAILERS.Aldi;
   return state.loyaltyPricing?r.loyal:r.index
 }
+function normalisePersonalPrices(rows){
+ const seen=new Set(),out=[];
+ for(const x of (Array.isArray(rows)?rows:[])){
+  if(!x||!Object.hasOwn(RETAILERS,x.retailer)||!Object.hasOwn(P,x.id)||!Number.isSafeInteger(x.pennies)||x.pennies<1||x.pennies>50000||x.pack!==P[x.id].pack||x.unit!==P[x.id].u||typeof x.date!=='string')continue;
+  const ts=Date.parse(x.date),key=x.retailer+'|'+x.id;
+  if(!Number.isFinite(ts)||ts>Date.now()||seen.has(key))continue;
+  seen.add(key);out.push({retailer:x.retailer,id:x.id,pennies:x.pennies,pack:x.pack,unit:x.unit,date:new Date(ts).toISOString()});
+  if(out.length>=300)break;
+ }
+ return out;
+}
+function personalPackPrice(id,name){
+ const x=(Array.isArray(state?.personalPrices)?state.personalPrices:[]).find(x=>x?.retailer===name&&x.id===id);
+ const ts=Date.parse(x?.date||''),age=Date.now()-ts;
+ return x&&P[id]&&x.pack===P[id].pack&&x.unit===P[id].u&&Number.isSafeInteger(x.pennies)&&x.pennies>0&&x.pennies<=50000&&age>=0&&age<=30*86400000?x.pennies/100:null;
+}
 function retailerItemPrice(id,name){
+  const personal=personalPackPrice(id,name);if(personal!==null)return personal;
   const p=P[id],r=RETAILERS[name]||RETAILERS.Aldi,idx=retailerIndex(name);
   const catFactor=r.f[p.c]||1;
   const raw=p.p*idx*catFactor;
@@ -355,7 +373,8 @@ function renderRetailerComparison(){
   el.innerHTML=rows.map((x,i)=>{
     const useLoyal=state.loyaltyPricing&&((x.name==="Sainsbury's"&&x.r.loyal<x.r.index)||(x.name==='Tesco'&&x.r.loyal<x.r.index));
     const saving=selectedTotal-x.total;
-    const coverage=x.q.liveCapable&&hasFreshRetailerRows(x.name)?`${x.q.matched}/${x.q.eligible} ingredient lines live-matched`:'Benchmark model';
+    const personalCount=Object.keys(state.basket||{}).filter(id=>personalPackPrice(id,x.name)!==null).length;
+    const coverage=(personalCount?personalCount+' household-entered lines · ':'')+(x.q.liveCapable&&hasFreshRetailerRows(x.name)?`${x.q.matched}/${x.q.eligible} ingredient lines live-matched`:'Benchmark model');
     return `<div class="pricerow ${x.name===selected?'selected':''}"><div><div class="pricename">${esc(x.name)}${x.name===selected?(auto?' · lowest model estimate':' · your shop'):''}</div><div class="pricebadges">${i===0?'<span class="minibadge best">Lowest indicative estimate</span>':''}${useLoyal?'<span class="minibadge loyal">Loyalty where matched</span>':''}${x.q.liveCapable&&hasFreshRetailerRows(x.name)?'<span class="minibadge best">Fresh match + model</span>':!x.r.bench?'<span class="minibadge model">Provisional model</span>':''}</div><div class="coverage">${coverage}</div></div><div class="pricevalue">${money(x.total)}${saving>0.49?`<div class="pricesave">Model difference ${money(saving)}</div>`:''}</div></div>`
   }).join('');renderLiveStatus()
 }const store={
@@ -378,7 +397,7 @@ function migrateLegacyStorage(){
 migrateLegacyStorage();
 let profiles=JSON.parse(store.get(PK)||'[]'),active=store.get(AK),state=null;
 function def(){return{
-  adults:2,children:3,days:7,budget:200,extrasAllowance:0,packedLunchMode:false,paydayBackup:null,trolley:null,receiptHistory:[],avoid:[],pantry:{},plan:[],basket:{},need:{},total:0,checked:{},
+  adults:2,children:3,days:7,budget:200,extrasAllowance:0,personalPrices:[],packedLunchMode:false,paydayBackup:null,trolley:null,receiptHistory:[],avoid:[],pantry:{},plan:[],basket:{},need:{},total:0,checked:{},
   supermarket:'',autoRetailer:'Aldi',loyaltyPricing:true,useWeeklyOffers:true,taste:{proteins:{},styles:{},ingredients:{}},maxTime:45,vegFrequency:'some',fishFrequency:'some',
   novelty:'balanced',priority:'balance',ratings:{},tasteComplete:false,planGeneration:0,recentPlans:[],
   dietPattern:'omnivore',avoidGroups:[],allergens:[],dietComplete:false,setupComplete:false,customRecipes:[],shoppingExtras:[]
@@ -397,6 +416,7 @@ function def(){return{
   if(![7,14].includes(state.days)&&!(state.paydayBackup&&Number.isInteger(state.days)&&state.days>=1&&state.days<=6))state.days=7;
   if(!Number.isFinite(state.budget)||state.budget<0)state.budget=200;
   state.extrasAllowance=normaliseExtrasAllowance(state.extrasAllowance);
+  state.personalPrices=normalisePersonalPrices(state.personalPrices);
   state.packedLunchMode=state.packedLunchMode===true;
   state.trolley=normaliseTrolley(state.trolley);state.receiptHistory=normaliseReceipts(state.receiptHistory);
   if(typeof state.setupComplete!=='boolean')state.setupComplete=false;
@@ -1080,7 +1100,7 @@ function reducePlanCost(pool,dishLookup,manual){
 }
 let budgetRescuePreview=null;
 function budgetRescueKey(){
-  return JSON.stringify([active,state.plan,state.budget,state.extrasAllowance,state.packedLunchMode,state.pantry,state.checked,state.supermarket,state.loyaltyPricing,state.total,state.taste,state.ratings,state.dietPattern,state.avoidGroups,state.allergens,state.avoid,state.priority,state.novelty,state.maxTime,state.vegFrequency,state.fishFrequency]);
+  return JSON.stringify([active,state.plan,state.budget,state.extrasAllowance,state.packedLunchMode,state.personalPrices,state.pantry,state.checked,state.supermarket,state.loyaltyPricing,state.total,state.taste,state.ratings,state.dietPattern,state.avoidGroups,state.allergens,state.avoid,state.priority,state.novelty,state.maxTime,state.vegFrequency,state.fishFrequency]);
 }
 function previewBudgetRescue(){
   if(!state.plan.length||basketReviewLocked()){showToast('Finish or reset your collected shopping items before changing the meal plan.');return}
@@ -1178,7 +1198,7 @@ function calc(){
   state.basket=b;
   if(!RETAILERS[state.supermarket])state.autoRetailer=chooseAutoRetailer(b);
   const retailer=selectedRetailer();
-  for(const[k,row]of Object.entries(state.basket))row.line=+(row.packs*retailerItemPrice(k,retailer)).toFixed(2);
+  for(const[k,row]of Object.entries(state.basket)){row.line=+(row.packs*retailerItemPrice(k,retailer)).toFixed(2);row.personal=personalPackPrice(k,retailer)!==null;}
   if(LIVE_ROWS.length&&LIVE_RETAILERS.has(retailer)){
     const h=hybridQuote(retailer);for(const d of h.details){if(!state.basket[d.id])continue;state.basket[d.id].line=d.cost;state.basket[d.id].live=d.live;if(d.live){state.basket[d.id].liveQuote=d.quote;state.basket[d.id].packs=d.quote.items.reduce((s,x)=>s+x.packs,0)}}state.total=h.total;state.liveCoverage={matched:h.matched,eligible:h.eligible}
   }else{state.total=retailerBasketTotal(retailer,state.basket);state.liveCoverage={matched:0,eligible:Object.keys(state.basket).length}}
@@ -1213,7 +1233,7 @@ function basketReviewRows(basket=state.basket,need=state.need,pantry=state.pantr
   if(!Number.isFinite(purchased)||purchased<required-.00001)purchased=null;
   const surplus=purchased===null?null:Math.max(0,purchased-required);
   const dinnerIndex=state.plan.map((_,i)=>({i,qty:Number(effectiveIngredients(meal(i)?.i)[id])||0})).filter(x=>x.qty>0).sort((a,b)=>b.qty-a.qty)[0]?.i??null;
-  rows.push({id,cost,required,purchased,surplus,unusedValue:surplus===null||!purchased?0:cost*surplus/purchased,dinnerIndex,live:!!row.live});
+  rows.push({id,cost,required,purchased,surplus,unusedValue:surplus===null||!purchased?0:cost*surplus/purchased,dinnerIndex,live:!!row.live,personal:!!row.personal});
  }
  return rows.sort((a,b)=>b.cost-a.cost||a.id.localeCompare(b.id));
 }
@@ -1251,14 +1271,37 @@ function renderBasketReview(){
  const cost=document.getElementById('ffCostDrivers'),surplus=document.getElementById('ffPackSurplus'),note=document.getElementById('ffReviewNote');if(!cost||!surplus||!note)return;
  const rows=basketReviewRows(),locked=basketReviewLocked();renderSurplusIdeas(rows);
  if(!rows.length){cost.innerHTML='No grocery purchases to review yet.';surplus.innerHTML='No purchased packs to review.';note.textContent='Build a plan to see your estimated costs.';return;}
- cost.innerHTML=rows.slice(0,5).map(r=>'<div class="ff-review-row"><div><b>'+esc(P[r.id].n)+'</b><div class="small">'+(r.live?'Recent product match':'Benchmark estimate')+'</div></div><div><b>'+money(r.cost)+'</b>'+(r.dinnerIndex!==null?'<button type="button" class="soft" data-ff-review-swap="'+r.dinnerIndex+'" '+(locked?'disabled':'')+'>Compare swaps</button>':'')+'</div></div>').join('');
+ cost.innerHTML=rows.slice(0,5).map(r=>'<div class="ff-review-row"><div><b>'+esc(P[r.id].n)+'</b><div class="small">'+(r.personal?'Your recorded pack price':r.live?'Recent product match':'Benchmark estimate')+'</div></div><div><b>'+money(r.cost)+'</b>'+(r.dinnerIndex!==null?'<button type="button" class="soft" data-ff-review-swap="'+r.dinnerIndex+'" '+(locked?'disabled':'')+'>Compare swaps</button>':'')+'</div></div>').join('');
  const spare=rows.filter(r=>r.surplus!==null&&r.surplus>.01).sort((a,b)=>b.unusedValue-a.unusedValue).slice(0,5);
  surplus.innerHTML=spare.length?spare.map(r=>'<div class="ff-review-row"><div><b>'+esc(P[r.id].n)+'</b><div class="small">'+esc(fmtQty(r.id,r.required))+' needed · '+esc(fmtQty(r.id,r.purchased))+' to buy</div></div><b>'+esc(fmtQty(r.id,r.surplus))+' spare</b></div>').join(''):'No estimated spare pack quantities identified.';
  note.textContent=locked?'Shopping is underway. Finish or reset your shop before changing meals.':'Compare swaps for a dinner using an expensive ingredient. Alternatives are ranked by the estimated change in the whole basket, not just recipe price.';
 }
 {const el=document.getElementById('ffBasketReview');if(el)el.addEventListener('click',event=>{const b=event.target.closest?.('[data-ff-review-swap]');if(!b||basketReviewLocked())return;const i=Number(b.dataset.ffReviewSwap);if(Number.isInteger(i)&&i>=0&&i<state.plan.length)openSwap(i,true);});}
+function personalPriceEditor(){
+ const storeField=document.getElementById('ffPriceRetailer'),item=document.getElementById('ffPriceIngredient'),pack=document.getElementById('ffPricePack'),price=document.getElementById('ffPersonalPrice'),list=document.getElementById('ffPersonalPriceList'),btn=document.getElementById('ffSavePersonalPrice');
+ if(!storeField||!item||!pack||!price||!list||!btn)return;
+ if(!storeField.options?.length){storeField.innerHTML=Object.keys(RETAILERS).map(x=>'<option value="'+esc(x)+'">'+esc(x)+'</option>').join('');storeField.value=selectedRetailer();}
+ if(!item.options?.length){item.innerHTML=Object.keys(P).sort((a,b)=>P[a].n.localeCompare(P[b].n)).map(id=>'<option value="'+esc(id)+'">'+esc(P[id].n)+'</option>').join('');}
+ const p=P[item.value],locked=basketReviewLocked();
+ pack.textContent=p?'Price for exactly '+shoppingPackLabel(item.value,p.pack,p.u)+'. Do not enter a different pack size.':'Choose an ingredient.';
+ btn.disabled=locked||!p;price.disabled=locked;
+ const rows=normalisePersonalPrices(state.personalPrices);
+ list.innerHTML=rows.length?rows.filter(x=>x.retailer===storeField.value).map(x=>'<div class="ff-review-row"><div><b>'+esc(P[x.id].n)+'</b><div class="small">'+esc(shoppingPackLabel(x.id,x.pack,x.unit))+' · '+(personalPackPrice(x.id,x.retailer)===null?'Expired; estimate reverted':esc(x.date.slice(0,10)))+'</div></div><div><b>'+money(x.pennies/100)+'</b><button type="button" class="soft" data-ff-remove-price="'+esc(x.id)+'" '+(locked?'disabled':'')+'>Remove</button></div></div>').join('')||'No saved prices for this supermarket.':'No personal prices saved.';
+}
+function savePersonalPackPrice(retailer,id,pennies,date=new Date().toISOString()){
+ if(!Object.hasOwn(RETAILERS,retailer)||!Object.hasOwn(P,id)||!Number.isSafeInteger(pennies)||pennies<1||pennies>50000)return false;
+ const row={retailer,id,pennies,pack:P[id].pack,unit:P[id].u,date};
+ const clean=normalisePersonalPrices([row,...(state.personalPrices||[]).filter(x=>x.retailer!==retailer||x.id!==id)]);
+ if(!clean.some(x=>x.retailer===retailer&&x.id===id))return false;
+ state.personalPrices=clean;return true;
+}
+{const form=document.getElementById('ffPersonalPriceForm');if(form){
+ form.addEventListener('change',event=>{if(['ffPriceRetailer','ffPriceIngredient'].includes(event.target.id)){document.getElementById('ffPricePackConfirm').checked=false;document.getElementById('ffPersonalPrice').value='';}personalPriceEditor();});
+ form.addEventListener('submit',event=>{event.preventDefault();if(!active||basketReviewLocked())return;const field=document.getElementById('ffPersonalPrice'),confirm=document.getElementById('ffPricePackConfirm');if(!confirm?.checked||!savePersonalPackPrice(document.getElementById('ffPriceRetailer').value,document.getElementById('ffPriceIngredient').value,actualPennies(field.value))){showToast('Enter a valid price and confirm the exact pack size.');return;}field.value='';confirm.checked=false;budgetRescuePreview=null;paydayPreview=null;OFFER_CACHE.key='';save();render();showToast('Personal price saved for your household.');});
+ form.addEventListener('click',event=>{const b=event.target.closest?.('[data-ff-remove-price]');if(!b||!active||basketReviewLocked())return;const shop=document.getElementById('ffPriceRetailer').value;state.personalPrices=(state.personalPrices||[]).filter(x=>x.retailer!==shop||x.id!==b.dataset.ffRemovePrice);budgetRescuePreview=null;paydayPreview=null;OFFER_CACHE.key='';save();render();});
+}}
 function renderUnsafe(){
-  calc();renderPackedLunchMode();renderBasketReview();
+  calc();renderPackedLunchMode();renderBasketReview();personalPriceEditor();
   const p=prof(),hasPlan=state.plan.length>0,retailer=selectedRetailer(),autoShop=!RETAILERS[state.supermarket];
   const matchingDinners=hasPlan?-1:allDinners().filter(m=>!hardBlocked(m)).length;
   document.getElementById('profileBtn').textContent=p?p.name:'Set up';
@@ -1338,7 +1381,9 @@ function renderUnsafe(){
   if(basketCoverage){
     const matched=Math.max(0,Number(state.liveCoverage?.matched)||0);
     const eligible=Math.max(0,Number(state.liveCoverage?.eligible)||0);
-    basketCoverage.textContent=hasCurrentMatches&&eligible&&matched
+    const personal=Object.values(state.basket||{}).filter(row=>row.personal).length;
+    if(personal)basketCoverage.textContent=personal+' household-entered price lines · '+matched+' recent product matches · '+Math.max(0,eligible-personal-matched)+' benchmark lines. Estimates, not checkout quotes.';
+    else basketCoverage.textContent=hasCurrentMatches&&eligible&&matched
       ?matched+' of '+eligible+' ingredient lines matched with recent product data. Remaining prices are modelled; not a checkout quote.'
       :'Benchmark-based estimate. No current supermarket price matches are available. Actual product prices, packs and checkout totals may differ.';
   }
@@ -1347,7 +1392,8 @@ function renderUnsafe(){
     if(!hasPlan){budgetInsights.textContent='Build a meal plan to see an indicative basket breakdown. No checkout price is guaranteed.';}
     else{
       const basketLines=Object.entries(state.basket).filter(([id])=>P[id]);
-      const modelled=basketLines.length-Math.min(basketLines.length,Math.max(0,Number(state.liveCoverage?.matched)||0));
+      const personal=basketLines.filter(([,row])=>row.personal).length;
+      const modelled=Math.max(0,basketLines.length-personal-Math.max(0,Number(state.liveCoverage?.matched)||0));
       const biggest=basketLines.slice().sort((a,b)=>b[1].line-a[1].line).slice(0,3)
         .map(([id,row])=>P[id].n+' ('+money(row.line)+')').join(', ');
       const gap=-shopEstimate.remaining;
@@ -1355,7 +1401,7 @@ function renderUnsafe(){
         state.plan.length+' planned days · '+basketLines.length+' grocery lines · includes matching breakfast, lunch, dinner and snack ingredients.\n'
         +'Average planned grocery cost per day: '+money(state.total/state.plan.length)+' (not per person).\n'
         +'Pack sizes are rounded up and saved pantry amounts are deducted. Everyday extras are not individually priced; the saved allowance is reserved separately.\n'
-        +(hasCurrentMatches&&modelled<basketLines.length
+        +(personal?personal+' grocery lines use household-entered pack prices; '+modelled+' use benchmark estimates.\n':hasCurrentMatches&&modelled<basketLines.length
           ?modelled+' grocery lines use modelled prices. Remaining lines use recent product matches.\n'
           :'All basket lines use indicative benchmark prices.\n')
         +(gap>0
@@ -1737,7 +1783,7 @@ function discardActualTrolley(){
  state.trolley=null;save();renderActualTrolley();
 }
 function renderActualTrolley(){
- renderReceiptComparison();renderBasketReview();renderPackedLunchMode();renderBudgetRescue();
+ renderReceiptComparison();renderBasketReview();renderPackedLunchMode();renderBudgetRescue();personalPriceEditor();
  const start=document.getElementById('startActualTrolley'),controls=document.getElementById('actualTrolleyControls'),msg=document.getElementById('actualTrolleySummary'),items=document.getElementById('actualItem'),lines=document.getElementById('actualTrolleyLines'),history=document.getElementById('actualReceiptHistory');
  if(!start||!controls||!msg||!items||!lines||!history)return;
  const t=state.trolley,total=trolleyTotal();
@@ -2051,7 +2097,7 @@ function shoppingBasketItemLines(id,row){
      return item.n+' — '+q.packs+' × '+pack+(product.toLowerCase()!==item.n.toLowerCase()?' ('+product+')':'');
    });
  }
- return [item.n+' — '+row.packs+' × '+shoppingPackLabel(id,item.pack,item.u)+' (estimated pack size)'];
+ return [item.n+' — '+row.packs+' × '+shoppingPackLabel(id,item.pack,item.u)+(row.personal?' (household price)':' (estimated pack size)')];
 }
 function shoppingListText(){
  const out=['FAREFULLY SHOPPING LIST','Items still needed',''];
