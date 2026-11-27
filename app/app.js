@@ -266,20 +266,17 @@ function bestPackQuote(ingredient,required,retailer){
   return best
 }
 function hybridQuote(retailer){
-  const need=state.need||{},details=[];let total=0,matched=0,eligible=0;
+  const need=state.need||{},details=[];let total=0,matched=0,eligible=0,personalCount=0;
   for(const[id,q0]of Object.entries(need)){
-    const have=state.pantry[id]||0,q=Math.max(0,q0-have);if(q<=0)continue;eligible++;
+    const p=P[id],have=Math.max(0,Number(state.pantry[id])||0),q=Math.max(0,q0-have);if(!p||!Number.isFinite(q)||q<=0)continue;eligible++;
     const personal=personalPackPrice(id,retailer)!==null;
     const lq=!personal&&LIVE_RETAILERS.has(retailer)?bestPackQuote(id,q,retailer):null;
     if(lq){total+=lq.cost;matched++;details.push({id,live:true,cost:lq.cost,quote:lq})}
-    else{const p=P[id],packs=Math.ceil(q/p.pack),cost=packs*retailerItemPrice(id,retailer);total+=cost;details.push({id,live:false,cost:+cost.toFixed(2),packs})}
+    else{const packs=Math.ceil(q/p.pack-1e-10),cost=+(packs*retailerItemPrice(id,retailer)).toFixed(2);total+=cost;if(personal)personalCount++;details.push({id,live:false,personal,cost,packs})}
   }
-  return{retailer,total:+total.toFixed(2),matched,eligible,details,liveCapable:LIVE_RETAILERS.has(retailer)}
+  return{retailer,total:+total.toFixed(2),matched,eligible,personal:personalCount,modelled:eligible-matched-personalCount,details,liveCapable:LIVE_RETAILERS.has(retailer)}
 }
-function quoteForRetailer(retailer){
-  if(LIVE_ROWS.length&&LIVE_RETAILERS.has(retailer))return hybridQuote(retailer);
-  return{retailer,total:retailerBasketTotal(retailer),matched:0,eligible:Object.keys(state.basket||{}).length,details:[],liveCapable:LIVE_RETAILERS.has(retailer)}
-}
+function quoteForRetailer(retailer){return hybridQuote(retailer)}
 function latestLiveTimestamp(){let latest=0;for(const r of LIVE_ROWS){const t=liveTimestamp(r);if(t>latest&&t<=Date.now())latest=t}return latest}
 async function refreshLivePrices(force=false){
   const status=document.getElementById('liveStatusText');if(status)status.textContent='Loading current product data…';
@@ -317,7 +314,7 @@ const RETAILERS={
   'Waitrose':{index:1.4041,loyal:1.4041,bench:true,f:{Meat:1.05,Dairy:1.03,Bakery:1.04,Cupboard:.99,Produce:1.04,Frozen:1.01,Chilled:1.05,Breakfast:1.01,Snacks:1.02}}
 };
 function hasFreshRetailerRows(name){
-  return LIVE_ROWS.some(row=>normRetailer(row.retailer)===name&&liveRowFresh(row));
+  return LIVE_ROWS.some(row=>{const id=ingredientForLive(row);return normRetailer(row.retailer)===name&&liveRowFresh(row)&&row.available!==false&&row.inStock!==false&&!!P[id]&&parsePackQuantity(row.packSize,P[id].u,liveProductName(row))>0&&activeLivePrice(row)>0;});
 }
 function selectedRetailer(){
   const s=state.supermarket||'';
@@ -325,7 +322,7 @@ function selectedRetailer(){
   return RETAILERS[state.autoRetailer]?state.autoRetailer:'Aldi'
 }
 function chooseAutoRetailer(basket){
-  const ranked=Object.keys(RETAILERS).map(name=>{const total=LIVE_ROWS.length&&LIVE_RETAILERS.has(name)?hybridQuote(name).total:retailerBasketTotal(name,basket);return{name,total}}).sort((a,b)=>a.total-b.total);
+  const ranked=Object.keys(RETAILERS).map(name=>{const total=quoteForRetailer(name).total;return{name,total}}).sort((a,b)=>a.total-b.total);
   return ranked[0]?.name||'Aldi'
 }
 function retailerIndex(name){
@@ -373,9 +370,8 @@ function renderRetailerComparison(){
   el.innerHTML=rows.map((x,i)=>{
     const useLoyal=state.loyaltyPricing&&((x.name==="Sainsbury's"&&x.r.loyal<x.r.index)||(x.name==='Tesco'&&x.r.loyal<x.r.index));
     const saving=selectedTotal-x.total;
-    const personalCount=Object.keys(state.basket||{}).filter(id=>personalPackPrice(id,x.name)!==null).length;
-    const coverage=(personalCount?personalCount+' household-entered lines · ':'')+(x.q.liveCapable&&hasFreshRetailerRows(x.name)?`${x.q.matched}/${x.q.eligible} ingredient lines live-matched`:'Benchmark model');
-    return `<div class="pricerow ${x.name===selected?'selected':''}"><div><div class="pricename">${esc(x.name)}${x.name===selected?(auto?' · lowest model estimate':' · your shop'):''}</div><div class="pricebadges">${i===0?'<span class="minibadge best">Lowest indicative estimate</span>':''}${useLoyal?'<span class="minibadge loyal">Loyalty where matched</span>':''}${x.q.liveCapable&&hasFreshRetailerRows(x.name)?'<span class="minibadge best">Fresh match + model</span>':!x.r.bench?'<span class="minibadge model">Provisional model</span>':''}</div><div class="coverage">${coverage}</div></div><div class="pricevalue">${money(x.total)}${saving>0.49?`<div class="pricesave">Model difference ${money(saving)}</div>`:''}</div></div>`
+    const coverage=x.q.personal+' personal · '+x.q.matched+' recent product matches · '+x.q.modelled+' modelled lines';
+    return `<div class="pricerow ${x.name===selected?'selected':''}"><div><div class="pricename">${esc(x.name)}${x.name===selected?(auto?' · lowest model estimate':' · your shop'):''}</div><div class="pricebadges">${i===0?'<span class="minibadge best">Lowest indicative estimate</span>':''}${useLoyal?'<span class="minibadge loyal">Loyalty where matched</span>':''}${x.q.matched>0?'<span class="minibadge best">Recent product matches</span>':!x.r.bench?'<span class="minibadge model">Provisional model</span>':''}</div><div class="coverage">${coverage}</div></div><div class="pricevalue">${money(x.total)}${saving>0.49?`<div class="pricesave">Model difference ${money(saving)}</div>`:''}</div></div>`
   }).join('');renderLiveStatus()
 }const store={
   get:k=>{try{return localStorage.getItem(k)}catch(e){return null}},
@@ -1198,10 +1194,9 @@ function calc(){
   state.basket=b;
   if(!RETAILERS[state.supermarket])state.autoRetailer=chooseAutoRetailer(b);
   const retailer=selectedRetailer();
-  for(const[k,row]of Object.entries(state.basket)){row.line=+(row.packs*retailerItemPrice(k,retailer)).toFixed(2);row.personal=personalPackPrice(k,retailer)!==null;}
-  if(LIVE_ROWS.length&&LIVE_RETAILERS.has(retailer)){
-    const h=hybridQuote(retailer);for(const d of h.details){if(!state.basket[d.id])continue;state.basket[d.id].line=d.cost;state.basket[d.id].live=d.live;if(d.live){state.basket[d.id].liveQuote=d.quote;state.basket[d.id].packs=d.quote.items.reduce((s,x)=>s+x.packs,0)}}state.total=h.total;state.liveCoverage={matched:h.matched,eligible:h.eligible}
-  }else{state.total=retailerBasketTotal(retailer,state.basket);state.liveCoverage={matched:0,eligible:Object.keys(state.basket).length}}
+  const h=quoteForRetailer(retailer);
+  for(const d of h.details){const row=state.basket[d.id];if(!row)continue;row.line=d.cost;row.live=d.live;row.personal=!!d.personal;if(d.live){row.liveQuote=d.quote;row.packs=d.quote.items.reduce((sum,x)=>sum+x.packs,0);}else row.packs=d.packs;}
+  state.total=h.total;state.liveCoverage={matched:h.matched,eligible:h.eligible,personal:h.personal,modelled:h.modelled};
 }function planEmptyMessage(matchingDinners){
  if(!state.setupComplete||!state.tasteComplete||!state.dietComplete){
    return '<div class="card" style="padding:18px"><b>Your meal plan is nearly ready</b><div class="small" style="margin-top:6px">Finish your household preferences first. Farefully will then build your dinners.</div><button type="button" class="soft" style="margin-top:12px" data-ff-action="open-household-setup">Finish household setup</button></div>';
@@ -1358,7 +1353,7 @@ function renderUnsafe(){
     progress.after(collectionHint);
   }
   collectionHint.textContent='Shopping as you go? Tick an item when you put it in your trolley. Tick it again to undo. Your progress saves across devices.';
-  document.getElementById('basketGroups').innerHTML=plusShopCategories().filter(cat=>groups[cat]).map(c=>[c,groups[c]]).map(([c,items])=>`<div class="aisle card"><div class="aisletop"><h3>${esc(c)}</h3><b>${money(items.reduce((sum,x)=>sum+x[1].line,0))}</b></div>${items.map(([k,v])=>`<div class="shoprow ${state.checked[k]?'done':''}" role="checkbox" tabindex="0" aria-checked="${!!state.checked[k]}" aria-label="${esc(P[k].n)}: ${state.checked[k]?'collected':'still needed'}. Tap to change." data-shop-name="${esc(P[k].n.toLowerCase())}" data-shop-checked="${state.checked[k]?'1':'0'}" data-ff-action="toggle-basket" data-key="${esc(k)}"><div class="check">${state.checked[k]?'✓':''}</div><div><b>${esc(P[k].n)}</b><div class="small">${v.live&&v.liveQuote?v.liveQuote.items.map(x=>`${x.packs} × ${esc(x.row.packSize||liveProductName(x.row))}`).join(' + '):`${v.packs} × ${shoppingPackLabel(k,P[k].pack,P[k].u)} · recipe need ${fmtQty(k,state.need[k]||0)}`}${v.have?' · pantry '+fmtQty(k,v.have):''}${v.live?'<span class="liveprice">LIVE PRODUCT</span>':'<span class="fallbackprice">MODEL</span>'}${coeliacMode()&&coeliacLabelCheck(k)?'<span class="fallbackprice">CHECK COELIAC LABEL</span>':''}${wheatFreeMode()&&wheatLabelCheck(k)?'<span class="fallbackprice">CHECK WHEAT LABEL</span>':''}</div>${v.live&&v.liveQuote?`<div class="productdetail">${v.liveQuote.items.map(x=>esc(liveProductName(x.row))).join(' + ')}</div>`:''}</div><b>${money(v.line)}</b></div>`).join('')}</div>`).join('')||'<div class="card" style="padding:16px"><div class="small">No shopping lines yet.</div></div>';
+  document.getElementById('basketGroups').innerHTML=plusShopCategories().filter(cat=>groups[cat]).map(c=>[c,groups[c]]).map(([c,items])=>`<div class="aisle card"><div class="aisletop"><h3>${esc(c)}</h3><b>${money(items.reduce((sum,x)=>sum+x[1].line,0))}</b></div>${items.map(([k,v])=>`<div class="shoprow ${state.checked[k]?'done':''}" role="checkbox" tabindex="0" aria-checked="${!!state.checked[k]}" aria-label="${esc(P[k].n)}: ${state.checked[k]?'collected':'still needed'}. Tap to change." data-shop-name="${esc(P[k].n.toLowerCase())}" data-shop-checked="${state.checked[k]?'1':'0'}" data-ff-action="toggle-basket" data-key="${esc(k)}"><div class="check">${state.checked[k]?'✓':''}</div><div><b>${esc(P[k].n)}</b><div class="small">${v.live&&v.liveQuote?v.liveQuote.items.map(x=>`${x.packs} × ${esc(shoppingPackLabel(k,x.row._qty,P[k].u))}`).join(' + '):`${v.packs} × ${shoppingPackLabel(k,P[k].pack,P[k].u)} · recipe need ${fmtQty(k,state.need[k]||0)}`}${v.have?' · pantry '+fmtQty(k,v.have):''}${v.personal?'<span class="liveprice">YOUR PRICE</span>':v.live?'<span class="liveprice">RECENT PRICE</span>':'<span class="fallbackprice">MODEL</span>'}${coeliacMode()&&coeliacLabelCheck(k)?'<span class="fallbackprice">CHECK COELIAC LABEL</span>':''}${wheatFreeMode()&&wheatLabelCheck(k)?'<span class="fallbackprice">CHECK WHEAT LABEL</span>':''}</div>${v.live&&v.liveQuote?`<div class="productdetail">${v.liveQuote.items.map(x=>esc(liveProductName(x.row))).join(' + ')}</div>`:''}</div><b>${money(v.line)}</b></div>`).join('')}</div>`).join('')||'<div class="card" style="padding:16px"><div class="small">No shopping lines yet.</div></div>';
 
   renderShoppingExtras();
   renderWholeShopBudget(hasPlan);
