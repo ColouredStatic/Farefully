@@ -298,10 +298,10 @@ async function refreshLivePrices(force=false){
 }
 function renderLiveStatus(){
   const box=document.getElementById('liveStatus'),txt=document.getElementById('liveStatusText');if(!box||!txt)return;
-  if(!LIVE_ROWS.length){box.classList.add('off');txt.textContent='Verified product snapshot unavailable. Farefully is using the benchmark fallback model.';return}
+  if(!LIVE_ROWS.length){box.classList.add('off');txt.textContent='Public product snapshot unavailable. Farefully uses household-entered prices where applicable and benchmark estimates elsewhere.';return}
   const ts=latestLiveTimestamp(),age=ts?Date.now()-ts:Infinity,when=ts?new Date(ts).toLocaleString('en-GB',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}):'unknown';
-  if(age>7*24*60*60*1000){box.classList.add('off');txt.textContent='Verified product snapshot is out of date (last checked '+when+'). All grocery prices shown use benchmark estimates until a fresh snapshot is available.';return}
-  const fresh=LIVE_ROWS.filter(r=>liveRowFresh(r)&&r.inStock!==false&&r.available!==false&&activeLivePrice(r)>0);const stores=[...new Set(fresh.map(r=>normRetailer(r.retailer)).filter(Boolean))];if(!fresh.length||!stores.length){box.classList.add('off');txt.textContent='No usable fresh product prices. Grocery costs are benchmark estimates.';return}box.classList.remove('off');txt.textContent=fresh.length+' fresh product records across '+stores.join(', ')+' · newest '+when+' · unmatched items use benchmark estimates; checkout prices can change'
+  if(age>7*24*60*60*1000){box.classList.add('off');txt.textContent='Verified product snapshot is out of date (last checked '+when+'). Unmatched prices use the benchmark model unless you have entered a personal pack price.';return}
+  const fresh=LIVE_ROWS.filter(r=>liveRowFresh(r)&&r.inStock!==false&&r.available!==false&&activeLivePrice(r)>0);const stores=[...new Set(fresh.map(r=>normRetailer(r.retailer)).filter(Boolean))];if(!fresh.length||!stores.length){box.classList.add('off');txt.textContent='No usable fresh public product prices. Household-entered prices and benchmark estimates are used.';return}box.classList.remove('off');txt.textContent=fresh.length+' fresh product records across '+stores.join(', ')+' · newest '+when+' · household-entered prices take precedence; other unmatched items use benchmark estimates; checkout prices can change'
 }
 
 const RETAILERS={
@@ -1296,7 +1296,7 @@ function savePersonalPackPrice(retailer,id,pennies,date=new Date().toISOString()
  state.personalPrices=clean;return true;
 }
 {const form=document.getElementById('ffPersonalPriceForm');if(form){
- form.addEventListener('change',()=>personalPriceEditor());
+ form.addEventListener('change',event=>{if(['ffPriceRetailer','ffPriceIngredient'].includes(event.target.id)){document.getElementById('ffPricePackConfirm').checked=false;document.getElementById('ffPersonalPrice').value='';}personalPriceEditor();});
  form.addEventListener('submit',event=>{event.preventDefault();if(!active||basketReviewLocked())return;const field=document.getElementById('ffPersonalPrice'),confirm=document.getElementById('ffPricePackConfirm');if(!confirm?.checked||!savePersonalPackPrice(document.getElementById('ffPriceRetailer').value,document.getElementById('ffPriceIngredient').value,actualPennies(field.value))){showToast('Enter a valid price and confirm the exact pack size.');return;}field.value='';confirm.checked=false;budgetRescuePreview=null;paydayPreview=null;OFFER_CACHE.key='';save();render();showToast('Personal price saved for your household.');});
  form.addEventListener('click',event=>{const b=event.target.closest?.('[data-ff-remove-price]');if(!b||!active||basketReviewLocked())return;const shop=document.getElementById('ffPriceRetailer').value;state.personalPrices=(state.personalPrices||[]).filter(x=>x.retailer!==shop||x.id!==b.dataset.ffRemovePrice);budgetRescuePreview=null;paydayPreview=null;OFFER_CACHE.key='';save();render();});
 }}
