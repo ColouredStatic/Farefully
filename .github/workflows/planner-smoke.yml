@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - 'app/app.js'
+      - 'app/live-prices.json'
       - 'app/index.html'
       - 'app/onboarding-polish.js'
       - 'app/onboarding-polish.css'
@@ -34,6 +35,7 @@ on:
   pull_request:
     paths:
       - 'app/app.js'
+      - 'app/live-prices.json'
       - 'app/index.html'
       - 'app/onboarding-polish.js'
       - 'app/onboarding-polish.css'
