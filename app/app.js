@@ -1295,8 +1295,34 @@ function savePersonalPackPrice(retailer,id,pennies,date=new Date().toISOString()
  form.addEventListener('submit',event=>{event.preventDefault();if(!active||basketReviewLocked())return;const field=document.getElementById('ffPersonalPrice'),confirm=document.getElementById('ffPricePackConfirm');if(!confirm?.checked||!savePersonalPackPrice(document.getElementById('ffPriceRetailer').value,document.getElementById('ffPriceIngredient').value,actualPennies(field.value))){showToast('Enter a valid price and confirm the exact pack size.');return;}field.value='';confirm.checked=false;budgetRescuePreview=null;paydayPreview=null;OFFER_CACHE.key='';save();render();showToast('Personal price saved for your household.');});
  form.addEventListener('click',event=>{const b=event.target.closest?.('[data-ff-remove-price]');if(!b||!active||basketReviewLocked())return;const shop=document.getElementById('ffPriceRetailer').value;state.personalPrices=(state.personalPrices||[]).filter(x=>x.retailer!==shop||x.id!==b.dataset.ffRemovePrice);budgetRescuePreview=null;paydayPreview=null;OFFER_CACHE.key='';save();render();});
 }}
+function householdFavourites(){
+ return allDinners().filter(m=>state.ratings?.[m.id]==='love'&&!hardBlocked(m)).sort((a,b)=>a.n.localeCompare(b.n));
+}
+function replaceWithFavourite(id,index){
+ if(!active||basketReviewLocked()||state.paydayBackup||!Number.isInteger(index)||index<0||index>=state.plan.length||state.plan.includes(id)||!householdFavourites().some(m=>m.id===id))return false;
+ state.plan[index]=id;budgetRescuePreview=null;paydayPreview=null;calc();save();render();return true;
+}
+function renderFavourites(){
+ const out=document.getElementById('ffFavouriteList'),day=document.getElementById('ffFavouriteDay'),note=document.getElementById('ffFavouriteNote');if(!out||!day||!note)return;
+ const list=householdFavourites(),locked=basketReviewLocked()||!!state.paydayBackup||!state.plan.length;
+ const previous=day.value;day.innerHTML='<option value="">Choose a dinner to replace</option>'+state.plan.map((_,i)=>'<option value="'+i+'">Day '+(i+1)+' · '+esc(meal(i)?.n||'Dinner')+'</option>').join('');
+ if(previous!==''&&state.plan[Number(previous)])day.value=previous;
+ day.disabled=locked;
+ note.textContent=locked?'Build a plan or finish your active shop and restore your regular plan before replacing a dinner. You can still view recipes.':'Choose a dinner to replace. Farefully will update the shopping basket only when you confirm.';
+ out.innerHTML=list.length?list.map(m=>'<div class="ff-review-row"><div><b>'+esc(m.n)+'</b><div class="small">'+m.t+' min'+(state.plan.includes(m.id)?' · Already planned':'')+'</div></div><div><button type="button" class="soft" data-ff-favourite-view="'+esc(m.id)+'">View recipe</button><button type="button" class="soft" data-ff-favourite-use="'+esc(m.id)+'" '+(locked||state.plan.includes(m.id)?'disabled':'')+'>Use in plan</button></div></div>').join(''):'Rate a suitable recipe “Loved it” to find it here next week. Favourites that no longer meet your saved exclusions are hidden.';
+}
+{const panel=document.getElementById('ffFavourites');if(panel)panel.addEventListener('click',event=>{
+ const view=event.target.closest?.('[data-ff-favourite-view]'),use=event.target.closest?.('[data-ff-favourite-use]');
+ if(view){const m=householdFavourites().find(x=>x.id===view.dataset.ffFavouriteView);if(m)showRecipe(m);return;}
+ if(!use)return;const day=document.getElementById('ffFavouriteDay'),raw=day.value,id=use.dataset.ffFavouriteUse;
+ if(raw===''||!Number.isInteger(Number(raw))){showToast('Choose the dinner you want to replace first.');return;}
+ const m=householdFavourites().find(x=>x.id===id),old=meal(Number(raw));
+ if(!m||!old||basketReviewLocked()||state.paydayBackup||state.plan.includes(id))return;
+ if(!window.confirm('Replace '+old.n+' with '+m.n+'? Your shopping estimate may change.'))return;
+ if(replaceWithFavourite(id,Number(raw))){showToast('Favourite added to your plan.');}else showToast('This favourite is no longer available for this plan.');
+});}
 function renderUnsafe(){
-  calc();renderPackedLunchMode();renderBasketReview();personalPriceEditor();
+  calc();renderPackedLunchMode();renderBasketReview();personalPriceEditor();renderFavourites();
   const p=prof(),hasPlan=state.plan.length>0,retailer=selectedRetailer(),autoShop=!RETAILERS[state.supermarket];
   const matchingDinners=hasPlan?-1:allDinners().filter(m=>!hardBlocked(m)).length;
   document.getElementById('profileBtn').textContent=p?p.name:'Set up';
@@ -1778,7 +1804,7 @@ function discardActualTrolley(){
  state.trolley=null;save();renderActualTrolley();
 }
 function renderActualTrolley(){
- renderReceiptComparison();renderBasketReview();renderPackedLunchMode();renderBudgetRescue();personalPriceEditor();
+ renderReceiptComparison();renderBasketReview();renderPackedLunchMode();renderBudgetRescue();personalPriceEditor();renderFavourites();
  const start=document.getElementById('startActualTrolley'),controls=document.getElementById('actualTrolleyControls'),msg=document.getElementById('actualTrolleySummary'),items=document.getElementById('actualItem'),lines=document.getElementById('actualTrolleyLines'),history=document.getElementById('actualReceiptHistory');
  if(!start||!controls||!msg||!items||!lines||!history)return;
  const t=state.trolley,total=trolleyTotal();
