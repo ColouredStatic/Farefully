@@ -192,3 +192,6 @@ body{background:var(--ff-paper)}
   color:#ffffff;
   -webkit-text-fill-color:#ffffff;
 }
+
+/* First-week customer journey */
+.quickstart{padding:48px 0;background:var(--ff-paper)}.step-number{display:grid;place-items:center;width:40px;height:40px;border-radius:50%;background:var(--ff-sage);color:var(--ff-forest);font-size:20px;font-weight:850;margin-bottom:14px}.quickstart-cta{justify-content:center;margin-top:24px}.annual-value{color:#345c48;font-size:14px;font-weight:700}.hero .micro a{font-weight:750;color:var(--ff-forest)}
