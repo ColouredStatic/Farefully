@@ -1,0 +1,22 @@
+name: Public planner deployment check
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'scripts/check-public-release.mjs'
+      - '.github/workflows/public-planner-check.yml'
+permissions:
+  contents: read
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify public assets without signing in
+        run: |
+          set -o pipefail
+          node scripts/check-public-release.mjs | tee -a "$GITHUB_STEP_SUMMARY"
