@@ -7,6 +7,8 @@ on:
       - 'app/app.js'
       - 'app/live-prices.json'
       - 'app/index.html'
+      - 'app/account.html'
+      - 'tests/customer-journey-browser.mjs'
       - 'app/onboarding-polish.js'
       - 'app/onboarding-polish.css'
       - 'tests/onboarding-polish-smoke.mjs'
@@ -37,6 +39,8 @@ on:
       - 'app/app.js'
       - 'app/live-prices.json'
       - 'app/index.html'
+      - 'app/account.html'
+      - 'tests/customer-journey-browser.mjs'
       - 'app/onboarding-polish.js'
       - 'app/onboarding-polish.css'
       - 'tests/onboarding-polish-smoke.mjs'
@@ -128,6 +132,7 @@ jobs:
       - run: npm install --no-save --no-package-lock playwright
       - run: npx playwright install --with-deps chromium
       - run: node tests/whole-shop-mobile-browser.mjs
+      - run: node tests/customer-journey-browser.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
