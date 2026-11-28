@@ -96,6 +96,18 @@ try{
   assert.match(await localPrices.locator('#ffPersonalPriceList').innerText(),/£2\.37/);
   const lp=await localPrices.evaluate(el=>({left:el.getBoundingClientRect().left,right:el.getBoundingClientRect().right,scroll:el.scrollWidth,client:el.clientWidth,viewport:document.documentElement.clientWidth}));
   assert.ok(lp.left>=0&&lp.right<=lp.viewport+1&&lp.scroll<=lp.client+1,'Personal prices overflow at '+width);
+  // Reuse an existing loved recipe without regenerating the full plan.
+  const fav=await page.evaluate(()=>{const m=allDinners().find(x=>!hardBlocked(x)&&!state.plan.includes(x.id));state.ratings[m.id]='love';render();go('plan');return {id:m.id,name:m.n};});
+  const favouritePanel=page.locator('#ffFavourites');
+  await favouritePanel.locator('summary').click();
+  await favouritePanel.locator('#ffFavouriteDay').selectOption('0');
+  const planBefore=await page.evaluate(()=>state.plan.slice(1));
+  page.once('dialog',d=>d.accept());
+  await favouritePanel.locator('[data-ff-favourite-use="'+fav.id+'"]').click();
+  assert.equal(await page.evaluate(()=>state.plan[0]),fav.id);
+  assert.deepEqual(await page.evaluate(()=>state.plan.slice(1)),planBefore);
+  assert.equal(await page.evaluate(()=>JSON.parse(store.get(sk(active))).plan[0]),fav.id);
+  await page.evaluate(()=>go('basket'));
   // Actual trolley: edit a price, include an extra, record checkout total.
   page.on('dialog',d=>d.accept());
   await page.evaluate(()=>{state.shoppingExtras=[{id:'testsoap',name:'Soap'}];render();});
