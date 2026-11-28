@@ -16,6 +16,11 @@ on:
       - 'tests/whole-shop-mobile-browser.mjs'
       - 'index.html'
       - 'assets/styles.css'
+      - 'assets/brand/**'
+      - 'assets/social-share.png'
+      - 'favicon.svg'
+      - 'tests/brand-assets-smoke.mjs'
+      - '.github/workflows/pages.yml'
       - 'tests/plus-basket-smoke.mjs'
       - 'tests/plus-shopping-tools-smoke.mjs'
       - 'tests/basket-layout-smoke.mjs'
@@ -48,6 +53,11 @@ on:
       - 'tests/whole-shop-mobile-browser.mjs'
       - 'index.html'
       - 'assets/styles.css'
+      - 'assets/brand/**'
+      - 'assets/social-share.png'
+      - 'favicon.svg'
+      - 'tests/brand-assets-smoke.mjs'
+      - '.github/workflows/pages.yml'
       - 'tests/plus-basket-smoke.mjs'
       - 'tests/plus-shopping-tools-smoke.mjs'
       - 'tests/basket-layout-smoke.mjs'
@@ -85,6 +95,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Validate approved Foodie F branding and PNG assets
+        run: node tests/brand-assets-smoke.mjs
       - name: Validate application JavaScript syntax
         run: node --check app/app.js
       - name: Validate Plus basket and homepage plans
