@@ -8,7 +8,7 @@
   "scope": "/app/",
   "display": "standalone",
   "background_color": "#f7f3ed",
-  "theme_color": "#176b55",
+  "theme_color": "#073B29",
   "orientation": "any",
   "categories": [
     "food",
